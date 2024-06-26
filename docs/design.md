@@ -23,7 +23,7 @@ statements from financial institutions) for reporting purposes.
 
 ## Entities and Relationships
 
-```mermaidjs
+```mermaid
 erDiagram
     ACCOUNT {
         string name
