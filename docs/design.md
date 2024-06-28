@@ -26,22 +26,67 @@ statements from financial institutions) for reporting purposes.
 ```mermaid
 erDiagram
     ACCOUNT {
+        int    id
         string name
         string type
     }
-    ACCOUNT ||--o{ TRANSACTION : contains
-    ACCOUNT ||--o{ BALANCE : has
+    CATEGORY {
+        int    id
+        string name
+    }
+    
     TRANSACTION {
+        int id
         int date
         string description
         float amount
         string excluded
         int account_fk
+        int category_fk
     }
     BALANCE {
-        int effective_date
+        int id
+        string date
+        string effective_start_date
+        string effective_end_date
         float balance
         int account_fk
     }
-    
+
+    ACCOUNT ||--o{ TRANSACTION : contains
+    ACCOUNT ||--o{ BALANCE : has
+    TRANSACTION }o--|| CATEGORY : belongs_to
 ```
+
+
+
+## Dumping some SQL queries for doc purposes
+
+```sql
+-- balances definition
+--
+--CREATE TABLE balances_v2 (
+--id int primary key,
+--date text not null,
+--effective_start_date text not null,
+--effective_end_date text,
+--amount real not null,
+--account_id int not null,
+--FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE 
+--ON UPDATE NO ACTION
+--);
+
+
+
+-- get items in a SCD that have already started
+--select id, effective_start_date , (effective_start_date < date('now')) AS beforenow from balances_v2;
+
+
+-- get items in a SCD that have not yet expired
+--select id, effective_end_date, ((effective_end_date > date('now')) or (effective_end_date is null)) AS afternow from balances_v2;
+
+-- alternatively - look into setting a separate `current` column, but maybe this is just more work/state to manage
+--select id, effective_start_date, effective_end_date from balances_v2 WHERE is_current=TRUE ;
+
+```
+
