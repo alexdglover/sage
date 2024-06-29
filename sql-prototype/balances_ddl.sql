@@ -1,10 +1,10 @@
 -- balances definition
 
-DROP TABLE balances_v2;
+DROP TABLE IF EXISTS balances;
 
-CREATE TABLE balances_v2 (
+CREATE TABLE balances (
 id int primary key,
-date text not null,
+date text not null, -- date from the statement itself
 effective_start_date text not null,
 effective_end_date text,
 amount real not null,
@@ -13,7 +13,7 @@ FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE
 ON UPDATE NO ACTION
 );
 
-INSERT INTO balances_v2 (
+INSERT INTO balances (
 	id,
 	date,
 	effective_start_date,
@@ -22,14 +22,14 @@ INSERT INTO balances_v2 (
 	account_id
 ) VALUES (
 	1,
-	datetime('now'), -- This will be the actual datetime from the statement in UTC
-	date('now'),
+	date('2024-03-03'), -- This will be the actual datetime from the statement in UTC
+	date('2024-03-03'),
 	date('now', '+180 days'),
 	544548.97,
 	1
 );
 
-INSERT INTO balances_v2 (
+INSERT INTO balances (
 	id,
 	date,
 	effective_start_date,
@@ -38,14 +38,14 @@ INSERT INTO balances_v2 (
 	account_id
 ) VALUES (
 	2,
-	datetime('now'), -- This will be the actual datetime from the statement in UTC
-	date('now'),
-	date('now', '+1 year'),
+	date('2024-01-03'), -- This will be the actual datetime from the statement in UTC
+	date('2024-01-03'),
+	date('2024-04-03'),
 	544544.97,
 	1
 );
 
-INSERT INTO balances_v2 (
+INSERT INTO balances (
 	id,
 	date,
 	effective_start_date,
@@ -54,13 +54,13 @@ INSERT INTO balances_v2 (
 	account_id
 ) VALUES (
 	3,
-	datetime('now'), -- This will be the actual datetime from the statement in UTC
-	date('now'),
+	date('2023-09-23'), -- This will be the actual datetime from the statement in UTC
+	date('2023-09-23'),
 	null,
 	544.11,
 	1
 );
-INSERT INTO balances_v2 (
+INSERT INTO balances (
 	id,
 	date,
 	effective_start_date,
@@ -69,14 +69,14 @@ INSERT INTO balances_v2 (
 	account_id
 ) VALUES (
 	4,
-	datetime('now'), -- This will be the actual datetime from the statement in UTC
-	date('now'),
+	date('2024-05-13'), -- This will be the actual datetime from the statement in UTC
+	date('2024-05-13'),
 	date('now', '+180 days'),
 	544548.97,
 	2
 );
 
-INSERT INTO balances_v2 (
+INSERT INTO balances (
 	id,
 	date,
 	effective_start_date,
@@ -92,7 +92,7 @@ INSERT INTO balances_v2 (
 	2
 );
 
-INSERT INTO balances_v2 (
+INSERT INTO balances (
 	id,
 	date,
 	effective_start_date,

@@ -26,20 +26,20 @@ statements from financial institutions) for reporting purposes.
 
 Note: the ER diagram and SQL scripts are for illustrative purposes. Mermaid
 doesn't support the same types as sqlite or Go, and the SQL scripts below
-will be replaced by GORM behaviors.
+will be replaced by GORM.
 
 ```mermaid
 erDiagram
     ACCOUNT {
         int    id
         string name
-        string type
+        string account_type 
+        string charge_type
     }
     CATEGORY {
         int    id
         string name
     }
-    
     TRANSACTION {
         int id
         int date
@@ -57,48 +57,72 @@ erDiagram
         float balance
         int account_fk
     }
+    BUDGET {
+        int id
+        string name
+        float amount
+    }
 
     ACCOUNT ||--o{ TRANSACTION : contains
     ACCOUNT ||--o{ BALANCE : has
     TRANSACTION }o--|| CATEGORY : belongs_to
+    BUDGET |o--||CATEGORY : applies_to
 ```
 
 ## SQL queries for use cases
 
 ```sql
 -- for the current month, show net income
-WITH income as(
-    SELECT sum(amount) as income from transactions where amount >=0 and date >= '2024-06-01' and date < '2024-06-30'
+WITH assest_increases as(
+    SELECT sum(amount) as amount from transactions 
+    where date >= '2024-06-01' and date < '2024-06-30'
+    and account_id in (select id from accounts where charge_type='asset')
+    and amount >= 0
 ),
-
-expenses as (
-    SELECT sum(amount) as expenses from transactions where amount <0 and date >= '2024-06-01' and date < '2024-06-30'
+assest_decreases as(
+    SELECT sum(amount) as amount from transactions 
+    where date >= '2024-06-01' and date < '2024-06-30'
+    and account_id in (select id from accounts where charge_type='asset')
+    and amount < 0
+),
+liability_increases as(
+    SELECT sum(amount) as amount from transactions 
+    where date >= '2024-06-01' and date < '2024-06-30'
+    and account_id in (select id from accounts where charge_type='liability')
+    and amount >= 0
+),
+liability_decreases as(
+	SELECT sum(amount) as amount from transactions 
+    where date >= '2024-06-01' and date < '2024-06-30'
+    and account_id in (select id from accounts where charge_type='liability')
+    and amount < 0
 )
-SELECT i.income, e.expenses
-FROM income i JOIN expenses e 
+
+select COALESCE(ai.amount, 0) + COALESCE(ld.amount, 0) AS income, COALESCE(ad.amount, 0) + COALESCE(li.amount, 0) AS expenses
+from assest_increases ai join assest_decreases ad join liability_increases li join liability_decreases ld;
 
 -- show net income by month
-WITH income as(
-    SELECT sum(amount) as income from transactions where amount >=0
+-- using same `WITH` common table expressions as prevous example...
+select COALESCE(ai.amount, 0) + COALESCE(ld.amount, 0) AS income, COALESCE(ad.amount, 0) + COALESCE(li.amount, 0) AS expenses, strftime('%Y-%m') as yearmonth
+from assest_increases ai join assest_decreases ad join liability_increases li join liability_decreases ld
+GROUP BY yearmonth;
+
+
+-- get balances (as a SCD) that have already started
+SELECT id, effective_start_date , (effective_start_date < date('now')) AS balance_started from balances WHERE balance_started=1;
+
+
+-- get balances (as a SCD) that have not yet expired
+SELECT id, effective_end_date, ((effective_end_date > date('now')) or (effective_end_date is null)) AS balance_not_ended from balances WHERE balance_not_ended=1;
+
+-- combine the two to get active balances
+WITH started AS (
+    SELECT * , (effective_start_date < date('now')) AS balance_started from balances WHERE balance_started=1
 ),
-
-expenses as (
-    SELECT sum(amount) as expenses from transactions where amount <0
+not_ended AS (
+    SELECT *, ((effective_end_date > date('now')) or (effective_end_date is null)) AS balance_not_ended from balances WHERE balance_not_ended=1   
 )
-SELECT i.income, e.expenses
-FROM income i JOIN expenses e ON i.year_month = e.year_month -- need to figure out this year-month bit yet
-
-
-
--- get items in a SCD that have already started
-SELECT id, effective_start_date , (effective_start_date < date('now')) AS beforenow from balances_v2;
-
-
--- get items in a SCD that have not yet expired
-SELECT id, effective_end_date, ((effective_end_date > date('now')) or (effective_end_date is null)) AS afternow from balances_v2;
-
--- alternatively - look into setting a separate `current` column, but maybe this is just more work/state to manage
-SELECT id, effective_start_date, effective_end_date from balances_v2 WHERE is_current=TRUE ;
+SELECT s.id, s.amount FROM started s JOIN not_ended n ON s.id=n.id;
 
 ```
 

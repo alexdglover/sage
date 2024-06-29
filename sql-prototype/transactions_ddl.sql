@@ -17,4 +17,9 @@ CREATE TABLE transactions (
 INSERT INTO transactions 
     (id, date, description, amount, excluded, account_id, category_id)
 VALUES 
-    (1, date('now'), 'VSUXI Wonderground Coffee vend#129087213', 1241.11, false, 1, 1);
+    (1, date('now'), 'Paycheck', 1241.11, false, 1, 1);
+
+INSERT INTO transactions 
+    (id, date, description, amount, excluded, account_id, category_id)
+VALUES 
+    (2, date('now'), 'ATM Withdrawal', 100.00, false, 1, 1);
