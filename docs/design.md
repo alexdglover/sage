@@ -7,7 +7,8 @@ Intuit's Mint offered reporting on several personal finance aspects:
 * Assets, liabilities, and net worth over time
 * Monthly spending by category, or by other dimensions
 * Monthly spending over time
-* 
+* Income over time
+* Net income over time
 
 While Mint was extremely useful, you only need two types of data to achieve
 all of the reporting listed above. Namely, you need
@@ -22,6 +23,10 @@ will simply use the calculated balance (as part of the data provided in
 statements from financial institutions) for reporting purposes.
 
 ## Entities and Relationships
+
+Note: the ER diagram and SQL scripts are for illustrative purposes. Mermaid
+doesn't support the same types as sqlite or Go, and the SQL scripts below
+will be replaced by GORM behaviors.
 
 ```mermaid
 erDiagram
@@ -58,35 +63,42 @@ erDiagram
     TRANSACTION }o--|| CATEGORY : belongs_to
 ```
 
-
-
-## Dumping some SQL queries for doc purposes
+## SQL queries for use cases
 
 ```sql
--- balances definition
---
---CREATE TABLE balances_v2 (
---id int primary key,
---date text not null,
---effective_start_date text not null,
---effective_end_date text,
---amount real not null,
---account_id int not null,
---FOREIGN KEY (account_id) REFERENCES accounts (id) ON DELETE CASCADE 
---ON UPDATE NO ACTION
---);
+-- for the current month, show net income
+WITH income as(
+    SELECT sum(amount) as income from transactions where amount >=0 and date >= '2024-06-01' and date < '2024-06-30'
+),
+
+expenses as (
+    SELECT sum(amount) as expenses from transactions where amount <0 and date >= '2024-06-01' and date < '2024-06-30'
+)
+SELECT i.income, e.expenses
+FROM income i JOIN expenses e 
+
+-- show net income by month
+WITH income as(
+    SELECT sum(amount) as income from transactions where amount >=0
+),
+
+expenses as (
+    SELECT sum(amount) as expenses from transactions where amount <0
+)
+SELECT i.income, e.expenses
+FROM income i JOIN expenses e ON i.year_month = e.year_month -- need to figure out this year-month bit yet
 
 
 
 -- get items in a SCD that have already started
---select id, effective_start_date , (effective_start_date < date('now')) AS beforenow from balances_v2;
+SELECT id, effective_start_date , (effective_start_date < date('now')) AS beforenow from balances_v2;
 
 
 -- get items in a SCD that have not yet expired
---select id, effective_end_date, ((effective_end_date > date('now')) or (effective_end_date is null)) AS afternow from balances_v2;
+SELECT id, effective_end_date, ((effective_end_date > date('now')) or (effective_end_date is null)) AS afternow from balances_v2;
 
 -- alternatively - look into setting a separate `current` column, but maybe this is just more work/state to manage
---select id, effective_start_date, effective_end_date from balances_v2 WHERE is_current=TRUE ;
+SELECT id, effective_start_date, effective_end_date from balances_v2 WHERE is_current=TRUE ;
 
 ```
 
