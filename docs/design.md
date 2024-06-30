@@ -61,6 +61,7 @@ erDiagram
         int id
         string name
         float amount
+        int category_fk
     }
 
     ACCOUNT ||--o{ TRANSACTION : contains
