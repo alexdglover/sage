@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 type Account struct {
 	gorm.Model
-	Name             string
-	AccountType      string
-	AssetOrLiability string
+	Name            string
+	AccountCategory string
+	AccountType     string
 }

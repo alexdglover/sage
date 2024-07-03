@@ -25,14 +25,38 @@ func (br BalanceRepository) GetAllBalances(ctx context.Context) ([]Balance, erro
 }
 
 func (br BalanceRepository) GetBalancesOfAllAssets(ctx context.Context, startYearMonth string, endYearMonth string) []Balance {
+	// TODO: Replace this with something more idiomatic to GORM if possible
 	var result []Balance
-	db.Preload("Accounts", "asset_or_liability = 'asset'").Find(&result)
+	db.Raw(`SELECT *
+		FROM balances
+		WHERE account_id in (
+			SELECT id
+			FROM accounts
+			WHERE account_type="asset"
+		)
+		AND effective_start_date >= ?
+		AND (effective_end_date < ? or effective_end_date is null)`,
+		startYearMonth,
+		endYearMonth,
+	).Scan(&result)
 	return result
 }
 
 func (br BalanceRepository) GetBalancesOfAllLiabilities(ctx context.Context, startYearMonth string, endYearMonth string) []Balance {
+	// TODO: Replace this with something more idiomatic to GORM if possible
 	var result []Balance
-	db.Preload("Accounts", "asset_or_liability = 'liability'").Find(&result)
+	db.Raw(`SELECT *
+		FROM balances
+		WHERE account_id in (
+			SELECT id
+			FROM accounts
+			WHERE account_type="liability"
+		)
+		AND effective_start_date >= ?
+		AND (effective_end_date < ? or effective_end_date is null)`,
+		startYearMonth,
+		endYearMonth,
+	).Scan(&result)
 	return result
 }
 
