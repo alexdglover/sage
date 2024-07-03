@@ -3,23 +3,23 @@ package main
 import (
 	"context"
 
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/alexdglover/sage/internal"
 	"github.com/alexdglover/sage/internal/api"
+	"github.com/alexdglover/sage/internal/models"
 )
+
+type Configuration struct {
+	DbConnection *gorm.DB
+}
+
+var Config Configuration
 
 func main() {
 
 	ctx := context.TODO()
 
-	db, err := gorm.Open(sqlite.Open("sage.db"), &gorm.Config{})
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	internal.BootstrapTables(ctx, db)
+	models.BootstrapDatabase(ctx)
 
 	// start an API server
 	api.StartApiServer(ctx)

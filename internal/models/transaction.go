@@ -6,7 +6,7 @@ type Transaction struct {
 	gorm.Model
 	Date        string
 	Description string
-	Amount      float64
+	Amount      float32
 	Excluded    string
 	AccountId   uint
 	Account     Account

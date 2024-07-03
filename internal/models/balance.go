@@ -7,7 +7,7 @@ type Balance struct {
 	Date               string
 	EffectiveStartDate string
 	EffectiveEndDate   string
-	Balance            float64
+	Balance            float32
 	AccountId          uint
 	Account            Account
 }
