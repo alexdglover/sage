@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"text/template"
@@ -24,6 +25,7 @@ type dashboardTmplVariables struct {
 
 func StartApiServer(ctx context.Context) {
 	http.HandleFunc("/", dashboardHandler)
+	http.HandleFunc("/net-worth", netWorthHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -93,4 +95,8 @@ func dashboardHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func netWorthHandler(w http.ResponseWriter, req *http.Request) {
+	io.WriteString(w, "howdy howdy howdy")
 }

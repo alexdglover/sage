@@ -9,6 +9,15 @@ func BootstrapDatabase(ctx context.Context) {
 	// Instantiate the sqlite client singleton
 	createDbClient()
 
+	// Conditionally drop all tables to start from scratch
+	if os.Getenv("DROP_TABLES") != "" {
+		db.Migrator().DropTable(&Account{})
+		db.Migrator().DropTable(&Balance{})
+		db.Migrator().DropTable(&Budget{})
+		db.Migrator().DropTable(&Category{})
+		db.Migrator().DropTable(&Transaction{})
+	}
+
 	// Migrate the schema
 	db.AutoMigrate(&Account{})
 	db.AutoMigrate(&Balance{})
