@@ -1,0 +1,84 @@
+<h2>Net worth</h2>
+<canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
+
+<script>
+  /* globals Chart:false, feather:false */
+
+(function () {
+  'use strict'
+
+  feather.replace({ 'aria-hidden': 'true' })
+
+  // Graphs
+  var ctx = document.getElementById('myChart')
+  // eslint-disable-next-line no-unused-vars
+  var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [
+        {{ range $key, $value := .DataPoints }}
+        "{{ $key }}",
+        {{ end }}
+      ],
+      datasets: [
+        {
+          label: 'Assets',
+          fill: true,
+          data: [
+          {{ range $key, $value := .DataPoints }}
+          "{{ index $value "assets" }}",
+          {{ end }}
+          ],
+          lineTension: 0,
+          backgroundColor: '#198754',
+          borderColor: '#198754',
+          borderWidth: 4,
+          pointBackgroundColor: '#198754'
+        },
+        {
+          label: 'Liabilities',
+          fill: true,
+          data: [
+          {{ range $key, $value := .DataPoints }}
+          "{{ index $value "liabilities" }}",
+          {{ end }}
+          ],
+          lineTension: 0,
+          backgroundColor: '#dc3545',
+          borderColor: '#dc3545',
+          borderWidth: 4,
+          pointBackgroundColor: '#dc3545'
+        },
+        {
+          label: 'Liabilities',
+          fill: false,
+          data: [
+          {{ range $key, $value := .DataPoints }}
+          "{{ index $value "netWorth" }}",
+          {{ end }}
+          ],
+          lineTension: 0,
+          backgroundColor: '#000000',
+          borderColor: '#000000',
+          borderWidth: 4,
+          borderDash: [5, 5],
+          pointBackgroundColor: '#000000'
+        }
+      ]
+    },
+    options: {
+      scales: {
+        yAxes: [{
+          ticks: {
+            beginAtZero: false
+          }
+        }]
+      },
+      legend: {
+        display: false
+      }
+    }
+  })
+})()
+
+</script>
