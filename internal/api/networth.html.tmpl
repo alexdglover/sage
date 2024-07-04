@@ -85,3 +85,26 @@
 })()
 
 </script>
+
+<div class="table-responsive">
+  <table class="table table-striped table-sm">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Assets</th>
+        <th scope="col">Liabilities</th>
+        <th scope="col">Net Worth</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range $key, $value := .DataPoints }}
+      <tr>
+        <td>{{ $key }}</td>
+        <td>${{ index $value "assets" }}</td>
+        <td>${{ index $value "liabilities" }}</td>
+        <td>${{ index $value "netWorth" }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
