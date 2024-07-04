@@ -1,5 +1,7 @@
 <h2>Net worth</h2>
-<canvas class="my-4 w-100" id="myChart" width="900" height="380"></canvas>
+<div style="padding-left: 100px; padding-right: 100px;">
+  <canvas class="my-4 w-100" id="myChart"></canvas>
+</div>
 
 <script>
   /* globals Chart:false, feather:false */
@@ -19,6 +21,21 @@
         {{ end }}
       ],
       datasets: [
+        {
+          label: 'Net Worth',
+          fill: false,
+          data: [
+          {{ range $key, $value := .DataPoints }}
+          "{{ index $value "netWorth" }}",
+          {{ end }}
+          ],
+          lineTension: 0,
+          backgroundColor: '#000000',
+          borderColor: '#000000',
+          borderWidth: 4,
+          borderDash: [5, 5],
+          pointBackgroundColor: '#000000'
+        },
         {
           label: 'Assets',
           fill: true,
@@ -46,34 +63,22 @@
           borderColor: '#dc3545',
           borderWidth: 4,
           pointBackgroundColor: '#dc3545'
-        },
-        {
-          label: 'Liabilities',
-          fill: false,
-          data: [
-          {{ range $key, $value := .DataPoints }}
-          "{{ index $value "netWorth" }}",
-          {{ end }}
-          ],
-          lineTension: 0,
-          backgroundColor: '#000000',
-          borderColor: '#000000',
-          borderWidth: 4,
-          borderDash: [5, 5],
-          pointBackgroundColor: '#000000'
         }
       ]
     },
     options: {
       scales: {
-        yAxes: [{
-          ticks: {
-            beginAtZero: false
-          }
-        }]
+        y: {
+            ticks: {
+                // Include a dollar sign in the ticks
+                callback: function(value, index, ticks) {
+                    return '$' + value;
+                }
+            }
+        }
       },
       legend: {
-        display: false
+        display: true
       }
     }
   })
