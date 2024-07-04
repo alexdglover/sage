@@ -3,7 +3,11 @@ An alternative to Intuit's recently retired Mint application for tracking person
 
 ## Quickstart
 
-Stub for now
+1. Clone the repo locally
+2. Run
+   ```sh
+   DROP_TABLES=true ADD_SAMPLE_DATA=true go run main.go
+   ```
 
 ## Documentation
 
