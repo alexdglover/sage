@@ -266,7 +266,11 @@
           </button>
         </div>
       </div>
-      <div id="reportContent">
+      <div id="reportContent"
+        hx-post="/dashboard"
+        hx-trigger="load"
+        hx-target="#reportContent"
+        hx-swap="innerHTML">
         <h2>Dashboard</h2>
         <p>This section will have alerts/notifications that should be prominent for the user.</p>
         <p>Click on the "Net worth" link on the left to see a report</p>
