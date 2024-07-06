@@ -1,5 +1,40 @@
 <h2>Net worth</h2>
-<div style="padding-left: 100px; padding-right: 100px;">
+
+<div style="padding-left: 10%; padding-right: 10%;">
+  <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
+    <button
+      type="button"
+      class="btn btn-primary {{ if .AllTimeActive }}active{{end}}"
+      hx-get="/net-worth?relativeWindow=allTime"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      All time
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary {{ if .Last12MonthsActive }}active{{end}}"
+      hx-get="/net-worth?relativeWindow=12"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 12 months
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary {{ if .Last6MonthsActive }}active{{end}}"
+      hx-get="/net-worth?relativeWindow=6"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 6 months
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary {{ if .Last3MonthsActive }}active{{end}}"
+      hx-get="/net-worth?relativeWindow=3"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 3 months
+    </button>
+  </div>
   <canvas class="my-4 w-100" id="myChart"></canvas>
 </div>
 

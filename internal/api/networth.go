@@ -18,25 +18,51 @@ var netWorthTmpl string
 type DataPoint map[string]float32
 
 type netWorthTmplVariables struct {
-	DataPoints map[string]DataPoint
+	AllTimeActive      bool
+	Last12MonthsActive bool
+	Last6MonthsActive  bool
+	Last3MonthsActive  bool
+	DataPoints         map[string]DataPoint
 }
 
 // TODO: Consider moving this into a service class that returns just the data needed
 func netWorthHandler(w http.ResponseWriter, req *http.Request) {
-	// hardcoded for prototyping, need to get this from the UI eventually
-
-	dateRange := []time.Time{}
-
-	// Let's assume we'll always get the end date, as this will be today
-	endDate, err := time.Parse("2006-01", "2024-07")
-	if err != nil {
-		fmt.Println("Could not parse time:", err)
+	var relativeWindow int
+	tmplVariables := netWorthTmplVariables{}
+	if req.FormValue("relativeWindow") == "" {
+		relativeWindow = 6
+		tmplVariables.Last6MonthsActive = true
+	} else {
+		switch req.FormValue("relativeWindow") {
+		case "12":
+			relativeWindow = 12
+			tmplVariables.Last12MonthsActive = true
+		case "6":
+			relativeWindow = 6
+			tmplVariables.Last6MonthsActive = true
+		case "3":
+			relativeWindow = 3
+			tmplVariables.Last3MonthsActive = true
+		case "allTime":
+			// 100 years in months, as a useful approximation of all time
+			relativeWindow = 1200
+			tmplVariables.AllTimeActive = true
+		default:
+			fmt.Println("invalid relative window provided, falling back to 6 months")
+			relativeWindow = 6
+			tmplVariables.Last6MonthsActive = true
+		}
 	}
-	// And we want the last 6 months (this will be variable, but let's
-	// assume it will be the last N months)
-	startDate := endDate.AddDate(0, -5, 0)
 
-	// Iterate over each month between start and end dates
+	// slice of months that we will report on
+	dateRange := []time.Time{}
+	// We always start with today's date and work backwards based on relative window value
+	endDate := time.Now()
+	// Decrement relativeWindow by 1 (to account for current month already being included)
+	relativeWindow = relativeWindow - 1
+	// And calculate start date
+	startDate := endDate.AddDate(0, (relativeWindow * -1), 0)
+	// Iterate over each month between start and end dates to build dateRange slice
 	for date := startDate; !date.After(endDate); date = date.AddDate(0, 1, 0) {
 		dateRange = append(dateRange, date)
 	}
@@ -76,9 +102,7 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 		dataPointSet[date]["netWorth"] = dataPointSet[date]["assets"] + dataPointSet[date]["liabilities"]
 	}
 
-	tmplVariables := netWorthTmplVariables{
-		DataPoints: dataPointSet,
-	}
+	tmplVariables.DataPoints = dataPointSet
 	tmpl, err := template.New("netWorthDashboard").Parse(netWorthTmpl)
 	if err != nil {
 		panic(err)
@@ -88,7 +112,3 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 }
-
-// func netWorthHandler(w http.ResponseWriter, req *http.Request) {
-// 	io.WriteString(w, "<html><body><strong>howdy howdy howdy</strong></body></html>")
-// }
