@@ -4,7 +4,7 @@
   <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
     <button
       type="button"
-      class="btn btn-primary {{ if .AllTimeActive }}active{{end}}"
+      class="btn {{ if .AllTimeActive }}btn-dark{{else}}btn-outline-dark{{end}}"
       hx-get="/net-worth?relativeWindow=allTime"
       hx-target="#reportContent"
       hx-swap="innerHTML">
@@ -12,7 +12,7 @@
     </button>
     <button
       type="button"
-      class="btn btn-primary {{ if .Last12MonthsActive }}active{{end}}"
+      class="btn {{ if .Last12MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
       hx-get="/net-worth?relativeWindow=12"
       hx-target="#reportContent"
       hx-swap="innerHTML">
@@ -20,7 +20,7 @@
     </button>
     <button
       type="button"
-      class="btn btn-primary {{ if .Last6MonthsActive }}active{{end}}"
+      class="btn {{ if .Last6MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
       hx-get="/net-worth?relativeWindow=6"
       hx-target="#reportContent"
       hx-swap="innerHTML">
@@ -28,7 +28,7 @@
     </button>
     <button
       type="button"
-      class="btn btn-primary {{ if .Last3MonthsActive }}active{{end}}"
+      class="btn {{ if .Last3MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
       hx-get="/net-worth?relativeWindow=3"
       hx-target="#reportContent"
       hx-swap="innerHTML">
