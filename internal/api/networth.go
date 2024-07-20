@@ -55,7 +55,7 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// slice of months that we will report on
-	dateRange := []time.Time{}
+	// dateRange := []time.Time{}
 	// We always start with today's date and work backwards based on relative window value
 	endDate := time.Now()
 	// Decrement relativeWindow by 1 (to account for current month already being included)
@@ -63,39 +63,43 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 	// And calculate start date
 	startDate := endDate.AddDate(0, (relativeWindow * -1), 0)
 	// Iterate over each month between start and end dates to build dateRange slice
-	for date := startDate; !date.After(endDate); date = date.AddDate(0, 1, 0) {
-		dateRange = append(dateRange, date)
-	}
+	// for date := startDate; !date.After(endDate); date = date.AddDate(0, 1, 0) {
+	// 	dateRange = append(dateRange, date)
+	// }
 
 	br := models.GetBalanceRepository()
-	assetBalances := br.GetBalancesOfAllAssets(context.TODO(), startDate.Format("2006-01"), endDate.Format("2006-01"))
-	liabilityBalances := br.GetBalancesOfAllLiabilities(context.TODO(), startDate.Format("2006-01"), endDate.Format("2006-01"))
+	// assetBalances := br.GetBalancesOfAllAssets(context.TODO(), startDate, endDate)
+	assetBalances := br.GetBalancesOfAllAssetsByMonth(context.TODO(), startDate, endDate)
+	fmt.Println("asset balances are: ", assetBalances)
+	// liabilityBalances := br.GetBalancesOfAllLiabilities(context.TODO(), startDate, endDate)
 
 	dataPointSet := map[string]DataPoint{}
 
-	for _, date := range dateRange {
-		yearMonth := date.Format("2006-01")
+	for _, balancesByDate := range assetBalances {
+		yearMonth := balancesByDate.Date.Format("2006-01")
 		dataPointSet[yearMonth] = DataPoint{}
 
-		for _, balance := range assetBalances {
-			esd, err := time.Parse("2006-01-02", balance.EffectiveStartDate)
-			if err != nil {
-				fmt.Println("Could not parse time:", err)
-			}
-			if esd.Year() == date.Year() && esd.Month() == date.Month() {
-				dataPointSet[yearMonth]["assets"] = dataPointSet[yearMonth]["assets"] + balance.Balance
-			}
+		for _, balance := range balancesByDate.Balances {
+			// esd, err := time.Parse("2006-01-02", balance.EffectiveStartDate)
+			// if err != nil {
+			// 	fmt.Println("Could not parse time:", err)
+			// }
+			// if esd.Year() == date.Year() && esd.Month() == date.Month() {
+			// 	dataPointSet[yearMonth]["assets"] = dataPointSet[yearMonth]["assets"] + balance.Balance
+			// }
+			dataPointSet[yearMonth]["assets"] = dataPointSet[yearMonth]["assets"] + balance.Balance
+			dataPointSet[yearMonth]["liabilities"] = dataPointSet[yearMonth]["liabilities"] + 5
 		}
 
-		for _, balance := range liabilityBalances {
-			esd, err := time.Parse("2006-01-02", balance.EffectiveStartDate)
-			if err != nil {
-				fmt.Println("Could not parse time:", err)
-			}
-			if esd.Year() == date.Year() && esd.Month() == date.Month() {
-				dataPointSet[yearMonth]["liabilities"] = dataPointSet[yearMonth]["liabilities"] - balance.Balance
-			}
-		}
+		// for _, balance := range liabilityBalances {
+		// 	esd, err := time.Parse("2006-01-02", balance.EffectiveStartDate)
+		// 	if err != nil {
+		// 		fmt.Println("Could not parse time:", err)
+		// 	}
+		// 	if esd.Year() == date.Year() && esd.Month() == date.Month() {
+		// 		dataPointSet[yearMonth]["liabilities"] = dataPointSet[yearMonth]["liabilities"] - balance.Balance
+		// 	}
+		// }
 	}
 
 	for date := range dataPointSet {

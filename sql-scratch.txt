@@ -1,0 +1,41 @@
+WITH RECURSIVE months AS (
+    SELECT '2024-01-01' AS month_start
+    UNION ALL
+    SELECT date(month_start, '+1 month')
+    FROM months
+    WHERE month_start < '2024-05-01'
+)
+SELECT
+    m.month_start,
+    b.balance
+FROM
+    months m
+LEFT JOIN
+    balances b
+ON
+    b.effective_start_date <= date(m.month_start, 'start of month', '+1 month', '-1 day') AND
+    (b.effective_end_date IS NULL OR b.effective_end_date = '' OR b.effective_end_date >= m.month_start)
+WHERE
+    m.month_start <= '2024-05-01';
+
+
+WITH RECURSIVE months AS (
+    SELECT '2024-01-01' AS month_start
+    UNION ALL
+    SELECT date(month_start, '+1 month')
+    FROM months
+    WHERE month_start < '2024-05-01'
+)
+SELECT
+    m.month_start,
+    sum(b.balance)
+FROM
+    months m
+LEFT JOIN
+    balances b
+ON
+    b.effective_start_date <= date(m.month_start, 'start of month', '+1 month', '-1 day') AND
+    (b.effective_end_date IS NULL OR b.effective_end_date = '' OR b.effective_end_date >= m.month_start)
+WHERE
+    m.month_start <= '2024-05-01'
+GROUP BY m.month_start;

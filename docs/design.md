@@ -22,6 +22,28 @@ the app by letting the financial institutions do the hard part, and Sage
 will simply use the calculated balance (as part of the data provided in
 statements from financial institutions) for reporting purposes.
 
+## A note on balances
+
+Statements from financial institutions don't perfectly align with the first and
+last day of the month. For example, a statement may be for the period of March
+15 to April 14. Sage also supports open-ended balances, for infrequently
+updated assets (like your car or house for example). In these cases, a start
+date for the balance is defined, but not an end date.
+
+Sage reports on balances by month and year, such as January 2024. To do this,
+Sage uses the following logic to group balances by month and year:
+
+1. Select all months requested in a report, using either a one-off calculation
+or a date dimension table (TBD).
+1. Join this data on all balances where the balance's start date is before the
+last day of the given month, and the end date is after the first day of the
+month (or null).
+
+This captures all balances while handling discrepancies in when a balance
+starts or ends. Note that this does create the possibility of double counting
+balances for a particular account, if more than one balance meets the above
+criteria.
+
 ## Entities and Relationships
 
 Note: the ER diagram and SQL scripts are for illustrative purposes. Mermaid

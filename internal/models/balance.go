@@ -6,7 +6,7 @@ type Balance struct {
 	gorm.Model
 	Date               string
 	EffectiveStartDate string
-	EffectiveEndDate   string
+	EffectiveEndDate   *string
 	Balance            float32
 	AccountId          uint
 	Account            Account

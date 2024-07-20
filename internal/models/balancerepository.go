@@ -1,14 +1,18 @@
 package models
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"time"
+)
 
 type BalanceRepository struct{}
 
 var balanceRepository *BalanceRepository
 
-type BalanceAmount struct {
-	Date    string
-	Balance int
+type BalancesWithDate struct {
+	Date     time.Time
+	Balances []Balance
 }
 
 func GetBalanceRepository() *BalanceRepository {
@@ -35,7 +39,34 @@ func (br BalanceRepository) GetBalancesOfAllAssets(ctx context.Context, startYea
 	return result
 }
 
-func (br BalanceRepository) GetBalancesOfAllLiabilities(ctx context.Context, startYearMonth string, endYearMonth string) []Balance {
+func (br BalanceRepository) GetBalancesOfAllAssetsByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
+	var result []BalancesWithDate
+	assetAccountIds := db.Select("id").Where("account_type=?", "asset").Table("accounts")
+
+	//create a slice of months in Go instead of relying on SQL
+	months := []time.Time{}
+	for month := startYearMonth; month.Before(endYearMonth.AddDate(0, 1, 0)); month = month.AddDate(0, 1, 0) {
+		months = append(months, month)
+	}
+
+	fmt.Println("months are ", months)
+
+	for _, month := range months {
+		var balances []Balance
+		nextMonth := month.AddDate(0, 1, 0)
+		db.Where("account_id IN (?)", assetAccountIds).
+			Where("effective_start_date <= ?", nextMonth).
+			Where("effective_end_date IS NULL OR effective_end_date >= ?", month).Find(&balances)
+		result = append(result, BalancesWithDate{
+			Date:     month,
+			Balances: balances,
+		})
+	}
+
+	return result
+}
+
+func (br BalanceRepository) GetBalancesOfAllLiabilities(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []Balance {
 	var result []Balance
 	liabilityAccountIds := db.Select("id").Where("account_type=?", "liability").Table("accounts")
 	db.Select("*").
