@@ -3,6 +3,8 @@ package models
 import (
 	"context"
 	"os"
+
+  "github.com/alexdglover/sage/internal/utils"
 )
 
 func BootstrapDatabase(ctx context.Context) {
@@ -37,8 +39,8 @@ func BootstrapDatabase(ctx context.Context) {
 		db.Create(&Account{Name: "schmisa", AccountCategory: "credit card", AccountType: "liability"})
 
 		// Create balances
-		db.Create(&Balance{Date: "2024-02-13", EffectiveStartDate: "2024-02-13", Balance: 410.62, AccountId: 1})
-		db.Create(&Balance{Date: "2024-02-17", EffectiveStartDate: "2024-02-17", Balance: 173.87, AccountId: 2})
+		db.Create(&Balance{Date: "2024-02-13", EffectiveStartDate: "2024-02-13", EffectiveEndDate: utils.strPointer("2024-03-12"), Balance: 410.62, AccountId: 1})
+		db.Create(&Balance{Date: "2024-02-17", EffectiveStartDate: "2024-02-17", EffectiveEndDate: utils.strPointer("2024-03-16"), Balance: 173.87, AccountId: 2})
 		db.Create(&Balance{Date: "2024-03-13", EffectiveStartDate: "2024-03-13", Balance: 420.32, AccountId: 1})
 		db.Create(&Balance{Date: "2024-03-17", EffectiveStartDate: "2024-03-17", Balance: 103.87, AccountId: 2})
 		db.Create(&Balance{Date: "2024-04-13", EffectiveStartDate: "2024-04-13", Balance: 490.32, AccountId: 1})

@@ -71,35 +71,32 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 	// assetBalances := br.GetBalancesOfAllAssets(context.TODO(), startDate, endDate)
 	assetBalances := br.GetBalancesOfAllAssetsByMonth(context.TODO(), startDate, endDate)
 	fmt.Println("asset balances are: ", assetBalances)
+
 	// liabilityBalances := br.GetBalancesOfAllLiabilities(context.TODO(), startDate, endDate)
+	liabilityBalances := br.GetBalancesOfAllLiabilitiesByMonth(context.TODO(), startDate, endDate)
+	fmt.Println("liability balances are: ", liabilityBalances)
 
 	dataPointSet := map[string]DataPoint{}
 
 	for _, balancesByDate := range assetBalances {
 		yearMonth := balancesByDate.Date.Format("2006-01")
-		dataPointSet[yearMonth] = DataPoint{}
-
-		for _, balance := range balancesByDate.Balances {
-			// esd, err := time.Parse("2006-01-02", balance.EffectiveStartDate)
-			// if err != nil {
-			// 	fmt.Println("Could not parse time:", err)
-			// }
-			// if esd.Year() == date.Year() && esd.Month() == date.Month() {
-			// 	dataPointSet[yearMonth]["assets"] = dataPointSet[yearMonth]["assets"] + balance.Balance
-			// }
-			dataPointSet[yearMonth]["assets"] = dataPointSet[yearMonth]["assets"] + balance.Balance
-			dataPointSet[yearMonth]["liabilities"] = dataPointSet[yearMonth]["liabilities"] + 5
+		if dataPointSet[yearMonth] == nil {
+			dataPointSet[yearMonth] = DataPoint{}
 		}
 
-		// for _, balance := range liabilityBalances {
-		// 	esd, err := time.Parse("2006-01-02", balance.EffectiveStartDate)
-		// 	if err != nil {
-		// 		fmt.Println("Could not parse time:", err)
-		// 	}
-		// 	if esd.Year() == date.Year() && esd.Month() == date.Month() {
-		// 		dataPointSet[yearMonth]["liabilities"] = dataPointSet[yearMonth]["liabilities"] - balance.Balance
-		// 	}
-		// }
+		for _, balance := range balancesByDate.Balances {
+			dataPointSet[yearMonth]["assets"] = dataPointSet[yearMonth]["assets"] + balance.Balance
+		}
+	}
+
+	for _, balancesByDate := range liabilityBalances {
+		yearMonth := balancesByDate.Date.Format("2006-01")
+		if dataPointSet[yearMonth] == nil {
+			dataPointSet[yearMonth] = DataPoint{}
+		}
+		for _, balance := range balancesByDate.Balances {
+			dataPointSet[yearMonth]["liabilities"] = dataPointSet[yearMonth]["liabilities"] - balance.Balance
+		}
 	}
 
 	for date := range dataPointSet {
