@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
 
@@ -41,8 +40,6 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 	if accountType != "asset" && accountType != "liability" {
 		panic("only `asset` or `liability` are valid accountType options")
 	}
-
-	fmt.Println("start and end range: ", startYearMonth, endYearMonth)
 
 	var result []BalancesWithDate
 	assetAccountIds := db.Select("id").Where("account_type=?", accountType).Table("accounts")

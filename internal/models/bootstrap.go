@@ -37,8 +37,13 @@ func BootstrapDatabase(ctx context.Context) {
 		// Create one asset account and one liability account
 		db.Create(&Account{Name: "schwaby", AccountCategory: "savings", AccountType: "asset"})
 		db.Create(&Account{Name: "schmisa", AccountCategory: "credit card", AccountType: "liability"})
+		db.Create(&Account{Name: "My House", AccountCategory: "real estate", AccountType: "asset"})
+		db.Create(&Account{Name: "Mortgage", AccountCategory: "loan", AccountType: "liability"})
 
 		// Create balances
+		db.Create(&Balance{Date: "2024-01-17", EffectiveStartDate: "2024-01-17", Balance: 2500, AccountId: 3})
+		db.Create(&Balance{Date: "2024-01-17", EffectiveStartDate: "2024-01-17", Balance: 1250, AccountId: 4})
+
 		db.Create(&Balance{Date: "2024-02-13", EffectiveStartDate: "2024-01-13", EffectiveEndDate: utils.StrPointer("2024-02-12"), Balance: 210.13, AccountId: 1})
 		db.Create(&Balance{Date: "2024-02-17", EffectiveStartDate: "2024-01-17", EffectiveEndDate: utils.StrPointer("2024-02-16"), Balance: 101.11, AccountId: 2})
 		db.Create(&Balance{Date: "2024-02-13", EffectiveStartDate: "2024-02-13", EffectiveEndDate: utils.StrPointer("2024-03-12"), Balance: 410.62, AccountId: 1})
@@ -51,8 +56,6 @@ func BootstrapDatabase(ctx context.Context) {
 		db.Create(&Balance{Date: "2024-04-17", EffectiveStartDate: "2024-05-17", EffectiveEndDate: utils.StrPointer("2024-06-16"), Balance: 140.44, AccountId: 2})
 		db.Create(&Balance{Date: "2024-04-13", EffectiveStartDate: "2024-06-13", EffectiveEndDate: utils.StrPointer("2024-07-12"), Balance: 632.01, AccountId: 1})
 		db.Create(&Balance{Date: "2024-04-17", EffectiveStartDate: "2024-06-17", EffectiveEndDate: utils.StrPointer("2024-07-16"), Balance: 132.55, AccountId: 2})
-		// db.Create(&Balance{Date: "2024-04-13", EffectiveStartDate: "2024-07-13", EffectiveEndDate: utils.StrPointer("2024-08-12"), Balance: 699.74, AccountId: 1})
-		// db.Create(&Balance{Date: "2024-04-17", EffectiveStartDate: "2024-07-17", EffectiveEndDate: utils.StrPointer("2024-08-16"), Balance: 102.76, AccountId: 2})
 
 	}
 
