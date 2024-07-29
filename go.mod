@@ -17,4 +17,4 @@ require (
 
 // replace github.com/alexdglover/sage/internal/models => ./internal/models
 
-replace github.com/alexdglover/sage/internal/utils => ./internal/utils
+// replace github.com/alexdglover/sage/internal/utils => ./internal/utils

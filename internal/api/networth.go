@@ -54,8 +54,6 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// slice of months that we will report on
-	// dateRange := []time.Time{}
 	// We always start with today's date and work backwards based on relative window value
 	endDate := time.Now()
 	// Decrement relativeWindow by 1 (to account for current month already being included)
@@ -70,11 +68,11 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 	br := models.GetBalanceRepository()
 	// assetBalances := br.GetBalancesOfAllAssets(context.TODO(), startDate, endDate)
 	assetBalances := br.GetBalancesOfAllAssetsByMonth(context.TODO(), startDate, endDate)
-	fmt.Println("asset balances are: ", assetBalances)
+	// fmt.Println("asset balances are: ", assetBalances)
 
 	// liabilityBalances := br.GetBalancesOfAllLiabilities(context.TODO(), startDate, endDate)
 	liabilityBalances := br.GetBalancesOfAllLiabilitiesByMonth(context.TODO(), startDate, endDate)
-	fmt.Println("liability balances are: ", liabilityBalances)
+	// fmt.Println("liability balances are: ", liabilityBalances)
 
 	dataPointSet := map[string]DataPoint{}
 

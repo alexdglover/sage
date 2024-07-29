@@ -26,7 +26,7 @@ func main() {
 	models.BootstrapDatabase(ctx)
 
 	// open local browser to localhost:8080
-	openbrowser("http://localhost:8080")
+	// openbrowser("http://localhost:8080")
 
 	// start the API server
 	api.StartApiServer(ctx)

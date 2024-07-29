@@ -1,5 +1,5 @@
 package utils
 
-func strPointer(input string) *string {
+func StrPointer(input string) *string {
 	return &input
 }
