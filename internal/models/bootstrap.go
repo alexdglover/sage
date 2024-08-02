@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/alexdglover/sage/internal/utils"
+	"github.com/shopspring/decimal"
 )
 
 func BootstrapDatabase(ctx context.Context) {
@@ -58,7 +59,7 @@ func BootstrapDatabase(ctx context.Context) {
 		db.Create(&Balance{Date: "2024-04-17", EffectiveStartDate: "2024-04-01", EffectiveEndDate: utils.StrPointer("2024-04-30"), Balance: 103.87, AccountId: 2})
 		db.Create(&Balance{Date: "2024-05-17", EffectiveStartDate: "2024-05-01", EffectiveEndDate: utils.StrPointer("2024-05-31"), Balance: 133.12, AccountId: 2})
 		db.Create(&Balance{Date: "2024-06-17", EffectiveStartDate: "2024-06-01", EffectiveEndDate: utils.StrPointer("2024-06-30"), Balance: 140.44, AccountId: 2})
-		db.Create(&Balance{Date: "2024-07-17", EffectiveStartDate: "2024-07-01", Balance: 132.55, AccountId: 2})
+		db.Create(&Balance{Date: "2024-07-17", EffectiveStartDate: "2024-07-01", Balance: decimal.NewFromString("132.55"), AccountId: 2})
 
 	}
 

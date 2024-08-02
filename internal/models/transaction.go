@@ -1,12 +1,15 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"github.com/shopspring/decimal"
+	"gorm.io/gorm"
+)
 
 type Transaction struct {
 	gorm.Model
 	Date        string
 	Description string
-	Amount      float32
+	Amount      decimal.Decimal
 	Excluded    string
 	AccountId   uint
 	Account     Account
