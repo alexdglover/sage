@@ -2,7 +2,10 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
+
+	"github.com/alexdglover/sage/internal/utils"
 )
 
 type BalanceRepository struct{}
@@ -41,6 +44,9 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 		panic("only `asset` or `liability` are valid accountType options")
 	}
 
+	fmt.Println("startYearMonth is", startYearMonth)
+	fmt.Println("endYearMonth is", endYearMonth)
+
 	var result []BalancesWithDate
 	assetAccountIds := db.Select("id").Where("account_type=?", accountType).Table("accounts")
 
@@ -55,9 +61,13 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 	for _, month := range months {
 		var balances []Balance
 
+		// Convert dates to YYYY-MM-DD so date comparisons work consistently with strings in SQLite
+		effectiveStartDate := utils.TimeToISO8601DateString(month)
+		effectiveEndDate := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
+
 		db.Where("account_id IN (?)", assetAccountIds).
-			Where("effective_start_date <= ?", month).
-			Where("effective_end_date IS NULL OR effective_end_date >= ?", month).Find(&balances)
+			Where("effective_start_date <= ?", effectiveStartDate).
+			Where("effective_end_date IS NULL OR effective_end_date >= ?", effectiveEndDate).Find(&balances)
 
 		result = append(result, BalancesWithDate{
 			Date:     month,
