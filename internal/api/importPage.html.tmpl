@@ -1,0 +1,37 @@
+<h2>Import Statements</h2>
+
+<!--<form hx-post="/import-submission" hx-target="#reportContent" enctype="multipart/form-data">
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+    
+    <label for="file">Upload file:</label>
+    <input type="file" id="file" name="file" required>
+    
+    <button type="submit">Submit</button>
+</form>-->
+
+<form hx-post="/import-submission" hx-target="#reportContent" enctype="multipart/form-data">
+  <div class="mb-3">
+    <label for="statementFile" class="form-label">Statement</label>
+    <input type="file" class="form-control" id="statementFile" name="statementFile">
+  </div>
+  <div class="mb-3">
+    <label for="accountSelector" class="form-label">Select account</label>
+    <select class="form-select" id="accountSelector" name="accountSelector">
+      <option selected="">Schwaby</option>
+      <option value="1">Shmisa</option>
+      <option value="2">House</option>
+      <option value="3">Mortgage</option>
+    </select>
+  </div>
+  <div class="mb-3">
+    <label for="parserSelector" class="form-label">Select account</label>
+    <select class="form-select" id="parserSelector" name="parserSelector">
+      <option selected="">Schwaby</option>
+      <option value="1">Shmisa</option>
+      <option value="2">House</option>
+      <option value="3">Mortgage</option>
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
