@@ -51,7 +51,7 @@
     type: 'line',
     data: {
       labels: [
-        {{ range $key, $value := .DataPoints }}
+        {{ range $key, $value := .TotalByMonthAndType }}
         "{{ $key }}",
         {{ end }}
       ],
@@ -60,7 +60,7 @@
           label: 'Net Worth',
           fill: false,
           data: [
-          {{ range $key, $value := .DataPoints }}
+          {{ range $key, $value := .TotalByMonthAndType }}
           "{{ index $value "netWorth" }}",
           {{ end }}
           ],
@@ -75,7 +75,7 @@
           label: 'Assets',
           fill: true,
           data: [
-          {{ range $key, $value := .DataPoints }}
+          {{ range $key, $value := .TotalByMonthAndType }}
           "{{ index $value "assets" }}",
           {{ end }}
           ],
@@ -89,7 +89,7 @@
           label: 'Liabilities',
           fill: true,
           data: [
-          {{ range $key, $value := .DataPoints }}
+          {{ range $key, $value := .TotalByMonthAndType }}
           "{{ index $value "liabilities" }}",
           {{ end }}
           ],
@@ -132,7 +132,7 @@
       </tr>
     </thead>
     <tbody>
-      {{ range $key, $value := .DataPoints }}
+      {{ range $key, $value := .TotalByMonthAndType }}
       <tr>
         <td>{{ $key }}</td>
         <td>${{ index $value "assets" }}</td>

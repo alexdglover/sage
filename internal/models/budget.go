@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Budget struct {
 	gorm.Model
 	Name       string
-	Amount     float32
+	Amount     int64
 	CategoryId uint
 	Category   Category
 }
