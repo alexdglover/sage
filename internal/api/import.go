@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"text/template"
 )
 
@@ -29,10 +28,8 @@ func importPageHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
-	req.ParseMultipartForm(32 << 20) // limit your max input length!
+	req.ParseMultipartForm(1024 * 1024 * 1024 * 4) // limit max input length to 4 GB
 
-	// just for debugging, seeing form fields
-	fmt.Println(req.MultipartForm)
 	file, header, err := req.FormFile("statementFile")
 	if err != nil {
 		fmt.Println(err)
@@ -41,14 +38,20 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	defer file.Close()
 
-	fileName := strings.Split(header.Filename, ".")
-	fmt.Printf("File name %s\n", fileName[0]+fileName[1])
+	fileName := header.Filename
+	fmt.Println("fileName is", fileName)
 
 	var buf bytes.Buffer
 	io.Copy(&buf, file)
 	contents := buf.String()
-	fmt.Println(contents)
 	buf.Reset()
+
+	// call service class to execute import
+	// result, err := importStatement(statement, accountID, parserID)
+	// if err != nil {
+	//	errorMessage := fmt.Sprintf("Unable to import statement: %v", err)
+	// 	http.Error(w, errorMessage, http.StatusBadRequest)
+	// }
 
 	// Use the body (in this case, we're just printing it)
 	fmt.Fprintf(w, "Received: %s", contents)
