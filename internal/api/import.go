@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"text/template"
+
+	"github.com/alexdglover/sage/internal/services"
 )
 
 //go:embed importPage.html.tmpl
@@ -43,16 +45,26 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 
 	var buf bytes.Buffer
 	io.Copy(&buf, file)
-	contents := buf.String()
+	statement := buf.String()
 	buf.Reset()
 
 	// call service class to execute import
-	// result, err := importStatement(statement, accountID, parserID)
-	// if err != nil {
-	//	errorMessage := fmt.Sprintf("Unable to import statement: %v", err)
-	// 	http.Error(w, errorMessage, http.StatusBadRequest)
-	// }
+	importResult, err := services.ImportStatement(statement, 1, "schwab")
+	fmt.Println(importResult)
+	fmt.Println(err)
+	if err != nil {
+		errorMessage := fmt.Sprintf("Unable to import statement: %v", err)
+		http.Error(w, errorMessage, http.StatusBadRequest)
+		return
+	}
 
 	// Use the body (in this case, we're just printing it)
-	fmt.Fprintf(w, "Received: %s", contents)
+	// foo
+	// baer
+	imprtRslt := *importResult
+	transactionsImported := imprtRslt.TransactionsImported
+	transactionsSkipped := imprtRslt.TransactionsSkipped
+	// resultBody := fmt.Sprintf("Received statement with contents: %s\n\n\nImport resulted in: %v %v", statement, (*importResult).TransactionsImported, (*importResult).TransactionsSkipped)
+	resultBody := fmt.Sprintf("Received statement with contents: %s\n\n\nImport resulted in: %v %v", statement, transactionsImported, transactionsSkipped)
+	fmt.Fprint(w, resultBody)
 }
