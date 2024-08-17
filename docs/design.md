@@ -178,4 +178,9 @@ with a file picker and a submit button.
 1. On submit, the file is POSTed to an endpoint. This endpoint calls a service
 class.
 1. The service class hashes the file. It then checks if the hash already exists
-in the `statementSubmissions` table.
+in the `statementSubmissions` table. If it finds a matching hash, it rejects
+the statement because it has already been processed
+1. Service class invokes a parser function, getting a list of transactions and
+balances in return. For each transaction, compute a hash of the account ID,
+amount, date, and description. 
+

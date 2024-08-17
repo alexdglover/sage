@@ -41,7 +41,6 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	defer file.Close()
 
 	fileName := header.Filename
-	fmt.Println("fileName is", fileName)
 
 	var buf bytes.Buffer
 	io.Copy(&buf, file)
@@ -49,7 +48,7 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	buf.Reset()
 
 	// call service class to execute import
-	importResult, err := services.ImportStatement(statement, 1, "schwab")
+	importResult, err := services.ImportStatement(fileName, statement, 1, "schwab")
 	fmt.Println(importResult)
 	fmt.Println(err)
 	if err != nil {

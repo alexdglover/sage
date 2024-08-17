@@ -18,6 +18,7 @@ func BootstrapDatabase(ctx context.Context) {
 		db.Migrator().DropTable(&Budget{})
 		db.Migrator().DropTable(&Category{})
 		db.Migrator().DropTable(&Transaction{})
+		db.Migrator().DropTable(&ImportSubmission{})
 	}
 
 	// Migrate the schema
@@ -26,6 +27,7 @@ func BootstrapDatabase(ctx context.Context) {
 	db.AutoMigrate(&Budget{})
 	db.AutoMigrate(&Category{})
 	db.AutoMigrate(&Transaction{})
+	db.AutoMigrate(&ImportSubmission{})
 
 	// Insert common seed data
 	for _, name := range []string{"Home", "Income", "Auto", "Food", "Dining"} {
