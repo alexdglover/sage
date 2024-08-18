@@ -8,11 +8,15 @@ import (
 	"net/http"
 	"text/template"
 
+	"github.com/alexdglover/sage/internal/models"
 	"github.com/alexdglover/sage/internal/services"
 )
 
 //go:embed importPage.html.tmpl
 var importPageTmpl string
+
+//go:embed importStatusPage.html.tmpl
+var importStatusPageTmpl string
 
 func importPageHandler(w http.ResponseWriter, req *http.Request) {
 	// TODO: Get list of accounts to populate account choice drop down
@@ -48,22 +52,23 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	buf.Reset()
 
 	// call service class to execute import
-	importResult, err := services.ImportStatement(fileName, statement, 1, "schwab")
-	fmt.Println(importResult)
-	fmt.Println(err)
+	importSubmission, err := services.ImportStatement(fileName, statement, 1, "schwab")
 	if err != nil {
 		errorMessage := fmt.Sprintf("Unable to import statement: %v", err)
 		http.Error(w, errorMessage, http.StatusBadRequest)
 		return
 	}
+	importStatusHandler(w, importSubmission)
+}
 
-	// Use the body (in this case, we're just printing it)
-	// foo
-	// baer
-	imprtRslt := *importResult
-	transactionsImported := imprtRslt.TransactionsImported
-	transactionsSkipped := imprtRslt.TransactionsSkipped
-	// resultBody := fmt.Sprintf("Received statement with contents: %s\n\n\nImport resulted in: %v %v", statement, (*importResult).TransactionsImported, (*importResult).TransactionsSkipped)
-	resultBody := fmt.Sprintf("Received statement with contents: %s\n\n\nImport resulted in: %v %v", statement, transactionsImported, transactionsSkipped)
-	fmt.Fprint(w, resultBody)
+// Handler to return HTML for the status of a single import submission
+func importStatusHandler(w http.ResponseWriter, submission *models.ImportSubmission) {
+	tmpl, err := template.New("importStatusPage").Parse(importStatusPageTmpl)
+	if err != nil {
+		panic(err)
+	}
+	err = tmpl.Execute(w, *submission)
+	if err != nil {
+		panic(err)
+	}
 }

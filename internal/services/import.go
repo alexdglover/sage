@@ -11,11 +11,6 @@ import (
 )
 
 func ImportStatement(filename string, statement string, accountID uint, parserID string) (result *models.ImportSubmission, err error) {
-	fmt.Println("accountID is", accountID)
-	if err != nil {
-		return nil, err
-	}
-
 	isr := models.GetImportSubmissionRepository()
 
 	submission := models.ImportSubmission{
