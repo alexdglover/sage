@@ -1,6 +1,6 @@
 module github.com/alexdglover/sage
 
-go 1.22.4
+go 1.22.6
 
 require (
 	gorm.io/driver/sqlite v1.5.6
