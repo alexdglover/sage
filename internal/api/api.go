@@ -14,7 +14,7 @@ func StartApiServer(ctx context.Context) {
 	http.HandleFunc("/", mainPageHandler)
 	http.HandleFunc("/dashboard", dashboardHandler)
 	http.HandleFunc("GET /net-worth", netWorthHandler)
-	http.HandleFunc("GET /import-form", importPageHandler)
+	http.HandleFunc("GET /import-form", importStatementFormHandler)
 	http.HandleFunc("POST /import-submission", importSubmissionHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

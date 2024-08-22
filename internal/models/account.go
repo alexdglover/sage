@@ -20,8 +20,8 @@ func GetAccountRepository() *AccountRepository {
 	return accountRepository
 }
 
-func (ar *AccountRepository) GetByID(id uint) (Account, error) {
-	var account Account
-	result := db.Where("id = ?", id).First(&account)
-	return account, result.Error
+func (ar *AccountRepository) GetAllAccounts() ([]Account, error) {
+	var accounts []Account
+	result := db.Find(&accounts)
+	return accounts, result.Error
 }

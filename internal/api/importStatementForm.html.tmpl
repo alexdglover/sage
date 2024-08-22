@@ -8,19 +8,9 @@
   <div class="mb-3">
     <label for="accountSelector" class="form-label">Select account</label>
     <select class="form-select" id="accountSelector" name="accountSelector">
-      <option selected="">Schwaby</option>
-      <option value="1">Shmisa</option>
-      <option value="2">House</option>
-      <option value="3">Mortgage</option>
-    </select>
-  </div>
-  <div class="mb-3">
-    <label for="parserSelector" class="form-label">Select account</label>
-    <select class="form-select" id="parserSelector" name="parserSelector">
-      <option selected="">Schwaby</option>
-      <option value="1">Shmisa</option>
-      <option value="2">House</option>
-      <option value="3">Mortgage</option>
+      {{ range .AccountNamesAndIDs }}
+        <option value="{{ .AccountID }}">{{ .AccountName }}</option>
+      {{ end }}
     </select>
   </div>
   <button type="submit" class="btn btn-primary">Submit</button>

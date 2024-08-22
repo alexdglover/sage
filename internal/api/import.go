@@ -12,22 +12,31 @@ import (
 	"github.com/alexdglover/sage/internal/services"
 )
 
-//go:embed importPage.html.tmpl
-var importPageTmpl string
+//go:embed importStatementForm.html.tmpl
+var importStatementFormTmpl string
 
 //go:embed importStatusPage.html.tmpl
 var importStatusPageTmpl string
 
-func importPageHandler(w http.ResponseWriter, req *http.Request) {
-	// TODO: Get list of accounts to populate account choice drop down
+type ImportStatementFormDTO struct {
+	AccountNamesAndIDs []services.AccountNameAndID
+}
+
+func importStatementFormHandler(w http.ResponseWriter, req *http.Request) {
+	formDTO := ImportStatementFormDTO{}
+	data, err := services.GetAccountNamesAndIDs()
+	if err != nil {
+		http.Error(w, "Unable to get account names and IDs", http.StatusInternalServerError)
+	}
+	formDTO.AccountNamesAndIDs = data
 
 	// TODO: Get list of parsers to populate drop down
 
-	tmpl, err := template.New("importStatementPage").Parse(importPageTmpl)
+	tmpl, err := template.New("importStatementForm").Parse(importStatementFormTmpl)
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(w, nil)
+	err = tmpl.Execute(w, formDTO)
 	if err != nil {
 		panic(err)
 	}
@@ -45,6 +54,7 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	defer file.Close()
 
 	fileName := header.Filename
+	accountId := req.FormValue("accountSelector")
 
 	var buf bytes.Buffer
 	io.Copy(&buf, file)
