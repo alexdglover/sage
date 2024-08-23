@@ -1,12 +1,15 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Account struct {
 	gorm.Model
 	Name            string
 	AccountCategory string
 	AccountType     string
+	DefaultParser   *string
 }
 
 type AccountRepository struct{}
@@ -24,4 +27,10 @@ func (ar *AccountRepository) GetAllAccounts() ([]Account, error) {
 	var accounts []Account
 	result := db.Find(&accounts)
 	return accounts, result.Error
+}
+
+func (ar *AccountRepository) GetAccountByID(id uint) (Account, error) {
+	var account Account
+	result := db.Where("id = ?", id).First(&account)
+	return account, result.Error
 }

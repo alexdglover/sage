@@ -56,8 +56,80 @@ func (s SchwabCSVParser) Parse(statement string) (transactions []models.Transact
 	return transactions, []models.Balance{}, nil
 }
 
-var accountParser map[string]Parser = map[string]Parser{
+type FidelityVisaCSVParser struct{}
+
+// Parses CSVs with the header as the 1st row, date in 0th column, description in 2nd column, and amount in 4th column
+func (FidelityVisaCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	// parse the string into a CSV
+	csvReader := csv.NewReader(strings.NewReader(statement))
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	// fmt.Println("records are", records)
+	for idx, record := range records {
+		// fmt.Println("working on record", idx)
+		// Skip the header row
+		if idx == 0 {
+			continue
+		}
+		var amount int64
+		amount, err = parseAmount(record[4])
+		if err != nil {
+			return nil, nil, err
+		}
+		// fmt.Println("amount is", amount)
+		txn := models.Transaction{
+			Date:        record[0],
+			Description: record[2],
+			Amount:      amount,
+		}
+		transactions = append(transactions, txn)
+
+	}
+	// for each row in the CSV, parse the columns and add it to transactions
+	return transactions, []models.Balance{}, nil
+}
+
+type ChaseVisaCSVParser struct{}
+
+// Parses CSVs with the header as the 1st row, date in 0th column, description in 2nd column, and amount in 4th column
+func (s ChaseVisaCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	// parse the string into a CSV
+	csvReader := csv.NewReader(strings.NewReader(statement))
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	// fmt.Println("records are", records)
+	for idx, record := range records {
+		// fmt.Println("working on record", idx)
+		// Skip the header row
+		if idx == 0 {
+			continue
+		}
+		var amount int64
+		amount, err = parseAmount(record[4])
+		if err != nil {
+			return nil, nil, err
+		}
+		// fmt.Println("amount is", amount)
+		txn := models.Transaction{
+			Date:        record[0],
+			Description: record[2],
+			Amount:      amount,
+		}
+		transactions = append(transactions, txn)
+
+	}
+	// for each row in the CSV, parse the columns and add it to transactions
+	return transactions, []models.Balance{}, nil
+}
+
+var parsersByInstitution map[string]Parser = map[string]Parser{
 	"schwab": SchwabCSVParser{},
+	"fidelity visa": FidelityVisaCSVParser{},
+
 }
 
 func parseAmount(amount string) (amountAsInt int64, err error) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -54,7 +55,13 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	defer file.Close()
 
 	fileName := header.Filename
-	accountId := req.FormValue("accountSelector")
+	accountIDString := req.FormValue("accountSelector")
+	accountID64, err := strconv.ParseUint(accountIDString, 10, 64)
+	accountID := uint(accountID64)
+	if err != nil {
+		http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
+		return
+	}
 
 	var buf bytes.Buffer
 	io.Copy(&buf, file)
@@ -62,7 +69,7 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	buf.Reset()
 
 	// call service class to execute import
-	importSubmission, err := services.ImportStatement(fileName, statement, 1, "schwab")
+	importSubmission, err := services.ImportStatement(fileName, statement, accountID)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Unable to import statement: %v", err)
 		http.Error(w, errorMessage, http.StatusBadRequest)

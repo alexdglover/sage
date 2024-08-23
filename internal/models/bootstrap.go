@@ -38,8 +38,8 @@ func BootstrapDatabase(ctx context.Context) {
 	if os.Getenv("ADD_SAMPLE_DATA") != "" {
 		// Create one normal asset account, one normal liability account, and one infrequently updated account
 		// of each type
-		db.Create(&Account{Name: "schwaby", AccountCategory: "savings", AccountType: "asset"})
-		db.Create(&Account{Name: "schmisa", AccountCategory: "credit card", AccountType: "liability"})
+		db.Create(&Account{Name: "Schwab", AccountCategory: "checking", AccountType: "asset", DefaultParser: utils.StrPointer("schwab")})
+		db.Create(&Account{Name: "Fidelity Visa", AccountCategory: "credit card", AccountType: "liability", DefaultParser: utils.StrPointer("fidelity visa")})
 		db.Create(&Account{Name: "My House", AccountCategory: "real estate", AccountType: "asset"})
 		db.Create(&Account{Name: "Mortgage", AccountCategory: "loan", AccountType: "liability"})
 
