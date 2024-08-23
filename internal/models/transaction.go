@@ -7,15 +7,17 @@ import (
 
 type Transaction struct {
 	gorm.Model
-	Date        string
-	Description string
-	Amount      int64
-	Excluded    string
-	Hash        string
-	AccountId   uint
-	Account     Account
-	CategoryId  uint
-	Category    Category
+	Date               string
+	Description        string
+	Amount             int64
+	Excluded           string
+	Hash               string
+	AccountId          uint
+	Account            Account
+	CategoryId         uint
+	Category           Category
+	ImportSubmissionId *uint
+	ImportSubmission   *ImportSubmission
 }
 
 type TransactionRepository struct{}
@@ -30,7 +32,7 @@ func GetTransactionRepository() *TransactionRepository {
 }
 
 // TODO: Implement this function. This expects a sha256 hash that has been hex encoded to string
-func (tr *TransactionRepository) FindTransactionsByHash(hash string, submission ImportSubmission) ([]Transaction, error) {
+func (tr *TransactionRepository) GetTransactionsByHash(hash string, submission ImportSubmission) ([]Transaction, error) {
 	// Implement GORM query to look up transactions by hash
 	return []Transaction{}, nil
 }
@@ -47,12 +49,8 @@ func (*TransactionRepository) Save(txn Transaction) (id uint, err error) {
 	return txn.ID, result.Error
 }
 
-// func (tr *TransactionRepository) Upsert(txn *Transaction) *gorm.DB {
-// 	var result *gorm.DB
-// 	if txn.ID != 0 {
-// 		result = db.Save(txn)
-// 	} else {
-// 		result = db.Create(txn)
-// 	}
-// 	return result
-// }
+func (tr *TransactionRepository) GetTransactionsByImportSubmission(id uint) ([]Transaction, error) {
+	var transactions []Transaction
+	result := db.Where("import_submission_id = ?", id).Find(&transactions)
+	return transactions, result.Error
+}

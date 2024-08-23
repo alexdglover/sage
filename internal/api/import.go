@@ -23,6 +23,11 @@ type ImportStatementFormDTO struct {
 	AccountNamesAndIDs []services.AccountNameAndID
 }
 
+type ImportStatusPageDTO struct {
+	Submission   *models.ImportSubmission
+	Transactions []models.Transaction
+}
+
 func importStatementFormHandler(w http.ResponseWriter, req *http.Request) {
 	formDTO := ImportStatementFormDTO{}
 	data, err := services.GetAccountNamesAndIDs()
@@ -75,16 +80,29 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, errorMessage, http.StatusBadRequest)
 		return
 	}
-	importStatusHandler(w, importSubmission)
+
+	tr := models.GetTransactionRepository()
+	transactions, err := tr.GetTransactionsByImportSubmission(importSubmission.ID)
+	if err != nil {
+		errorMessage := fmt.Sprintf("Unable to get transactions for import submission: %v", err)
+		http.Error(w, errorMessage, http.StatusInternalServerError)
+		return
+	}
+	dto := ImportStatusPageDTO{
+		Submission:   importSubmission,
+		Transactions: transactions,
+	}
+
+	importStatusHandler(w, dto)
 }
 
 // Handler to return HTML for the status of a single import submission
-func importStatusHandler(w http.ResponseWriter, submission *models.ImportSubmission) {
+func importStatusHandler(w http.ResponseWriter, dto ImportStatusPageDTO) {
 	tmpl, err := template.New("importStatusPage").Parse(importStatusPageTmpl)
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(w, *submission)
+	err = tmpl.Execute(w, dto)
 	if err != nil {
 		panic(err)
 	}

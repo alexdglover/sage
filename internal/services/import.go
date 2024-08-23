@@ -88,7 +88,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		// use hash to check if this is a duplicate transaction, but ignore
 		// duplicates from the statement currently being imported since it is possible
 		// to have a transcation with same date, amount, description, and account
-		txns, err := tr.FindTransactionsByHash(hashHex, submission)
+		txns, err := tr.GetTransactionsByHash(hashHex, submission)
 		if err != nil {
 			submission.Status = models.Failed
 			isr.Save(submission)
@@ -101,8 +101,10 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 			continue
 		}
 
+		// Set the fields not directly sourced from the statement
 		transaction.Hash = hashHex
 		transaction.AccountId = accountID
+		transaction.ImportSubmissionId = &submission.ID
 		_, dbError := tr.Save(transaction)
 		if dbError != nil {
 			submission.Status = models.Failed

@@ -1,24 +1,47 @@
-<h2>Import Status</h2>
+<h2>Import job #{{ .Submission.ID }}</h2>
 <br>
 <br>
 
-<div class="row">
-  <div class="col-sm-2">
-    <h3>Status</h3>
-  </div>
-  <div class="col-sm-10">
-    <h3>{{ .Status }} {{ if eq .Status "COMPLETED" }} &#x2705; {{ end }}</h3>
-  </div>
-  <div class="col-sm-2">
-    <h4>Transactions imported</h4>
-  </div>
-  <div class="col-sm-10">
-    <h4>{{ .TransactionsImported }}</h4>
-  </div>
-  <div class="col-sm-2">
-    <h4>Transactions skipped</h4>
-  </div>
-  <div class="col-sm-10">
-    <h4>{{ .TransactionsSkipped }}{{ if ge .TransactionsSkipped 0 }} &#x26A0; {{ end }}</h4>
-  </div>
+<table class="table table-hover table-bordered">
+  <tbody>
+    <tr>
+      <th scope="row" class="table-success" style="width: 200px;">Status:</th>
+      <td>{{ .Submission.Status }} {{ if eq .Submission.Status "COMPLETED" }} &#x2705; {{ end }}</td>
+    </tr>
+    <tr>
+      <th scope="row" class="table-success">Transactions imported</th>
+      <td>{{ .Submission.TransactionsImported }}</td>
+    </tr>
+    <tr>
+      <th scope="row" class="table-success">Transactions skipped</th>
+      <td>{{ .Submission.TransactionsSkipped }}{{ if gt .Submission.TransactionsSkipped 0 }} &#x26A0; {{ end }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Transactions imported</h3>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Description</th>
+        <th scope="col">Excluded</th>
+	      <th scope="col">Account</th>
+	      <th scope="col">Category</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Transactions }}
+      <tr>
+        <td>{{ .Date }}</td>
+        <td>{{ .Description }}</td>
+        <td>{{ .Excluded }}</td>
+        <td>{{ .Account.Name }}</td>
+        <td>{{ .Category.Name }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
 </div>
