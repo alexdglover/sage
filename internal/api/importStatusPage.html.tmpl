@@ -5,8 +5,12 @@
 <table class="table table-hover table-bordered">
   <tbody>
     <tr>
-      <th scope="row" class="table-success" style="width: 200px;">Status:</th>
+      <th scope="row" class="table-success" style="width: 200px;">Status</th>
       <td>{{ .Submission.Status }} {{ if eq .Submission.Status "COMPLETED" }} &#x2705; {{ end }}</td>
+    </tr>
+    <tr>
+      <th scope="row" class="table-success" style="width: 200px;">File name</th>
+      <td>{{ .Submission.FileName }}</td>
     </tr>
     <tr>
       <th scope="row" class="table-success">Transactions imported</th>
@@ -27,9 +31,10 @@
       <tr>
         <th scope="col">Date</th>
         <th scope="col">Description</th>
-        <th scope="col">Excluded</th>
+        <th scope="col">Amount</th>
 	      <th scope="col">Account</th>
 	      <th scope="col">Category</th>
+        <th scope="col">Excluded?</th>
       </tr>
     </thead>
     <tbody>
@@ -37,9 +42,10 @@
       <tr>
         <td>{{ .Date }}</td>
         <td>{{ .Description }}</td>
+        <td>${{ .Amount }}</td>
+        <td>{{ .AccountName }}</td>
+        <td>{{ .CategoryName }}</td>
         <td>{{ .Excluded }}</td>
-        <td>{{ .Account.Name }}</td>
-        <td>{{ .Category.Name }}</td>
       </tr>
       {{ end }}
     </tbody>

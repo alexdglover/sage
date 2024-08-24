@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
 	"github.com/alexdglover/sage/internal/services"
+	"github.com/alexdglover/sage/internal/utils"
 )
 
 //go:embed importStatementForm.html.tmpl
@@ -23,9 +23,21 @@ type ImportStatementFormDTO struct {
 	AccountNamesAndIDs []services.AccountNameAndID
 }
 
+type TransactionDTO struct {
+	ID                 uint
+	Date               string
+	Description        string
+	Amount             string
+	Excluded           string
+	Hash               string
+	AccountName        string
+	CategoryName       string
+	ImportSubmissionId *uint
+}
+
 type ImportStatusPageDTO struct {
 	Submission   *models.ImportSubmission
-	Transactions []models.Transaction
+	Transactions []TransactionDTO
 }
 
 func importStatementFormHandler(w http.ResponseWriter, req *http.Request) {
@@ -60,9 +72,7 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	defer file.Close()
 
 	fileName := header.Filename
-	accountIDString := req.FormValue("accountSelector")
-	accountID64, err := strconv.ParseUint(accountIDString, 10, 64)
-	accountID := uint(accountID64)
+	accountID, err := utils.StringToUint(req.FormValue("accountSelector"))
 	if err != nil {
 		http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
 		return
@@ -88,9 +98,24 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, errorMessage, http.StatusInternalServerError)
 		return
 	}
+	transactionDTOs := []TransactionDTO{}
+	for _, txn := range transactions {
+
+		transactionDTOs = append(transactionDTOs, TransactionDTO{
+			ID:                 txn.ID,
+			Date:               txn.Date,
+			Description:        txn.Description,
+			Amount:             utils.CentsToDollarString(txn.Amount),
+			Excluded:           txn.Excluded,
+			Hash:               txn.Hash,
+			AccountName:        txn.Account.Name,
+			CategoryName:       txn.Category.Name,
+			ImportSubmissionId: txn.ImportSubmissionId,
+		})
+	}
 	dto := ImportStatusPageDTO{
 		Submission:   importSubmission,
-		Transactions: transactions,
+		Transactions: transactionDTOs,
 	}
 
 	importStatusHandler(w, dto)

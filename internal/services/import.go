@@ -28,7 +28,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 	isr := models.GetImportSubmissionRepository()
 
 	submission := models.ImportSubmission{
-		Filename:             filename,
+		FileName:             filename,
 		SubmissionDateTime:   time.Now().String(),
 		Status:               models.Submitted,
 		TransactionsImported: 0,

@@ -12,7 +12,7 @@ const Completed string = "COMPLETED"
 
 type ImportSubmission struct {
 	gorm.Model
-	Filename             string
+	FileName             string
 	SubmissionDateTime   string
 	Status               string
 	AccountType          string

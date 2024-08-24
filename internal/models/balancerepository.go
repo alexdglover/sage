@@ -73,3 +73,9 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 
 	return result
 }
+
+func (br BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) Balance {
+	var balance Balance
+	db.Where("account_id = ?", accountID).Order("date desc").Limit(1).Find(&balance)
+	return balance
+}

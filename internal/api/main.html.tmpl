@@ -78,6 +78,7 @@
 
       .sidebar .nav-link {
         font-weight: 500;
+        font-size: 18px;
         color: #333;
       }
 
@@ -166,8 +167,16 @@
               hx-trigger="click"
               hx-target="#reportContent"
               hx-swap="innerHTML">
-              <span data-feather="home"></span>
-              Dashboard
+              &#x1F3E0; Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#"
+              hx-get="/accounts"
+              hx-trigger="click"
+              hx-target="#reportContent"
+              hx-swap="innerHTML">
+              &#x1F5C4; Accounts
             </a>
           </li>
           <li class="nav-item">
@@ -176,11 +185,10 @@
               hx-trigger="click"
               hx-target="#reportContent"
               hx-swap="innerHTML">
-              <span data-feather="file"></span>
-              Net worth
+              &#x1F4C8; Net worth
             </a>
           </li>
-          <li class="nav-item">
+          <!--<li class="nav-item">
             <a class="nav-link" href="#">
               <span data-feather="shopping-cart"></span>
               Assets
@@ -191,11 +199,10 @@
               <span data-feather="users"></span>
               Liabilities
             </a>
-          </li>
+          </li>-->
           <li class="nav-item">
             <a class="nav-link" href="#">
-              <span data-feather="bar-chart-2"></span>
-              Spending
+              &#x1F4CA; Spending
             </a>
           </li>
           <li class="nav-item">
@@ -231,8 +238,7 @@
               hx-trigger="click"
               hx-target="#reportContent"
               hx-swap="innerHTML">
-              <span data-feather="file-text"></span>
-              Import statement
+              &#x1F4C4; Import statement
             </a>
           </li>
           <li class="nav-item">
@@ -247,7 +253,7 @@
 
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <div class="btn-toolbar mb-2 mb-md-0">
+        <!--<div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group me-2">
             <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
             <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
@@ -256,7 +262,7 @@
             <span data-feather="calendar"></span>
             This week
           </button>
-        </div>
+        </div>-->
       </div>
       <div id="reportContent"
         hx-post="/dashboard"

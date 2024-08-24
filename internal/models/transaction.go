@@ -51,6 +51,6 @@ func (*TransactionRepository) Save(txn Transaction) (id uint, err error) {
 
 func (tr *TransactionRepository) GetTransactionsByImportSubmission(id uint) ([]Transaction, error) {
 	var transactions []Transaction
-	result := db.Where("import_submission_id = ?", id).Find(&transactions)
+	result := db.Preload(clause.Associations).Where("import_submission_id = ?", id).Find(&transactions)
 	return transactions, result.Error
 }

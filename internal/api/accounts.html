@@ -1,0 +1,32 @@
+<div class="row">
+  <div class="col-sm-4">
+    <h2>Accounts</h2>
+  </div>
+  <div class="col-sm-8">
+    <button class="btn btn-success" style="float: right;">Add account</button>
+  </div>
+</div>
+
+{{range $i, $account := .Accounts}}
+  {{/* every 3rd element, start a new row */}}
+  {{if mod $i 3 | eq 0}}
+  <div class="row" style="margin-top: 1rem;">
+  {{end}}
+    <div class="col-sm-4">
+      <div class="card">
+      <div class="card-header">
+        <h5>{{ $account.Name }} <a href="#">&#x1F58B;</a></h5>
+      </div>
+        <div class="card-body">
+          <h5>Balance: ${{ $account.Balance }}</h5>
+          <p>Balance last updated: {{ $account.BalanceLastUpdated }}</p>
+          <a href="#" class="btn btn-success">Transactions</a>
+
+        </div>
+      </div>
+    </div>
+  {{/* after every 3rd element, end the row */}}
+  {{if mod $i 3 | eq 2 }}
+  </div>
+  {{end}}
+{{end}}

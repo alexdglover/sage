@@ -83,7 +83,7 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 		}
 
 		for _, balance := range balancesByDate.Balances {
-			totalByMonthAndType[yearMonth]["assets"] = totalByMonthAndType[yearMonth]["assets"] + balance.Balance
+			totalByMonthAndType[yearMonth]["assets"] = totalByMonthAndType[yearMonth]["assets"] + balance.Amount
 		}
 	}
 
@@ -93,7 +93,7 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 			totalByMonthAndType[yearMonth] = totalByType{}
 		}
 		for _, balance := range balancesByDate.Balances {
-			totalByMonthAndType[yearMonth]["liabilities"] = totalByMonthAndType[yearMonth]["liabilities"] - balance.Balance
+			totalByMonthAndType[yearMonth]["liabilities"] = totalByMonthAndType[yearMonth]["liabilities"] - balance.Amount
 		}
 	}
 
