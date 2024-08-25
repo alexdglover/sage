@@ -35,7 +35,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		TransactionsSkipped:  0,
 		BalancesImported:     0,
 		BalancesSkipped:      0,
-		AccountId:            accountID,
+		AccountID:            accountID,
 	}
 	id, err := isr.Save(submission)
 	if err != nil {
@@ -77,7 +77,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		}
 		// Create a hash of all the relevant fields - date, amount, description
 		builder := strings.Builder{}
-		builder.WriteString(fmt.Sprint(transaction.AccountId))
+		builder.WriteString(fmt.Sprint(transaction.AccountID))
 		builder.WriteString(fmt.Sprint(transaction.Amount))
 		builder.WriteString(transaction.Date)
 		builder.WriteString(transaction.Description)
@@ -103,8 +103,8 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 
 		// Set the fields not directly sourced from the statement
 		transaction.Hash = hashHex
-		transaction.AccountId = accountID
-		transaction.ImportSubmissionId = &submission.ID
+		transaction.AccountID = accountID
+		transaction.ImportSubmissionID = &submission.ID
 		_, dbError := tr.Save(transaction)
 		if dbError != nil {
 			submission.Status = models.Failed

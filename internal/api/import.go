@@ -23,18 +23,6 @@ type ImportStatementFormDTO struct {
 	AccountNamesAndIDs []services.AccountNameAndID
 }
 
-type TransactionDTO struct {
-	ID                 uint
-	Date               string
-	Description        string
-	Amount             string
-	Excluded           string
-	Hash               string
-	AccountName        string
-	CategoryName       string
-	ImportSubmissionId *uint
-}
-
 type ImportStatusPageDTO struct {
 	Submission   *models.ImportSubmission
 	Transactions []TransactionDTO
@@ -100,17 +88,15 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	transactionDTOs := []TransactionDTO{}
 	for _, txn := range transactions {
-
 		transactionDTOs = append(transactionDTOs, TransactionDTO{
 			ID:                 txn.ID,
 			Date:               txn.Date,
 			Description:        txn.Description,
 			Amount:             utils.CentsToDollarString(txn.Amount),
 			Excluded:           txn.Excluded,
-			Hash:               txn.Hash,
 			AccountName:        txn.Account.Name,
 			CategoryName:       txn.Category.Name,
-			ImportSubmissionId: txn.ImportSubmissionId,
+			ImportSubmissionID: utils.UintPointerToString(txn.ImportSubmissionID),
 		})
 	}
 	dto := ImportStatusPageDTO{

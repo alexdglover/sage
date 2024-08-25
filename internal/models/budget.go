@@ -6,6 +6,6 @@ type Budget struct {
 	gorm.Model
 	Name       string
 	Amount     int64
-	CategoryId uint
+	CategoryID uint
 	Category   Category
 }

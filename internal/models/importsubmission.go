@@ -20,7 +20,7 @@ type ImportSubmission struct {
 	TransactionsSkipped  int
 	BalancesImported     int
 	BalancesSkipped      int
-	AccountId            uint
+	AccountID            uint
 	Account              Account
 }
 

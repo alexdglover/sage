@@ -23,10 +23,33 @@ func CentsToDollarString(input int64) string {
 	return fmt.Sprintf("%.2f", amount)
 }
 
+func DollarStringToCents(input string) int64 {
+	// Convert string to float first
+	amount, err := strconv.ParseFloat(input, 64)
+	if err != nil {
+		panic(err)
+	}
+	return int64(amount * 100)
+}
+
 func TimeToISO8601DateString(input time.Time) string {
 	return fmt.Sprint(input.Format("2006-01-02"))
 }
 
 func StrPointer(input string) *string {
 	return &input
+}
+
+func StrPointerToString(input *string) string {
+	if input == nil {
+		return ""
+	}
+	return *input
+}
+
+func UintPointerToString(input *uint) string {
+	if input == nil {
+		return ""
+	}
+	return fmt.Sprint(*input)
 }

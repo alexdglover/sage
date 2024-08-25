@@ -1,0 +1,72 @@
+<div class="row">
+  <div class="col-sm-4">
+    <h2>{{ if eq .Editing true }}Update{{ else }}Add{{ end }} Transaction</h2>
+  </div>
+</div>
+
+<form hx-post="/transaction" hx-target="#reportContent" enctype="multipart/form-data">
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="date" name="date" value="{{ .Date }}">
+        <label for="date" class="form-label">Date</label>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="description" name="description" value="{{ .Description }}">
+        <label for="description" class="form-label">Description</label>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="amount" name="amount" value="{{ .Amount }}">
+        <label for="amount" class="form-label">Amount</label>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-check form-switch">
+        <p style="font-size: 20px;"><input type="checkbox" class="form-check-input" role="switch" id="excluded" name="excluded" style="margin-left: -1.5em; margin-right: 1em;" {{ if eq .Excluded true }}checked {{ end }}></p>
+        <p style="font-size: 16px;"><label for="excluded" class="form-check-label">Exclude from analysis?</label></p>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <select class="form-select" aria-label="transaction category selector" name="category" id="category">
+          {{ range .Categories }}
+          <option {{ if eq $.CategoryName .Name }}selected{{ end }} value="{{ .ID }}">{{ .Name }}</option>
+          {{ end }}
+        </select>
+        <label for="category" class="form-label">Account Category</label>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <select class="form-select" aria-label="transaction account selector" name="account" id="account">
+          {{ range .Accounts }}
+          <option {{ if eq $.AccountName .Name }}selected{{ end }} value="{{ .ID }}">{{ .Name }}</option>
+          {{ end }}
+        </select>
+        <label for="accountType" class="form-label">Account</label>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-success"
+    hx-post="/transactions"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+    Save
+  </button>
+  <button type="button" class="btn btn-light"
+    hx-get="/transactions"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+      Cancel
+  </button>
+</form>

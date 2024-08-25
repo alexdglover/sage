@@ -44,7 +44,7 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 	}
 
 	var result []BalancesWithDate
-	assetAccountIds := db.Select("id").Where("account_type=?", accountType).Table("accounts")
+	assetAccountIDs := db.Select("id").Where("account_type=?", accountType).Table("accounts")
 
 	//create a slice of months in Go instead of relying on SQL
 	months := []time.Time{}
@@ -61,7 +61,7 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 		effectiveStartDate := utils.TimeToISO8601DateString(month)
 		effectiveEndDate := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
 
-		db.Where("account_id IN (?)", assetAccountIds).
+		db.Where("account_id IN (?)", assetAccountIDs).
 			Where("effective_start_date <= ?", effectiveStartDate).
 			Where("effective_end_date IS NULL OR effective_end_date >= ?", effectiveEndDate).Find(&balances)
 

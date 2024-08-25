@@ -8,6 +8,6 @@ type Balance struct {
 	EffectiveStartDate string
 	EffectiveEndDate   *string
 	Amount             int64
-	AccountId          uint
+	AccountID          uint
 	Account            Account
 }
