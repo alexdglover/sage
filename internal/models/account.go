@@ -2,6 +2,7 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Account struct {
@@ -33,4 +34,11 @@ func (ar *AccountRepository) GetAccountByID(id uint) (Account, error) {
 	var account Account
 	result := db.Where("id = ?", id).First(&account)
 	return account, result.Error
+}
+
+// Save is an UPSERT operation, returning the ID of the record and an optional error
+func (*AccountRepository) Save(account Account) (id uint, err error) {
+	result := db.Save(&account).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
+
+	return account.ID, result.Error
 }

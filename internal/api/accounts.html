@@ -3,7 +3,13 @@
     <h2>Accounts</h2>
   </div>
   <div class="col-sm-8">
-    <button class="btn btn-success" style="float: right;">Add account</button>
+    <button class="btn btn-success" style="float: right;"
+    hx-get="/accountForm"
+              hx-trigger="click"
+              hx-target="#reportContent"
+              hx-swap="innerHTML">
+      Add account
+  </button>
   </div>
 </div>
 
@@ -15,7 +21,13 @@
     <div class="col-sm-4">
       <div class="card">
       <div class="card-header">
-        <h5>{{ $account.Name }} <a href="#">&#x1F58B;</a></h5>
+        <h5>{{ $account.Name }} <a href="#"
+          hx-get="/accountForm?accountID={{ $account.ID }}"
+          hx-trigger="click"
+          hx-target="#reportContent"
+          hx-swap="innerHTML">
+              &#x1F58B;
+        </a></h5>
       </div>
         <div class="card-body">
           <h5>Balance: ${{ $account.Balance }}</h5>
@@ -30,3 +42,23 @@
   </div>
   {{end}}
 {{end}}
+
+{{ if eq .AccountSaved true }}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="accountSavedToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">Account saved</strong>
+      <small>Just now</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      Account {{ .CreatedAccountName }} saved successfully!
+    </div>
+  </div>
+</div>
+<script>
+  toastLiveExample = document.getElementById('accountSavedToast')
+  toast = new bootstrap.Toast(toastLiveExample)
+  toast.show()
+</script>
+{{ end }}

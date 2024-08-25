@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"net/http"
+	"net/url"
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -12,6 +13,9 @@ import (
 
 //go:embed accounts.html
 var accountsPageTmpl string
+
+//go:embed accountForm.html
+var accountFormTmpl string
 
 type AccountDTO struct {
 	ID                 uint
@@ -24,10 +28,21 @@ type AccountDTO struct {
 }
 
 type AccountsPageDTO struct {
-	Accounts []AccountDTO
+	Accounts           []AccountDTO
+	AccountSaved       bool
+	CreatedAccountName string
 }
 
-// TODO: Consider moving this into a service class that returns just the data needed
+type AccountFormDTO struct {
+	// If we're editing an existing account, Editing will be true
+	// If we're creating a new account, Editing will be false
+	Editing         bool
+	AccountName     string
+	AccountCategory string
+	AccountType     string
+	DefaultParser   string
+}
+
 func accountsHandler(w http.ResponseWriter, req *http.Request) {
 	// Get all accounts
 	ar := models.GetAccountRepository()
@@ -56,6 +71,10 @@ func accountsHandler(w http.ResponseWriter, req *http.Request) {
 	accountsPageDTO := AccountsPageDTO{
 		Accounts: accountsDTO,
 	}
+	if req.URL.Query().Get("accountSaved") != "" {
+		accountsPageDTO.AccountSaved = true
+		accountsPageDTO.CreatedAccountName = req.URL.Query().Get("accountSaved")
+	}
 
 	tmpl := template.Must(template.New("accountsPage").Funcs(template.FuncMap{
 		"mod": func(i, j int) int { return i % j },
@@ -65,4 +84,92 @@ func accountsHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func accountFormHandler(w http.ResponseWriter, req *http.Request) {
+	var dto AccountFormDTO
+
+	accountIDQueryParameter := req.URL.Query().Get("accountID")
+	if accountIDQueryParameter != "" {
+		ar := models.GetAccountRepository()
+		accountID, err := utils.StringToUint(accountIDQueryParameter)
+		if err != nil {
+			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
+			return
+		}
+		account, err := ar.GetAccountByID(accountID)
+		if err != nil {
+			http.Error(w, "Unable to get account", http.StatusInternalServerError)
+			return
+		}
+
+		dto = AccountFormDTO{
+			Editing:         true,
+			AccountName:     account.Name,
+			AccountCategory: account.AccountCategory,
+			AccountType:     account.AccountType,
+		}
+		// If the account has a default parser, set it. Otherwise let it default to empty string
+		if account.DefaultParser != nil {
+			dto.DefaultParser = *account.DefaultParser
+		}
+	}
+
+	tmpl, err := template.New("accountForm").Parse(accountFormTmpl)
+	if err != nil {
+		panic(err)
+	}
+
+	err = tmpl.Execute(w, dto)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func accountController(w http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+
+	accountName := req.FormValue("accountName")
+	accountCategory := req.FormValue("accountCategory")
+	accountType := req.FormValue("accountType")
+	defaultParser := req.FormValue("defaultParser")
+
+	account := models.Account{
+		Name:            accountName,
+		AccountCategory: accountCategory,
+		AccountType:     accountType,
+		DefaultParser:   &defaultParser,
+	}
+
+	accountID := req.FormValue("accountID")
+	if accountID != "" {
+		id, err := utils.StringToUint(accountID)
+		if err != nil {
+			http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
+			return
+		}
+		account.ID = id
+	}
+
+	ar := models.GetAccountRepository()
+
+	_, err := ar.Save(account)
+	if err != nil {
+		http.Error(w, "Unable to save account", http.StatusBadRequest)
+		return
+	}
+
+	queryValues := url.Values{}
+	queryValues.Add("accountSaved", accountName)
+	// TODO: Consider moving the accountView to a function that accepts an extra argument
+	// instead of invoking the endpoint with a custom request
+	accountViewReq := http.Request{
+		Method: "GET",
+		URL: &url.URL{
+			RawQuery: queryValues.Encode(),
+		},
+	}
+	accountViewReq.URL.RawQuery = queryValues.Encode()
+
+	accountsHandler(w, &accountViewReq)
 }

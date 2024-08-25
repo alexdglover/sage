@@ -56,10 +56,10 @@ func (s SchwabCSVParser) Parse(statement string) (transactions []models.Transact
 	return transactions, []models.Balance{}, nil
 }
 
-type FidelityVisaCSVParser struct{}
+type fidelityCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 0th column, description in 2nd column, and amount in 4th column
-func (FidelityVisaCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+func (fidelityCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
 	// parse the string into a CSV
 	csvReader := csv.NewReader(strings.NewReader(statement))
 	records, err := csvReader.ReadAll()
@@ -91,10 +91,10 @@ func (FidelityVisaCSVParser) Parse(statement string) (transactions []models.Tran
 	return transactions, []models.Balance{}, nil
 }
 
-type ChaseVisaCSVParser struct{}
+type ChaseCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 0th column, description in 2nd column, and amount in 4th column
-func (s ChaseVisaCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+func (s ChaseCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
 	// parse the string into a CSV
 	csvReader := csv.NewReader(strings.NewReader(statement))
 	records, err := csvReader.ReadAll()
@@ -127,9 +127,9 @@ func (s ChaseVisaCSVParser) Parse(statement string) (transactions []models.Trans
 }
 
 var parsersByInstitution map[string]Parser = map[string]Parser{
-	"schwab": SchwabCSVParser{},
-	"fidelity visa": FidelityVisaCSVParser{},
-
+	"schwab":   SchwabCSVParser{},
+	"fidelity": fidelityCSVParser{},
+	"chase":    ChaseCSVParser{},
 }
 
 func parseAmount(amount string) (amountAsInt int64, err error) {
