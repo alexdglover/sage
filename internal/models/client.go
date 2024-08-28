@@ -30,7 +30,13 @@ func createDbClient() {
 		},
 	)
 
-	dbClient, err := gorm.Open(sqlite.Open("sage.db"), &gorm.Config{
+	var sageFilePath string
+	if sageFileEnvVar, ok := os.LookupEnv("SAGE_FILE"); ok {
+		sageFilePath = sageFileEnvVar
+	} else {
+		sageFilePath = "sage.db"
+	}
+	dbClient, err := gorm.Open(sqlite.Open(sageFilePath), &gorm.Config{
 		Logger: newLogger,
 	})
 	if err != nil {
