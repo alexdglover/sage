@@ -88,7 +88,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		// use hash to check if this is a duplicate transaction, but ignore
 		// duplicates from the statement currently being imported since it is possible
 		// to have a transcation with same date, amount, description, and account
-		txns, err := tr.GetTransactionsByHash(hashHex, submission)
+		txns, err := tr.GetTransactionsByHash(hashHex, submission.ID)
 		if err != nil {
 			submission.Status = models.Failed
 			isr.Save(submission)
@@ -96,7 +96,6 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		}
 
 		if len(txns) > 0 {
-			fmt.Println("found existing transaction with same data, not adding it to database")
 			submission.TransactionsSkipped = submission.TransactionsSkipped + 1
 			continue
 		}

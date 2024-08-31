@@ -39,10 +39,11 @@ func (*TransactionRepository) GetAllTransactions() ([]Transaction, error) {
 	return txns, result.Error
 }
 
-// TODO: Implement this function. This expects a sha256 hash that has been hex encoded to string
-func (*TransactionRepository) GetTransactionsByHash(hash string, submission ImportSubmission) ([]Transaction, error) {
+func (*TransactionRepository) GetTransactionsByHash(hash string, submissionID uint) ([]Transaction, error) {
 	// Implement GORM query to look up transactions by hash
-	return []Transaction{}, nil
+	var transactions []Transaction
+	result := db.Where("import_submission_id != ?", submissionID).Where("hash = ?", hash).Find(&transactions)
+	return transactions, result.Error
 }
 
 func (*TransactionRepository) Create(txn *Transaction) error {
