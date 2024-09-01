@@ -1,0 +1,164 @@
+package api
+
+import (
+	_ "embed"
+)
+
+// //go:embed accounts.html
+// var accountsPageTmpl string
+
+//go:embed balanceForm.html
+var balanceFormTmpl string
+
+type BalanceDTO struct {
+	ID                 uint
+	Date               string
+	EffectiveStartDate string
+	EffectiveEndDate   *string
+	Amount             int64
+	AccountID          uint
+}
+
+// type AccountsPageDTO struct {
+// 	Accounts           []AccountDTO
+// 	AccountSaved       bool
+// 	CreatedAccountName string
+// }
+
+type BalanceFormDTO struct {
+	// If we're editing an existing account, Editing will be true
+	// If we're creating a new account, Editing will be false
+	Editing    bool
+	BalanceDTO BalanceDTO
+}
+
+// func accountsHandler(w http.ResponseWriter, req *http.Request) {
+// 	// Get all accounts
+// 	ar := models.GetAccountRepository()
+// 	accounts, err := ar.GetAllAccounts()
+// 	if err != nil {
+// 		http.Error(w, "Unable to get accounts", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	br := models.GetBalanceRepository()
+
+// 	// Build accounts DTO
+// 	accountsDTO := make([]AccountDTO, len(accounts))
+// 	for i, account := range accounts {
+// 		balance := br.GetLatestBalanceForAccount(context.TODO(), account.ID)
+// 		accountsDTO[i] = AccountDTO{
+// 			ID:                 account.ID,
+// 			Name:               account.Name,
+// 			AccountCategory:    account.AccountCategory,
+// 			AccountType:        account.AccountType,
+// 			DefaultParser:      account.DefaultParser,
+// 			Balance:            utils.CentsToDollarString(balance.Amount),
+// 			BalanceLastUpdated: balance.Date,
+// 		}
+// 	}
+// 	accountsPageDTO := AccountsPageDTO{
+// 		Accounts: accountsDTO,
+// 	}
+// 	if req.URL.Query().Get("accountSaved") != "" {
+// 		accountsPageDTO.AccountSaved = true
+// 		accountsPageDTO.CreatedAccountName = req.URL.Query().Get("accountSaved")
+// 	}
+
+// 	tmpl := template.Must(template.New("accountsPage").Funcs(template.FuncMap{
+// 		"mod": func(i, j int) int { return i % j },
+// 	}).Parse(accountsPageTmpl))
+
+// 	err = tmpl.Execute(w, accountsPageDTO)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
+
+// func accountFormHandler(w http.ResponseWriter, req *http.Request) {
+// 	var dto AccountFormDTO
+
+// 	accountIDQueryParameter := req.URL.Query().Get("accountID")
+// 	if accountIDQueryParameter != "" {
+// 		ar := models.GetAccountRepository()
+// 		accountID, err := utils.StringToUint(accountIDQueryParameter)
+// 		if err != nil {
+// 			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
+// 			return
+// 		}
+// 		account, err := ar.GetAccountByID(accountID)
+// 		if err != nil {
+// 			http.Error(w, "Unable to get account", http.StatusInternalServerError)
+// 			return
+// 		}
+
+// 		dto = AccountFormDTO{
+// 			Editing:         true,
+// 			AccountName:     account.Name,
+// 			AccountCategory: account.AccountCategory,
+// 			AccountType:     account.AccountType,
+// 		}
+// 		// If the account has a default parser, set it. Otherwise let it default to empty string
+// 		if account.DefaultParser != nil {
+// 			dto.DefaultParser = *account.DefaultParser
+// 		}
+// 	}
+
+// 	tmpl, err := template.New("accountForm").Parse(accountFormTmpl)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+
+// 	err = tmpl.Execute(w, dto)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
+
+// func accountController(w http.ResponseWriter, req *http.Request) {
+// 	req.ParseForm()
+
+// 	accountName := req.FormValue("accountName")
+// 	accountCategory := req.FormValue("accountCategory")
+// 	accountType := req.FormValue("accountType")
+// 	defaultParser := req.FormValue("defaultParser")
+
+// 	account := models.Account{
+// 		Name:            accountName,
+// 		AccountCategory: accountCategory,
+// 		AccountType:     accountType,
+// 		DefaultParser:   &defaultParser,
+// 	}
+
+// 	accountID := req.FormValue("accountID")
+// 	if accountID != "" {
+// 		id, err := utils.StringToUint(accountID)
+// 		if err != nil {
+// 			http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
+// 			return
+// 		}
+// 		account.ID = id
+// 	}
+
+// 	ar := models.GetAccountRepository()
+
+// 	_, err := ar.Save(account)
+// 	if err != nil {
+// 		http.Error(w, "Unable to save account", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	queryValues := url.Values{}
+// 	queryValues.Add("accountSaved", accountName)
+// 	// TODO: Consider moving the accountView to a function that accepts an extra argument
+// 	// instead of invoking the endpoint with a custom request
+// 	accountViewReq := http.Request{
+// 		Method: "GET",
+// 		URL: &url.URL{
+// 			RawQuery: queryValues.Encode(),
+// 		},
+// 	}
+// 	accountViewReq.URL.RawQuery = queryValues.Encode()
+
+// 	accountsHandler(w, &accountViewReq)
+// }

@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"net/http"
 	"net/url"
 	"text/template"
@@ -37,6 +38,7 @@ type AccountFormDTO struct {
 	// If we're editing an existing account, Editing will be true
 	// If we're creating a new account, Editing will be false
 	Editing         bool
+	AccountID       string
 	AccountName     string
 	AccountCategory string
 	AccountType     string
@@ -105,6 +107,7 @@ func accountFormHandler(w http.ResponseWriter, req *http.Request) {
 
 		dto = AccountFormDTO{
 			Editing:         true,
+			AccountID:       fmt.Sprint(account.ID),
 			AccountName:     account.Name,
 			AccountCategory: account.AccountCategory,
 			AccountType:     account.AccountType,
@@ -129,29 +132,34 @@ func accountFormHandler(w http.ResponseWriter, req *http.Request) {
 func accountController(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 
+	accountID := req.FormValue("accountID")
 	accountName := req.FormValue("accountName")
 	accountCategory := req.FormValue("accountCategory")
 	accountType := req.FormValue("accountType")
 	defaultParser := req.FormValue("defaultParser")
 
-	account := models.Account{
-		Name:            accountName,
-		AccountCategory: accountCategory,
-		AccountType:     accountType,
-		DefaultParser:   &defaultParser,
-	}
+	ar := models.GetAccountRepository()
+	var account models.Account
 
-	accountID := req.FormValue("accountID")
 	if accountID != "" {
 		id, err := utils.StringToUint(accountID)
 		if err != nil {
 			http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
 			return
 		}
-		account.ID = id
+		account, err = ar.GetAccountByID(id)
+		if err != nil {
+			http.Error(w, "Unable to get account", http.StatusBadRequest)
+			return
+		}
+	} else {
+		account = models.Account{}
 	}
 
-	ar := models.GetAccountRepository()
+	account.Name = accountName
+	account.AccountCategory = accountCategory
+	account.AccountType = accountType
+	account.DefaultParser = &defaultParser
 
 	_, err := ar.Save(account)
 	if err != nil {
