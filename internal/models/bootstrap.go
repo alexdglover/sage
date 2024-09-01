@@ -44,23 +44,23 @@ func BootstrapDatabase(ctx context.Context) {
 		db.Create(&Account{Name: "Mortgage", AccountCategory: "loan", AccountType: "liability"})
 
 		// Create open-ended balances for infrequently updated accounts
-		// db.Create(&Balance{Date: "2024-01-17", EffectiveStartDate: "2024-01-17", Amount: 2500, AccountID: 3})
-		// db.Create(&Balance{Date: "2024-01-17", EffectiveStartDate: "2024-01-17", Amount: 1250, AccountID: 4})
+		// db.Create(&Balance{EffectiveDate: "2024-01-17", Amount: 2500, AccountID: 3})
+		// db.Create(&Balance{EffectiveDate: "2024-01-17", Amount: 1250, AccountID: 4})
 
 		// Create monthly balances for normal accounts
-		db.Create(&Balance{Date: "2024-02-13", EffectiveStartDate: "2024-02-01", EffectiveEndDate: utils.StrPointer("2024-02-29"), Amount: 21013, AccountID: 1})
-		db.Create(&Balance{Date: "2024-03-13", EffectiveStartDate: "2024-03-01", EffectiveEndDate: utils.StrPointer("2024-03-31"), Amount: 41062, AccountID: 1})
-		db.Create(&Balance{Date: "2024-04-13", EffectiveStartDate: "2024-04-01", EffectiveEndDate: utils.StrPointer("2024-04-30"), Amount: 42032, AccountID: 1})
-		db.Create(&Balance{Date: "2024-05-13", EffectiveStartDate: "2024-05-01", EffectiveEndDate: utils.StrPointer("2024-05-31"), Amount: 49032, AccountID: 1})
-		db.Create(&Balance{Date: "2024-06-13", EffectiveStartDate: "2024-06-01", EffectiveEndDate: utils.StrPointer("2024-06-30"), Amount: 64097, AccountID: 1})
-		db.Create(&Balance{Date: "2024-07-13", EffectiveStartDate: "2024-07-01", Amount: 63201, AccountID: 1})
+		db.Create(&Balance{EffectiveDate: "2024-02-01", Amount: 21013, AccountID: 1})
+		db.Create(&Balance{EffectiveDate: "2024-03-01", Amount: 41062, AccountID: 1})
+		db.Create(&Balance{EffectiveDate: "2024-04-01", Amount: 42032, AccountID: 1})
+		db.Create(&Balance{EffectiveDate: "2024-05-01", Amount: 49032, AccountID: 1})
+		db.Create(&Balance{EffectiveDate: "2024-06-01", Amount: 64097, AccountID: 1})
+		db.Create(&Balance{EffectiveDate: "2024-07-01", Amount: 63201, AccountID: 1})
 
-		db.Create(&Balance{Date: "2024-02-17", EffectiveStartDate: "2024-02-01", EffectiveEndDate: utils.StrPointer("2024-02-29"), Amount: 10111, AccountID: 2})
-		db.Create(&Balance{Date: "2024-03-17", EffectiveStartDate: "2024-03-01", EffectiveEndDate: utils.StrPointer("2024-03-31"), Amount: 17387, AccountID: 2})
-		db.Create(&Balance{Date: "2024-04-17", EffectiveStartDate: "2024-04-01", EffectiveEndDate: utils.StrPointer("2024-04-30"), Amount: 10387, AccountID: 2})
-		db.Create(&Balance{Date: "2024-05-17", EffectiveStartDate: "2024-05-01", EffectiveEndDate: utils.StrPointer("2024-05-31"), Amount: 13312, AccountID: 2})
-		db.Create(&Balance{Date: "2024-06-17", EffectiveStartDate: "2024-06-01", EffectiveEndDate: utils.StrPointer("2024-06-30"), Amount: 14044, AccountID: 2})
-		db.Create(&Balance{Date: "2024-07-17", EffectiveStartDate: "2024-07-01", Amount: 13255, AccountID: 2})
+		db.Create(&Balance{EffectiveDate: "2024-02-01", Amount: 10111, AccountID: 2})
+		db.Create(&Balance{EffectiveDate: "2024-03-01", Amount: 17387, AccountID: 2})
+		db.Create(&Balance{EffectiveDate: "2024-04-01", Amount: 10387, AccountID: 2})
+		db.Create(&Balance{EffectiveDate: "2024-05-01", Amount: 13312, AccountID: 2})
+		db.Create(&Balance{EffectiveDate: "2024-06-01", Amount: 14044, AccountID: 2})
+		db.Create(&Balance{EffectiveDate: "2024-07-01", Amount: 13255, AccountID: 2})
 
 	}
 

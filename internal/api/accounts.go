@@ -67,7 +67,7 @@ func accountsHandler(w http.ResponseWriter, req *http.Request) {
 			AccountType:        account.AccountType,
 			DefaultParser:      account.DefaultParser,
 			Balance:            utils.CentsToDollarString(balance.Amount),
-			BalanceLastUpdated: balance.Date,
+			BalanceLastUpdated: balance.UpdatedAt.String(),
 		}
 	}
 	accountsPageDTO := AccountsPageDTO{

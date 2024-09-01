@@ -17,14 +17,13 @@ var balancesPageTmpl string
 var balanceFormTmpl string
 
 type BalanceDTO struct {
-	ID                 uint
-	UpdatedAt          string
-	Date               string
-	EffectiveStartDate string
-	EffectiveEndDate   string
-	Amount             string
-	AccountID          uint
-	AccountName        string
+	ID            uint
+	UpdatedAt     string
+	Date          string
+	EffectiveDate string
+	Amount        string
+	AccountID     uint
+	AccountName   string
 }
 
 type BalancesPageDTO struct {
@@ -54,19 +53,13 @@ func balancesHandler(w http.ResponseWriter, req *http.Request) {
 	// Create balance DTO for each balance
 	balancesDTO := make([]BalanceDTO, len(balances))
 	for i, balance := range balances {
-		var eed string
-		if balance.EffectiveEndDate != nil {
-			eed = *balance.EffectiveEndDate
-		}
 		balancesDTO[i] = BalanceDTO{
-			ID:                 balance.ID,
-			UpdatedAt:          balance.UpdatedAt.String(),
-			Date:               balance.Date,
-			EffectiveStartDate: balance.EffectiveStartDate,
-			EffectiveEndDate:   eed,
-			Amount:             utils.CentsToDollarString(balance.Amount),
-			AccountID:          balance.AccountID,
-			AccountName:        balance.Account.Name,
+			ID:            balance.ID,
+			UpdatedAt:     balance.UpdatedAt.String(),
+			EffectiveDate: balance.EffectiveDate,
+			Amount:        utils.CentsToDollarString(balance.Amount),
+			AccountID:     balance.AccountID,
+			AccountName:   balance.Account.Name,
 		}
 	}
 	balancesPageDTO := BalancesPageDTO{
@@ -104,21 +97,15 @@ func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
 		}
 		balance := br.GetBalanceByID(context.TODO(), balanceID)
 
-		var eed string
-		if balance.EffectiveEndDate != nil {
-			eed = *balance.EffectiveEndDate
-		}
 		dto = BalanceFormDTO{
 			Editing: true,
 			BalanceDTO: BalanceDTO{
-				ID:                 balance.ID,
-				UpdatedAt:          balance.UpdatedAt.String(),
-				Date:               balance.Date,
-				EffectiveStartDate: balance.EffectiveStartDate,
-				EffectiveEndDate:   eed,
-				Amount:             utils.CentsToDollarString(balance.Amount),
-				AccountID:          balance.AccountID,
-				AccountName:        balance.Account.Name,
+				ID:            balance.ID,
+				UpdatedAt:     balance.UpdatedAt.String(),
+				EffectiveDate: balance.EffectiveDate,
+				Amount:        utils.CentsToDollarString(balance.Amount),
+				AccountID:     balance.AccountID,
+				AccountName:   balance.Account.Name,
 			},
 		}
 	} else {

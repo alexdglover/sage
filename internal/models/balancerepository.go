@@ -58,13 +58,15 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 	for _, month := range months {
 		var balances []Balance
 
+		// Get the latest balance that has an EffectiveDate before the end of the month
+
 		// Convert dates to YYYY-MM-DD so date comparisons work consistently with strings in SQLite
-		effectiveStartDate := utils.TimeToISO8601DateString(month)
-		effectiveEndDate := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
+		lastDayOfMonth := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
 
 		db.Where("account_id IN (?)", assetAccountIDs).
-			Where("effective_start_date <= ?", effectiveStartDate).
-			Where("effective_end_date IS NULL OR effective_end_date >= ?", effectiveEndDate).Find(&balances)
+			Where("effective_date <= ?", lastDayOfMonth).
+			Order("effective_date desc").Limit(1).
+			Find(&balances)
 
 		result = append(result, BalancesWithDate{
 			Date:     month,
@@ -77,13 +79,13 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 
 func (br BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) Balance {
 	var balance Balance
-	db.Where("account_id = ?", accountID).Order("date desc").Limit(1).Find(&balance)
+	db.Where("account_id = ?", accountID).Order("effective_date desc").Limit(1).Find(&balance)
 	return balance
 }
 
 func (br BalanceRepository) GetBalancesForAccount(ctx context.Context, accountID uint) []Balance {
 	var balances []Balance
-	db.Preload(clause.Associations).Where("account_id = ?", accountID).Order("date desc").Find(&balances)
+	db.Preload(clause.Associations).Where("account_id = ?", accountID).Order("effective_date desc").Find(&balances)
 	return balances
 }
 

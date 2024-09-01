@@ -6,13 +6,7 @@
 
 <form hx-post="/balances" hx-target="#reportContent" enctype="multipart/form-data">
   <div class="row">
-    <!-- <div class="col-sm-6">
-      <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="updatedAt" name="updatedAt" value="{{ .BalanceDTO.UpdatedAt }}" disabled>
-        <label for="updatedAt" class="form-label">Last updated</label>
-      </div>
-    </div> -->
-    <div class="col-sm-12">
+    <div class="col-sm-3">
       <div class="form-floating mb-3">
         <input type="text" class="form-control" id="amount" name="amount" value="{{ .BalanceDTO.Amount }}">
         <label for="amount" class="form-label">Amount</label>
@@ -20,16 +14,10 @@
     </div>
   </div>
   <div class="row">
-    <div class="col-sm-6">
+    <div class="col-sm-3">
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="effectiveStartDate" name="effectiveStartDate" value="{{ .BalanceDTO.EffectiveStartDate }}">
-        <label for="effectiveStartDate" class="form-label">Effective Start Date</label>
-      </div>
-    </div>
-    <div class="col-sm-6">
-      <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="effectiveEndDate" name="effectiveEndDate" value="{{ .BalanceDTO.EffectiveEndDate }}">
-        <label for="effectiveEndDate" class="form-label">Effective End Date</label>
+        <input type="text" class="form-control" id="effectiveDate" name="effectiveDate" value="{{ .BalanceDTO.EffectiveDate }}">
+        <label for="effectiveDate" class="form-label">Effective Date</label>
       </div>
     </div>
   </div>

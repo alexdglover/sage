@@ -37,6 +37,9 @@ func createDbClient() {
 		sageFilePath = "sage.db"
 	}
 	dbClient, err := gorm.Open(sqlite.Open(sageFilePath), &gorm.Config{
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
 		Logger: newLogger,
 	})
 	if err != nil {
