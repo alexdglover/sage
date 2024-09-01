@@ -21,19 +21,37 @@
     <div class="col-sm-4">
       <div class="card">
       <div class="card-header">
-        <h5>{{ $account.Name }} <a href="#"
-          hx-get="/accountForm?accountID={{ $account.ID }}"
-          hx-trigger="click"
-          hx-target="#reportContent"
-          hx-swap="innerHTML">
-              &#x1F58B;
-        </a></h5>
+        <h5>
+          {{ $account.Name }}
+          <a href="#"
+            class="btn btn-light"
+            hx-get="/accountForm?accountID={{ $account.ID }}"
+            hx-trigger="click"
+            hx-target="#reportContent"
+            hx-swap="innerHTML">
+            &#x1F58B;
+          </a>
+        </h5>
       </div>
         <div class="card-body">
           <h5>Balance: ${{ $account.Balance }}</h5>
           <p>Balance last updated: {{ $account.BalanceLastUpdated }}</p>
-          <a href="#" class="btn btn-success">Transactions</a>
-
+          <a href="#"
+            class="btn btn-light"
+            hx-get="/transactions?accountID={{ $account.ID }}"
+            hx-trigger="click"
+            hx-target="#reportContent"
+            hx-swap="innerHTML">
+            Transaction  
+          </a>
+          <a href="#"
+            class="btn btn-light"
+            hx-get="/balances?accountID={{ $account.ID }}"
+            hx-trigger="click"
+            hx-target="#reportContent"
+            hx-swap="innerHTML">
+            Balances  
+          </a>
         </div>
       </div>
     </div>

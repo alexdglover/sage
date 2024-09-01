@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/alexdglover/sage/internal/utils"
+	"gorm.io/gorm/clause"
 )
 
 type BalanceRepository struct{}
@@ -77,5 +78,17 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 func (br BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) Balance {
 	var balance Balance
 	db.Where("account_id = ?", accountID).Order("date desc").Limit(1).Find(&balance)
+	return balance
+}
+
+func (br BalanceRepository) GetBalancesForAccount(ctx context.Context, accountID uint) []Balance {
+	var balances []Balance
+	db.Preload(clause.Associations).Where("account_id = ?", accountID).Order("date desc").Find(&balances)
+	return balances
+}
+
+func (br BalanceRepository) GetBalanceByID(ctx context.Context, balanceID uint) Balance {
+	var balance Balance
+	db.Preload(clause.Associations).Where("id = ?", balanceID).Find(&balance)
 	return balance
 }

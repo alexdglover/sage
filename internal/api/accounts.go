@@ -35,9 +35,9 @@ type AccountsPageDTO struct {
 }
 
 type AccountFormDTO struct {
-	// If we're editing an existing account, Editing will be true
-	// If we're creating a new account, Editing will be false
-	Editing         bool
+	// If we're updating an existing account in the form, Updating will be true
+	// If we're creating a new account, Updating will be false
+	Updating        bool
 	AccountID       string
 	AccountName     string
 	AccountCategory string
@@ -106,7 +106,7 @@ func accountFormHandler(w http.ResponseWriter, req *http.Request) {
 		}
 
 		dto = AccountFormDTO{
-			Editing:         true,
+			Updating:        true,
 			AccountID:       fmt.Sprint(account.ID),
 			AccountName:     account.Name,
 			AccountCategory: account.AccountCategory,

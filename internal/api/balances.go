@@ -1,29 +1,37 @@
 package api
 
 import (
+	"context"
 	_ "embed"
+	"net/http"
+	"text/template"
+
+	"github.com/alexdglover/sage/internal/models"
+	"github.com/alexdglover/sage/internal/utils"
 )
 
-// //go:embed accounts.html
-// var accountsPageTmpl string
+//go:embed balances.html
+var balancesPageTmpl string
 
 //go:embed balanceForm.html
 var balanceFormTmpl string
 
 type BalanceDTO struct {
 	ID                 uint
+	UpdatedAt          string
 	Date               string
 	EffectiveStartDate string
-	EffectiveEndDate   *string
-	Amount             int64
+	EffectiveEndDate   string
+	Amount             string
 	AccountID          uint
+	AccountName        string
 }
 
-// type AccountsPageDTO struct {
-// 	Accounts           []AccountDTO
-// 	AccountSaved       bool
-// 	CreatedAccountName string
-// }
+type BalancesPageDTO struct {
+	AccountID    uint
+	Balances     []BalanceDTO
+	BalanceSaved bool
+}
 
 type BalanceFormDTO struct {
 	// If we're editing an existing account, Editing will be true
@@ -32,88 +40,108 @@ type BalanceFormDTO struct {
 	BalanceDTO BalanceDTO
 }
 
-// func accountsHandler(w http.ResponseWriter, req *http.Request) {
-// 	// Get all accounts
-// 	ar := models.GetAccountRepository()
-// 	accounts, err := ar.GetAllAccounts()
-// 	if err != nil {
-// 		http.Error(w, "Unable to get accounts", http.StatusInternalServerError)
-// 		return
-// 	}
+func balancesHandler(w http.ResponseWriter, req *http.Request) {
+	// Get all balances for a given account
+	br := models.GetBalanceRepository()
+	accountIDQueryParameter := req.URL.Query().Get("accountID")
+	accountID, err := utils.StringToUint(accountIDQueryParameter)
+	if err != nil {
+		http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
+		return
+	}
+	balances := br.GetBalancesForAccount(context.TODO(), accountID)
 
-// 	br := models.GetBalanceRepository()
+	// Create balance DTO for each balance
+	balancesDTO := make([]BalanceDTO, len(balances))
+	for i, balance := range balances {
+		var eed string
+		if balance.EffectiveEndDate != nil {
+			eed = *balance.EffectiveEndDate
+		}
+		balancesDTO[i] = BalanceDTO{
+			ID:                 balance.ID,
+			UpdatedAt:          balance.UpdatedAt.String(),
+			Date:               balance.Date,
+			EffectiveStartDate: balance.EffectiveStartDate,
+			EffectiveEndDate:   eed,
+			Amount:             utils.CentsToDollarString(balance.Amount),
+			AccountID:          balance.AccountID,
+			AccountName:        balance.Account.Name,
+		}
+	}
+	balancesPageDTO := BalancesPageDTO{
+		AccountID: accountID,
+		Balances:  balancesDTO,
+	}
+	if req.URL.Query().Get("balanceSaved") != "" {
+		balancesPageDTO.BalanceSaved = true
+	}
 
-// 	// Build accounts DTO
-// 	accountsDTO := make([]AccountDTO, len(accounts))
-// 	for i, account := range accounts {
-// 		balance := br.GetLatestBalanceForAccount(context.TODO(), account.ID)
-// 		accountsDTO[i] = AccountDTO{
-// 			ID:                 account.ID,
-// 			Name:               account.Name,
-// 			AccountCategory:    account.AccountCategory,
-// 			AccountType:        account.AccountType,
-// 			DefaultParser:      account.DefaultParser,
-// 			Balance:            utils.CentsToDollarString(balance.Amount),
-// 			BalanceLastUpdated: balance.Date,
-// 		}
-// 	}
-// 	accountsPageDTO := AccountsPageDTO{
-// 		Accounts: accountsDTO,
-// 	}
-// 	if req.URL.Query().Get("accountSaved") != "" {
-// 		accountsPageDTO.AccountSaved = true
-// 		accountsPageDTO.CreatedAccountName = req.URL.Query().Get("accountSaved")
-// 	}
+	tmpl, err := template.New("balancesPage").Parse(balancesPageTmpl)
+	if err != nil {
+		http.Error(w, "Unable to parse balancesPage template", http.StatusInternalServerError)
+		return
+	}
 
-// 	tmpl := template.Must(template.New("accountsPage").Funcs(template.FuncMap{
-// 		"mod": func(i, j int) int { return i % j },
-// 	}).Parse(accountsPageTmpl))
+	err = tmpl.Execute(w, balancesPageDTO)
+	if err != nil {
+		http.Error(w, "Unable to render balancesPage template", http.StatusInternalServerError)
+		return
+	}
+}
 
-// 	err = tmpl.Execute(w, accountsPageDTO)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
+func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
+	var dto BalanceFormDTO
 
-// func accountFormHandler(w http.ResponseWriter, req *http.Request) {
-// 	var dto AccountFormDTO
+	balanceIDQueryParameter := req.URL.Query().Get("balanceID")
+	accountIDQueryParameter := req.URL.Query().Get("accountID")
+	if balanceIDQueryParameter != "" {
+		br := models.GetBalanceRepository()
+		balanceID, err := utils.StringToUint(balanceIDQueryParameter)
+		if err != nil {
+			http.Error(w, "Unable to parse balance ID", http.StatusInternalServerError)
+			return
+		}
+		balance := br.GetBalanceByID(context.TODO(), balanceID)
 
-// 	accountIDQueryParameter := req.URL.Query().Get("accountID")
-// 	if accountIDQueryParameter != "" {
-// 		ar := models.GetAccountRepository()
-// 		accountID, err := utils.StringToUint(accountIDQueryParameter)
-// 		if err != nil {
-// 			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
-// 			return
-// 		}
-// 		account, err := ar.GetAccountByID(accountID)
-// 		if err != nil {
-// 			http.Error(w, "Unable to get account", http.StatusInternalServerError)
-// 			return
-// 		}
+		var eed string
+		if balance.EffectiveEndDate != nil {
+			eed = *balance.EffectiveEndDate
+		}
+		dto = BalanceFormDTO{
+			Editing: true,
+			BalanceDTO: BalanceDTO{
+				ID:                 balance.ID,
+				UpdatedAt:          balance.UpdatedAt.String(),
+				Date:               balance.Date,
+				EffectiveStartDate: balance.EffectiveStartDate,
+				EffectiveEndDate:   eed,
+				Amount:             utils.CentsToDollarString(balance.Amount),
+				AccountID:          balance.AccountID,
+				AccountName:        balance.Account.Name,
+			},
+		}
+	} else {
+		accountID, err := utils.StringToUint(accountIDQueryParameter)
+		if err != nil {
+			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
+			return
+		}
+		dto.BalanceDTO.AccountID = accountID
+	}
 
-// 		dto = AccountFormDTO{
-// 			Editing:         true,
-// 			AccountName:     account.Name,
-// 			AccountCategory: account.AccountCategory,
-// 			AccountType:     account.AccountType,
-// 		}
-// 		// If the account has a default parser, set it. Otherwise let it default to empty string
-// 		if account.DefaultParser != nil {
-// 			dto.DefaultParser = *account.DefaultParser
-// 		}
-// 	}
+	tmpl, err := template.New("balanceForm").Parse(balanceFormTmpl)
+	if err != nil {
+		http.Error(w, "Unable to parse balanceForm template", http.StatusInternalServerError)
+		return
+	}
 
-// 	tmpl, err := template.New("accountForm").Parse(accountFormTmpl)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-
-// 	err = tmpl.Execute(w, dto)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// }
+	err = tmpl.Execute(w, dto)
+	if err != nil {
+		http.Error(w, "Unable to render balanceForm template", http.StatusInternalServerError)
+		return
+	}
+}
 
 // func accountController(w http.ResponseWriter, req *http.Request) {
 // 	req.ParseForm()

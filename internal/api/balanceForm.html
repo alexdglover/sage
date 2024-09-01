@@ -1,63 +1,47 @@
 <div class="row">
   <div class="col-sm-4">
-    <h2>{{ if eq .Editing true }}Update{{ else }}Add{{ end }} Account</h2>
+    <h2>{{ if eq .Editing true }}Update{{ else }}Add{{ end }} Balance</h2>
   </div>
 </div>
 
-<form hx-post="/account" hx-target="#reportContent" enctype="multipart/form-data">
+<form hx-post="/balances" hx-target="#reportContent" enctype="multipart/form-data">
   <div class="row">
-    <div class="col-sm-6">
+    <!-- <div class="col-sm-6">
       <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="accountName" name="accountName" value="{{ .AccountName }}">
-        <label for="accountName" class="form-label">Account Name</label>
+        <input type="text" class="form-control" id="updatedAt" name="updatedAt" value="{{ .BalanceDTO.UpdatedAt }}" disabled>
+        <label for="updatedAt" class="form-label">Last updated</label>
       </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-6">
-      <div class="form-floating mb-3">
-        <select class="form-select" aria-label="account category selector" name="accountCategory" id="accountCategory">
-          <option {{ if eq .AccountCategory "savings" }}selected{{ end }} value="savings">Checking/Savings</option>
-          <option {{ if eq .AccountCategory "creditCard" }}selected{{ end }} value="creditCard">Credit Card</option>
-          <option {{ if eq .AccountCategory "realEstate" }}selected{{ end }} value="realEstate">Real Estate</option>
-          <option {{ if eq .AccountCategory "loan" }}selected{{ end }} value="loan">Loan</option>
-          <option {{ if eq .AccountCategory "brokerage" }}selected{{ end }} value="brokerage">Brokerage</option>
-          <option {{ if eq .AccountCategory "retirement" }}selected{{ end }} value="retirement">Retirement Account</option>
-        </select>
-        <label for="accountCategory" class="form-label">Account Category</label>
-      </div>
-    </div>
-    <div class="col-sm-6">
-      <div class="form-floating mb-3">
-        <select class="form-select" aria-label="account type selector" name="accountType" id="accountType">
-          <option {{ if eq .AccountType "asset" }}selected{{ end }} value="asset">Asset</option>
-          <option {{ if eq .AccountType "liability" }}selected{{ end }} value="liability">Liability</option>
-        </select>
-        <label for="accountType" class="form-label">Account Type</label>
-      </div>
-    </div>
-  </div>
-  <div class="row">
+    </div> -->
     <div class="col-sm-12">
       <div class="form-floating mb-3">
-        <select class="form-select" aria-label="statement format selector" name="defaultParser" id="defaultParser">
-          <option {{ if eq .DefaultParser "schwab" }}selected{{ end }} value="schwab">Schwab Checking</option>
-          <option {{ if eq .DefaultParser "fidelity" }}selected{{ end }} value="fidelity">Fidelity Credit Card</option>
-          <option {{ if eq .DefaultParser "chase" }}selected{{ end }} value="chase">Chase</option>
-        </select>
-        <label for="defaultParser" class="form-label">Statement format</label>
+        <input type="text" class="form-control" id="amount" name="amount" value="{{ .BalanceDTO.Amount }}">
+        <label for="amount" class="form-label">Amount</label>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="effectiveStartDate" name="effectiveStartDate" value="{{ .BalanceDTO.EffectiveStartDate }}">
+        <label for="effectiveStartDate" class="form-label">Effective Start Date</label>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="effectiveEndDate" name="effectiveEndDate" value="{{ .BalanceDTO.EffectiveEndDate }}">
+        <label for="effectiveEndDate" class="form-label">Effective End Date</label>
       </div>
     </div>
   </div>
   <button type="submit" class="btn btn-success"
-    hx-post="/accounts"
+    hx-post="/balances"
     hx-trigger="click"
     hx-target="#reportContent"
     hx-swap="innerHTML">
     Save
   </button>
   <button type="button" class="btn btn-light"
-    hx-get="/accounts"
+    hx-get="/balances?accountID={{ .BalanceDTO.AccountID }}"
     hx-trigger="click"
     hx-target="#reportContent"
     hx-swap="innerHTML">

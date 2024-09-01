@@ -1,0 +1,49 @@
+<div class="row">
+  <div class="col-sm-4">
+    <h2>Balances</h2>
+  </div>
+  <div class="col-sm-8">
+    <button class="btn btn-success" style="float: right;"
+    hx-get="/balanceForm?accountID={{ .AccountID }}"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+      Add balance
+    </button>
+  </div>
+</div>
+
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Edit</th>
+        <th scope="col">Updated Date</th>
+        <th scope="col">Effective Start Date</th>
+        <th scope="col">Effective End Date</th>
+        <th scope="col">Amount</th>
+        <th scope="col">Account</th>
+        <!-- <th scope="col">Import job</th> -->
+      </tr>
+    </thead>
+    <tbody>
+      {{ range .Balances }}
+      <tr>
+        <td><a href="#"
+          hx-get="/balanceForm?balanceID={{ .ID }}&accountID={{ .AccountID }}"
+          hx-trigger="click"
+          hx-target="#reportContent"
+          hx-swap="innerHTML">
+          &#x1F58B;
+        </a></td>
+        <td>{{ .UpdatedAt }}</td>
+        <td>{{ .EffectiveStartDate }}</td>
+        <td>{{ .EffectiveEndDate }}</td>
+        <td>${{ .Amount }}</td>
+        <td>{{ .AccountName }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
