@@ -4,6 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"net/http"
+	"net/url"
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -27,15 +28,20 @@ type BalanceDTO struct {
 }
 
 type BalancesPageDTO struct {
-	AccountID    uint
-	Balances     []BalanceDTO
-	BalanceSaved bool
+	AccountID           uint
+	Balances            []BalanceDTO
+	BalanceSaved        bool
+	BalanceSavedMessage string
 }
 
 type BalanceFormDTO struct {
 	// If we're editing an existing account, Editing will be true
 	// If we're creating a new account, Editing will be false
-	Editing    bool
+	Editing bool
+	// we set the AccountID for the to populate the balanceForm with the accountID
+	// in HTML forms, so the account ID can be passed in the form submission even
+	// if there is no Balance object set
+	AccountID  uint
 	BalanceDTO BalanceDTO
 }
 
@@ -68,6 +74,7 @@ func balancesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 	if req.URL.Query().Get("balanceSaved") != "" {
 		balancesPageDTO.BalanceSaved = true
+		balancesPageDTO.BalanceSavedMessage = req.URL.Query().Get("balanceSaved")
 	}
 
 	tmpl, err := template.New("balancesPage").Parse(balancesPageTmpl)
@@ -98,7 +105,8 @@ func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
 		balance := br.GetBalanceByID(context.TODO(), balanceID)
 
 		dto = BalanceFormDTO{
-			Editing: true,
+			Editing:   true,
+			AccountID: balance.AccountID,
 			BalanceDTO: BalanceDTO{
 				ID:            balance.ID,
 				UpdatedAt:     balance.UpdatedAt.String(),
@@ -114,7 +122,7 @@ func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
 			return
 		}
-		dto.BalanceDTO.AccountID = accountID
+		dto.AccountID = accountID
 	}
 
 	tmpl, err := template.New("balanceForm").Parse(balanceFormTmpl)
@@ -130,50 +138,63 @@ func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// func accountController(w http.ResponseWriter, req *http.Request) {
-// 	req.ParseForm()
+func balanceController(w http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	balanceID := req.FormValue("balanceID")
+	accountIDFormValue := req.FormValue("accountID")
+	amount := req.FormValue("amount")
+	effectiveDate := req.FormValue("effectiveDate")
 
-// 	accountName := req.FormValue("accountName")
-// 	accountCategory := req.FormValue("accountCategory")
-// 	accountType := req.FormValue("accountType")
-// 	defaultParser := req.FormValue("defaultParser")
+	br := models.GetBalanceRepository()
+	var balance models.Balance
 
-// 	account := models.Account{
-// 		Name:            accountName,
-// 		AccountCategory: accountCategory,
-// 		AccountType:     accountType,
-// 		DefaultParser:   &defaultParser,
-// 	}
+	if balanceID != "0" {
+		id, err := utils.StringToUint(balanceID)
+		if err != nil {
+			http.Error(w, "Unable to parse balance ID", http.StatusBadRequest)
+			return
+		}
+		balance.ID = id
+	}
 
-// 	accountID := req.FormValue("accountID")
-// 	if accountID != "" {
-// 		id, err := utils.StringToUint(accountID)
-// 		if err != nil {
-// 			http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
-// 			return
-// 		}
-// 		account.ID = id
-// 	}
+	balance.Amount = utils.DollarStringToCents(amount)
+	balance.EffectiveDate = effectiveDate
+	accountID, err := utils.StringToUint(accountIDFormValue)
+	if err != nil {
+		http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
+		return
+	}
+	balance.AccountID = accountID
 
-// 	ar := models.GetAccountRepository()
+	_, err = br.Save(balance)
+	if err != nil {
+		http.Error(w, "Unable to save balance", http.StatusBadRequest)
+		return
+	}
 
-// 	_, err := ar.Save(account)
-// 	if err != nil {
-// 		http.Error(w, "Unable to save account", http.StatusBadRequest)
-// 		return
-// 	}
+	// Redirect to the balances page with the balanceSaved query parameter set to true
+	ar := models.GetAccountRepository()
+	var balanceSavedMessage string
+	account, err := ar.GetAccountByID(accountID)
+	// If we can't get the account, we'll just show a generic message. Nothing actually broke
+	if err != nil {
+		balanceSavedMessage = "Balanced saved"
+	} else {
+		balanceSavedMessage = "Balanced saved for " + account.Name
+	}
 
-// 	queryValues := url.Values{}
-// 	queryValues.Add("accountSaved", accountName)
-// 	// TODO: Consider moving the accountView to a function that accepts an extra argument
-// 	// instead of invoking the endpoint with a custom request
-// 	accountViewReq := http.Request{
-// 		Method: "GET",
-// 		URL: &url.URL{
-// 			RawQuery: queryValues.Encode(),
-// 		},
-// 	}
-// 	accountViewReq.URL.RawQuery = queryValues.Encode()
+	queryValues := url.Values{}
+	queryValues.Add("balanceSaved", balanceSavedMessage)
+	queryValues.Add("accountID", accountIDFormValue)
+	// TODO: Consider moving the balanceView to a function that accepts an extra argument
+	// instead of invoking the endpoint with a custom request
+	balanceViewReq := http.Request{
+		Method: "GET",
+		URL: &url.URL{
+			RawQuery: queryValues.Encode(),
+		},
+	}
+	balanceViewReq.URL.RawQuery = queryValues.Encode()
 
-// 	accountsHandler(w, &accountViewReq)
-// }
+	balancesHandler(w, &balanceViewReq)
+}

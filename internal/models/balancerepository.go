@@ -24,21 +24,21 @@ func GetBalanceRepository() *BalanceRepository {
 	return balanceRepository
 }
 
-func (br BalanceRepository) GetAllBalances(ctx context.Context) ([]Balance, error) {
+func (*BalanceRepository) GetAllBalances(ctx context.Context) ([]Balance, error) {
 	var balances []Balance
 	result := db.Find(&balances)
 	return balances, result.Error
 }
 
-func (br BalanceRepository) GetBalancesOfAllAssetsByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
+func (*BalanceRepository) GetBalancesOfAllAssetsByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
 	return balanceRepository.GetBalancesByMonth(ctx, "asset", startYearMonth, endYearMonth)
 }
 
-func (br BalanceRepository) GetBalancesOfAllLiabilitiesByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
+func (*BalanceRepository) GetBalancesOfAllLiabilitiesByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
 	return balanceRepository.GetBalancesByMonth(ctx, "liability", startYearMonth, endYearMonth)
 }
 
-func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType string, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
+func (*BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType string, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
 	// TODO: implement a better way of limiting input options (like an enum)
 	if accountType != "asset" && accountType != "liability" {
 		panic("only `asset` or `liability` are valid accountType options")
@@ -77,20 +77,26 @@ func (br BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType 
 	return result
 }
 
-func (br BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) Balance {
+func (*BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) Balance {
 	var balance Balance
 	db.Where("account_id = ?", accountID).Order("effective_date desc").Limit(1).Find(&balance)
 	return balance
 }
 
-func (br BalanceRepository) GetBalancesForAccount(ctx context.Context, accountID uint) []Balance {
+func (*BalanceRepository) GetBalancesForAccount(ctx context.Context, accountID uint) []Balance {
 	var balances []Balance
 	db.Preload(clause.Associations).Where("account_id = ?", accountID).Order("effective_date desc").Find(&balances)
 	return balances
 }
 
-func (br BalanceRepository) GetBalanceByID(ctx context.Context, balanceID uint) Balance {
+func (*BalanceRepository) GetBalanceByID(ctx context.Context, balanceID uint) Balance {
 	var balance Balance
 	db.Preload(clause.Associations).Where("id = ?", balanceID).Find(&balance)
 	return balance
+}
+
+// Save is an UPSERT operation, returning the ID of the record and an optional error
+func (*BalanceRepository) Save(balance Balance) (id uint, err error) {
+	result := db.Save(&balance).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
+	return balance.ID, result.Error
 }

@@ -39,6 +39,5 @@ func (ar *AccountRepository) GetAccountByID(id uint) (Account, error) {
 // Save is an UPSERT operation, returning the ID of the record and an optional error
 func (*AccountRepository) Save(account Account) (id uint, err error) {
 	result := db.Save(&account).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
-
 	return account.ID, result.Error
 }

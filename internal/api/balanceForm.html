@@ -7,17 +7,26 @@
 <form hx-post="/balances" hx-target="#reportContent" enctype="multipart/form-data">
   <div class="row">
     <div class="col-sm-3">
-      <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="amount" name="amount" value="{{ .BalanceDTO.Amount }}">
+      <div class="mb-3">
+        <input type="text" class="form-control" id="accountID" name="accountID" style="display:none;" value="{{ .AccountID }}">
+        <input type="text" class="form-control" id="balanceID" name="balanceID" style="display:none;" value="{{ .BalanceDTO.ID }}">
         <label for="amount" class="form-label">Amount</label>
+        <input type="text" class="form-control" id="amount" name="amount" value="{{ .BalanceDTO.Amount }}">
       </div>
     </div>
   </div>
   <div class="row">
     <div class="col-sm-3">
-      <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="effectiveDate" name="effectiveDate" value="{{ .BalanceDTO.EffectiveDate }}">
+      <div class="mb-3">
         <label for="effectiveDate" class="form-label">Effective Date</label>
+        <input
+          type="text"
+          class="form-control"
+          id="effectiveDate"
+          name="effectiveDate"
+          value="{{ .BalanceDTO.EffectiveDate }}"
+          pattern="\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\d|3[01])" required
+          placeholder="YYYY-MM-DD">
       </div>
     </div>
   </div>
@@ -29,7 +38,7 @@
     Save
   </button>
   <button type="button" class="btn btn-light"
-    hx-get="/balances?accountID={{ .BalanceDTO.AccountID }}"
+    hx-get="/balances?accountID={{ .AccountID }}"
     hx-trigger="click"
     hx-target="#reportContent"
     hx-swap="innerHTML">
