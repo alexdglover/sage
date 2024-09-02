@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"net/http"
 	"net/url"
 	"text/template"
@@ -41,8 +42,9 @@ type BalanceFormDTO struct {
 	// we set the AccountID for the to populate the balanceForm with the accountID
 	// in HTML forms, so the account ID can be passed in the form submission even
 	// if there is no Balance object set
-	AccountID  uint
-	BalanceDTO BalanceDTO
+	AccountID    uint
+	BalanceDTO   BalanceDTO
+	ErrorMessage string
 }
 
 func balancesHandler(w http.ResponseWriter, req *http.Request) {
@@ -91,22 +93,31 @@ func balancesHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
-	var dto BalanceFormDTO
-
 	balanceIDQueryParameter := req.URL.Query().Get("balanceID")
+	balanceID, err := utils.StringToUint(balanceIDQueryParameter)
+	if err != nil {
+		http.Error(w, "Unable to parse balance ID", http.StatusInternalServerError)
+		return
+	}
 	accountIDQueryParameter := req.URL.Query().Get("accountID")
-	if balanceIDQueryParameter != "" {
+	accountID, err := utils.StringToUint(accountIDQueryParameter)
+	if err != nil {
+		http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
+		return
+	}
+	errorMessage := req.URL.Query().Get("errorMessage")
+	balanceFormContent(w, balanceID, accountID, errorMessage)
+}
+
+func balanceFormContent(w http.ResponseWriter, balanceID uint, accountID uint, errorMessage string) {
+	var dto BalanceFormDTO
+	if balanceID != 0 {
 		br := models.GetBalanceRepository()
-		balanceID, err := utils.StringToUint(balanceIDQueryParameter)
-		if err != nil {
-			http.Error(w, "Unable to parse balance ID", http.StatusInternalServerError)
-			return
-		}
 		balance := br.GetBalanceByID(context.TODO(), balanceID)
 
 		dto = BalanceFormDTO{
 			Editing:   true,
-			AccountID: balance.AccountID,
+			AccountID: accountID,
 			BalanceDTO: BalanceDTO{
 				ID:            balance.ID,
 				UpdatedAt:     balance.UpdatedAt.String(),
@@ -117,12 +128,11 @@ func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
 			},
 		}
 	} else {
-		accountID, err := utils.StringToUint(accountIDQueryParameter)
-		if err != nil {
-			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
-			return
-		}
 		dto.AccountID = accountID
+	}
+
+	if errorMessage != "" {
+		dto.ErrorMessage = errorMessage
 	}
 
 	tmpl, err := template.New("balanceForm").Parse(balanceFormTmpl)
@@ -140,30 +150,39 @@ func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
 
 func balanceController(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
-	balanceID := req.FormValue("balanceID")
-	accountIDFormValue := req.FormValue("accountID")
-	amount := req.FormValue("amount")
-	effectiveDate := req.FormValue("effectiveDate")
-
-	br := models.GetBalanceRepository()
-	var balance models.Balance
-
-	if balanceID != "0" {
-		id, err := utils.StringToUint(balanceID)
-		if err != nil {
-			http.Error(w, "Unable to parse balance ID", http.StatusBadRequest)
-			return
-		}
-		balance.ID = id
+	balanceIDFormValue := req.FormValue("balanceID")
+	balanceID, err := utils.StringToUint(balanceIDFormValue)
+	if err != nil {
+		http.Error(w, "Unable to parse balance ID", http.StatusBadRequest)
+		return
 	}
-
-	balance.Amount = utils.DollarStringToCents(amount)
-	balance.EffectiveDate = effectiveDate
+	accountIDFormValue := req.FormValue("accountID")
 	accountID, err := utils.StringToUint(accountIDFormValue)
 	if err != nil {
 		http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
 		return
 	}
+	amount := req.FormValue("amount")
+	if !utils.AmountValid(amount) {
+		balanceFormContent(w, balanceID, accountID, fmt.Sprintf("%s is not a valid amount format", amount))
+		return
+	}
+
+	effectiveDate := req.FormValue("effectiveDate")
+	if !utils.DateValid(effectiveDate) {
+		balanceFormContent(w, balanceID, accountID, fmt.Sprintf("%s is not a valid date format - please use YYYY-MM-DD", effectiveDate))
+		return
+	}
+
+	br := models.GetBalanceRepository()
+	var balance models.Balance
+
+	if balanceID != 0 {
+		balance.ID = balanceID
+	}
+
+	balance.Amount = utils.DollarStringToCents(amount)
+	balance.EffectiveDate = effectiveDate
 	balance.AccountID = accountID
 
 	_, err = br.Save(balance)

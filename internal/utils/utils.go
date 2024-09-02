@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"time"
 )
@@ -52,4 +53,21 @@ func UintPointerToString(input *uint) string {
 		return ""
 	}
 	return fmt.Sprint(*input)
+}
+
+func AmountValid(input string) bool {
+	if input == "" {
+		return false
+	}
+	var validAmount = regexp.MustCompile(`^[0-9]*[\.]{0,1}[0-9]{0,2}$`)
+	return validAmount.MatchString(input)
+}
+
+// DateValid returns true if the input string is a valid ISO8601 date, specifically in the YYYY-MM-DD format
+func DateValid(input string) bool {
+	if input == "" {
+		return false
+	}
+	var validIso8601Date = regexp.MustCompile(`^\d{4}-([0][1-9]|1[0-2])-([0][1-9]|[1-2]\d|3[01])$`)
+	return validIso8601Date.MatchString(input)
 }

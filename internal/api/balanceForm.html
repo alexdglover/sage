@@ -4,6 +4,12 @@
   </div>
 </div>
 
+{{ if ne .ErrorMessage "" }}
+<div class="alert alert-danger" role="alert">
+  {{ .ErrorMessage }}
+</div>
+{{ end }}
+
 <form hx-post="/balances" hx-target="#reportContent" enctype="multipart/form-data">
   <div class="row">
     <div class="col-sm-3">
@@ -11,7 +17,7 @@
         <input type="text" class="form-control" id="accountID" name="accountID" style="display:none;" value="{{ .AccountID }}">
         <input type="text" class="form-control" id="balanceID" name="balanceID" style="display:none;" value="{{ .BalanceDTO.ID }}">
         <label for="amount" class="form-label">Amount</label>
-        <input type="text" class="form-control" id="amount" name="amount" value="{{ .BalanceDTO.Amount }}">
+        <input type="text" class="form-control" id="amount" name="amount" value="{{ .BalanceDTO.Amount }}" required>
       </div>
     </div>
   </div>
