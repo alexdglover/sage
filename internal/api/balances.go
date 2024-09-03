@@ -47,7 +47,7 @@ type BalanceFormDTO struct {
 	ErrorMessage string
 }
 
-func balancesHandler(w http.ResponseWriter, req *http.Request) {
+func generateBalancesView(w http.ResponseWriter, req *http.Request) {
 	// Get all balances for a given account
 	br := models.GetBalanceRepository()
 	accountIDQueryParameter := req.URL.Query().Get("accountID")
@@ -92,7 +92,7 @@ func balancesHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func balanceFormHandler(w http.ResponseWriter, req *http.Request) {
+func generateBalanceForm(w http.ResponseWriter, req *http.Request) {
 	balanceIDQueryParameter := req.URL.Query().Get("balanceID")
 	balanceID, err := utils.StringToUint(balanceIDQueryParameter)
 	if err != nil {
@@ -148,7 +148,7 @@ func balanceFormContent(w http.ResponseWriter, balanceID uint, accountID uint, e
 	}
 }
 
-func balanceController(w http.ResponseWriter, req *http.Request) {
+func upsertBalance(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	balanceIDFormValue := req.FormValue("balanceID")
 	balanceID, err := utils.StringToUint(balanceIDFormValue)
@@ -215,5 +215,5 @@ func balanceController(w http.ResponseWriter, req *http.Request) {
 	}
 	balanceViewReq.URL.RawQuery = queryValues.Encode()
 
-	balancesHandler(w, &balanceViewReq)
+	generateBalancesView(w, &balanceViewReq)
 }

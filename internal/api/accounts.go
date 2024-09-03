@@ -45,7 +45,7 @@ type AccountFormDTO struct {
 	DefaultParser   string
 }
 
-func accountsHandler(w http.ResponseWriter, req *http.Request) {
+func generateAccountsView(w http.ResponseWriter, req *http.Request) {
 	// Get all accounts
 	ar := models.GetAccountRepository()
 	accounts, err := ar.GetAllAccounts()
@@ -88,7 +88,7 @@ func accountsHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func accountFormHandler(w http.ResponseWriter, req *http.Request) {
+func generateAccountForm(w http.ResponseWriter, req *http.Request) {
 	var dto AccountFormDTO
 
 	accountIDQueryParameter := req.URL.Query().Get("accountID")
@@ -129,7 +129,7 @@ func accountFormHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func accountController(w http.ResponseWriter, req *http.Request) {
+func upsertAccount(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 
 	accountID := req.FormValue("accountID")
@@ -179,5 +179,5 @@ func accountController(w http.ResponseWriter, req *http.Request) {
 	}
 	accountViewReq.URL.RawQuery = queryValues.Encode()
 
-	accountsHandler(w, &accountViewReq)
+	generateAccountsView(w, &accountViewReq)
 }

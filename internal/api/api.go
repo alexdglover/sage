@@ -17,17 +17,17 @@ func StartApiServer(ctx context.Context) {
 	http.HandleFunc("GET /import-form", importStatementFormHandler)
 	http.HandleFunc("POST /import-submission", importSubmissionHandler)
 
-	http.HandleFunc("GET /accounts", accountsHandler)
-	http.HandleFunc("POST /accounts", accountController)
-	http.HandleFunc("GET /accountForm", accountFormHandler)
+	http.HandleFunc("GET /accounts", generateAccountsView)
+	http.HandleFunc("POST /accounts", upsertAccount)
+	http.HandleFunc("GET /accountForm", generateAccountForm)
 
-	http.HandleFunc("GET /balances", balancesHandler)
-	http.HandleFunc("POST /balances", balanceController)
-	http.HandleFunc("GET /balanceForm", balanceFormHandler)
+	http.HandleFunc("GET /balances", generateBalancesView)
+	http.HandleFunc("POST /balances", upsertBalance)
+	http.HandleFunc("GET /balanceForm", generateBalanceForm)
 
-	http.HandleFunc("GET /transactions", transactionsHandler)
-	http.HandleFunc("POST /transactions", transactionController)
-	http.HandleFunc("GET /transactionForm", transactionFormHandler)
+	http.HandleFunc("GET /transactions", generateTransactionsView)
+	http.HandleFunc("POST /transactions", upsertTransaction)
+	http.HandleFunc("GET /transactionForm", generateTransactionForm)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

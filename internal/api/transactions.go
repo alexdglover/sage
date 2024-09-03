@@ -49,7 +49,7 @@ type TransactionFormDTO struct {
 	Categories         []models.Category
 }
 
-func transactionsHandler(w http.ResponseWriter, req *http.Request) {
+func generateTransactionsView(w http.ResponseWriter, req *http.Request) {
 	// Get all Transactions
 	tr := models.GetTransactionRepository()
 	transactions, err := tr.GetAllTransactions()
@@ -90,7 +90,7 @@ func transactionsHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func transactionFormHandler(w http.ResponseWriter, req *http.Request) {
+func generateTransactionForm(w http.ResponseWriter, req *http.Request) {
 	var dto TransactionFormDTO
 
 	txnIDQueryParameter := req.URL.Query().Get("id")
@@ -146,7 +146,7 @@ func transactionFormHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func transactionController(w http.ResponseWriter, req *http.Request) {
+func upsertTransaction(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 
 	date := req.FormValue("date")
@@ -212,5 +212,5 @@ func transactionController(w http.ResponseWriter, req *http.Request) {
 	}
 	transactionViewReq.URL.RawQuery = queryValues.Encode()
 
-	transactionsHandler(w, &transactionViewReq)
+	generateTransactionsView(w, &transactionViewReq)
 }
