@@ -59,7 +59,7 @@ func AmountValid(input string) bool {
 	if input == "" {
 		return false
 	}
-	var validAmount = regexp.MustCompile(`^[0-9]*[\.]{0,1}[0-9]{0,2}$`)
+	var validAmount = regexp.MustCompile(`^[0-9]*[\.]{0,1}[0-9]{0,2}`)
 	return validAmount.MatchString(input)
 }
 

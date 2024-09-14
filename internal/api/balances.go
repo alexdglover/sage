@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -93,17 +94,25 @@ func generateBalancesView(w http.ResponseWriter, req *http.Request) {
 }
 
 func generateBalanceForm(w http.ResponseWriter, req *http.Request) {
+	var balanceID uint
+	var accountID uint
+	var err error
 	balanceIDQueryParameter := req.URL.Query().Get("balanceID")
-	balanceID, err := utils.StringToUint(balanceIDQueryParameter)
-	if err != nil {
-		http.Error(w, "Unable to parse balance ID", http.StatusInternalServerError)
-		return
+	if balanceIDQueryParameter != "" {
+		balanceID, err = utils.StringToUint(balanceIDQueryParameter)
+		if err != nil {
+			http.Error(w, "Unable to parse balance ID", http.StatusInternalServerError)
+			return
+		}
 	}
+
 	accountIDQueryParameter := req.URL.Query().Get("accountID")
-	accountID, err := utils.StringToUint(accountIDQueryParameter)
-	if err != nil {
-		http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
-		return
+	if accountIDQueryParameter != "" {
+		accountID, err = utils.StringToUint(accountIDQueryParameter)
+		if err != nil {
+			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
+			return
+		}
 	}
 	errorMessage := req.URL.Query().Get("errorMessage")
 	balanceFormContent(w, balanceID, accountID, errorMessage)
@@ -163,6 +172,9 @@ func upsertBalance(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	amount := req.FormValue("amount")
+	amount = strings.Replace(amount, ",", "", -1)
+	amount = strings.Replace(amount, "$", "", -1)
+	amount = strings.Replace(amount, " ", "", -1)
 	if !utils.AmountValid(amount) {
 		balanceFormContent(w, balanceID, accountID, fmt.Sprintf("%s is not a valid amount format", amount))
 		return
