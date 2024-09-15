@@ -171,7 +171,9 @@ func upsertBalance(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
 		return
 	}
+
 	amount := req.FormValue("amount")
+	// TODO: move this all into a utility function
 	amount = strings.Replace(amount, ",", "", -1)
 	amount = strings.Replace(amount, "$", "", -1)
 	amount = strings.Replace(amount, " ", "", -1)
