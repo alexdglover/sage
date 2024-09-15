@@ -129,12 +129,12 @@ func (s ChaseCSVParser) Parse(statement string) (transactions []models.Transacti
 	return transactions, []models.Balance{}, nil
 }
 
-type CapitalOneCSVParser struct{}
+type CapitalOneCredictCardCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 0th column, description
 // in 3rd column, category in 4th column, debits (purchases) in 5th column,
 // credit (payments/refunds) amount in 6th column
-func (s CapitalOneCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+func (s CapitalOneCredictCardCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
 	csvReader := csv.NewReader(strings.NewReader(statement))
 	records, err := csvReader.ReadAll()
 	if err != nil {
@@ -173,11 +173,61 @@ func (s CapitalOneCSVParser) Parse(statement string) (transactions []models.Tran
 	return transactions, []models.Balance{}, nil
 }
 
+type CapitalOneSavingsCSVParser struct{}
+
+// Parses CSVs with the header as the 1st row,  description in 1st column, date
+// in 2nd column, transaction type (credit vs debit) in 3rd column, amount in
+// 4th column, and balance in 5th column. Transactions are sorted by newest
+// transaction first, so the balance is the first row after the header
+func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	csvReader := csv.NewReader(strings.NewReader(statement))
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	for idx, record := range records {
+		// Skip the header row
+		if idx == 0 {
+			continue
+		}
+		if idx == 1 {
+			balance, err := parseAmount(record[5])
+			if err != nil {
+				return nil, nil, err
+			}
+			balances = append(balances, models.Balance{
+				EffectiveDate: record[2],
+				Amount:        balance,
+			})
+		}
+		var amount int64
+		amount, err = parseAmount(record[4])
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if record[3] == "Debit" {
+			amount = amount * -1
+		}
+		// fmt.Println("amount is", amount)
+		txn := models.Transaction{
+			Date:        record[2],
+			Description: record[1],
+			Amount:      amount,
+		}
+		transactions = append(transactions, txn)
+
+	}
+	// for each row in the CSV, parse the columns and add it to transactions
+	return transactions, []models.Balance{}, nil
+}
+
 var parsersByInstitution map[string]Parser = map[string]Parser{
-	"schwab":     SchwabCSVParser{},
-	"fidelity":   FidelityCSVParser{},
-	"chase":      ChaseCSVParser{},
-	"capitalOne": CapitalOneCSVParser{},
+	"schwab":               SchwabCSVParser{},
+	"fidelity":             FidelityCSVParser{},
+	"chase":                ChaseCSVParser{},
+	"capitalOneCreditCard": CapitalOneCredictCardCSVParser{},
+	"capitalOneSavings":    CapitalOneSavingsCSVParser{},
 }
 
 func parseAmount(amount string) (amountAsInt int64, err error) {
