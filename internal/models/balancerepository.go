@@ -45,7 +45,7 @@ func (*BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType st
 	}
 
 	var result []BalancesWithDate
-	assetAccountIDs := db.Select("id").Where("account_type=?", accountType).Table("accounts")
+	accountIDs := db.Select("id").Where("account_type=?", accountType).Table("accounts")
 
 	//create a slice of months in Go instead of relying on SQL
 	months := []time.Time{}
@@ -58,15 +58,14 @@ func (*BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType st
 	for _, month := range months {
 		var balances []Balance
 
-		// Get the latest balance that has an EffectiveDate before the end of the month
-
 		// Convert dates to YYYY-MM-DD so date comparisons work consistently with strings in SQLite
 		lastDayOfMonth := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
 
-		db.Where("account_id IN (?)", assetAccountIDs).
-			Where("effective_date <= ?", lastDayOfMonth).
-			Order("effective_date desc").Limit(1).
-			Find(&balances)
+		db.Raw("select *, max(effective_date) from balances "+
+			"where account_id in (?) "+
+			"and effective_date <= (?) "+
+			"group by account_id "+
+			"order by effective_date", accountIDs, lastDayOfMonth).Scan(&balances)
 
 		result = append(result, BalancesWithDate{
 			Date:     month,

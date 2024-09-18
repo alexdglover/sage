@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/alexdglover/sage/internal/models"
+	"github.com/alexdglover/sage/internal/utils"
 )
 
 //go:embed networth.html.tmpl
@@ -18,9 +19,9 @@ var netWorthTmpl string
 // This is used for aggregating balances, but is not the DTO to the front end HTML template
 type totalByType map[string]int64
 
-// The DTO is also a map of year-month to amount, but has the total converted to float for
-// expected currency format
-type totalByTypeDTO map[string]float64
+// The DTO is also a map of year-month to amount, but has the total converted to string for
+// expected currency format in the UI
+type totalByTypeDTO map[string]string
 
 type netWorthTmplVariables struct {
 	AllTimeActive       bool
@@ -72,7 +73,7 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 
 	// A map of year-month to total by type, so we can aggregate the sum of balances for each year-month
 	totalByMonthAndType := map[string]totalByType{}
-	// A map of year-month to total by type as a float value, so it can be presented in the UI layer
+	// A map of year-month to total by type as a string value, so it can be presented in the UI layer
 	// this keeps the aggregation math separate from presentation layer
 	totalByMonthAndTypeDTO := map[string]totalByTypeDTO{}
 
@@ -103,9 +104,9 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 		if totalByMonthAndTypeDTO[date] == nil {
 			totalByMonthAndTypeDTO[date] = totalByTypeDTO{}
 		}
-		totalByMonthAndTypeDTO[date]["assets"] = float64(totalByMonthAndType[date]["assets"]) / 100.00
-		totalByMonthAndTypeDTO[date]["liabilities"] = float64(totalByMonthAndType[date]["liabilities"]) / 100.00
-		totalByMonthAndTypeDTO[date]["netWorth"] = float64(totalByMonthAndType[date]["netWorth"]) / 100.00
+		totalByMonthAndTypeDTO[date]["assets"] = utils.CentsToDollarString(totalByMonthAndType[date]["assets"])
+		totalByMonthAndTypeDTO[date]["liabilities"] = utils.CentsToDollarString(totalByMonthAndType[date]["liabilities"])
+		totalByMonthAndTypeDTO[date]["netWorth"] = utils.CentsToDollarString(totalByMonthAndType[date]["netWorth"])
 
 	}
 
