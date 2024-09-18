@@ -13,21 +13,19 @@ type Parser interface {
 	Parse(string) ([]models.Transaction, []models.Balance, error)
 }
 
-type SchwabCSVParser struct{}
+type SchwabCheckingCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, Date in col0, Description in
 // col4, withdrawal Amount col5, deposit Amount in col6, and running
 // balance in col7
-func (s SchwabCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+func (s SchwabCheckingCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
 	// parse the string into a CSV
 	csvReader := csv.NewReader(strings.NewReader(statement))
 	records, err := csvReader.ReadAll()
 	if err != nil {
 		return nil, nil, err
 	}
-	// fmt.Println("records are", records)
 	for idx, record := range records {
-		// fmt.Println("working on record", idx)
 		// Skip the header row
 		if idx == 0 {
 			continue
@@ -44,7 +42,6 @@ func (s SchwabCSVParser) Parse(statement string) (transactions []models.Transact
 				return nil, nil, err
 			}
 		}
-		// fmt.Println("amount is", amount)
 		txn := models.Transaction{
 			Date:        record[0],
 			Description: record[4],
@@ -57,20 +54,18 @@ func (s SchwabCSVParser) Parse(statement string) (transactions []models.Transact
 	return transactions, []models.Balance{}, nil
 }
 
-type FidelityCSVParser struct{}
+type FidelityCreditCardCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 0th column, description
 // in 2nd column, and amount in 4th column
-func (FidelityCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+func (FidelityCreditCardCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
 	// parse the string into a CSV
 	csvReader := csv.NewReader(strings.NewReader(statement))
 	records, err := csvReader.ReadAll()
 	if err != nil {
 		return nil, nil, err
 	}
-	// fmt.Println("records are", records)
 	for idx, record := range records {
-		// fmt.Println("working on record", idx)
 		// Skip the header row
 		if idx == 0 {
 			continue
@@ -80,7 +75,6 @@ func (FidelityCSVParser) Parse(statement string) (transactions []models.Transact
 		if err != nil {
 			return nil, nil, err
 		}
-		// fmt.Println("amount is", amount)
 		txn := models.Transaction{
 			Date:        record[0],
 			Description: record[2],
@@ -93,20 +87,71 @@ func (FidelityCSVParser) Parse(statement string) (transactions []models.Transact
 	return transactions, []models.Balance{}, nil
 }
 
-type ChaseCSVParser struct{}
+type FidelityBrokerageCSVParser struct{}
+
+// Parses CSVs with the header as the 2nd row, date in 0th column,
+// description in 1st column, amount in 10th column, and balance in 11th column
+// Transactions are sorted by newest transaction first, so the balance is the
+// first row after the header
+func (FidelityBrokerageCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	csvReader := csv.NewReader(strings.NewReader(statement))
+	// Fidelity includes extra disclosures at the end of their brokerage CSVs
+	// so we need to disable FieldsPerRecord column count validation
+	csvReader.FieldsPerRecord = -1
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	for idx, record := range records {
+		// Skip the header rows
+		if idx < 3 {
+			continue
+		}
+		// Fidelity includes extra disclosures at the end of their brokerage
+		// CSVs so we drop any records that don't have all columns
+		if len(record) < 13 {
+			continue
+		}
+		if idx == 3 {
+			balance, err := parseAmount(record[11])
+			if err != nil {
+				return nil, nil, err
+			}
+			balances = append(balances, models.Balance{
+				EffectiveDate: record[0],
+				Amount:        balance,
+			})
+		}
+		var amount int64
+		amount, err = parseAmount(record[10])
+		if err != nil {
+			return nil, nil, err
+		}
+		// fmt.Println("amount is", amount)
+		txn := models.Transaction{
+			Date:        record[0],
+			Description: record[1],
+			Amount:      amount,
+		}
+		transactions = append(transactions, txn)
+
+	}
+	// for each row in the CSV, parse the columns and add it to transactions
+	return transactions, []models.Balance{}, nil
+}
+
+type ChaseCreditCardCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 0th column, description
 // in 2nd column, and amount in 4th column
-func (s ChaseCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+func (s ChaseCreditCardCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
 	// parse the string into a CSV
 	csvReader := csv.NewReader(strings.NewReader(statement))
 	records, err := csvReader.ReadAll()
 	if err != nil {
 		return nil, nil, err
 	}
-	// fmt.Println("records are", records)
 	for idx, record := range records {
-		// fmt.Println("working on record", idx)
 		// Skip the header row
 		if idx == 0 {
 			continue
@@ -116,7 +161,6 @@ func (s ChaseCSVParser) Parse(statement string) (transactions []models.Transacti
 		if err != nil {
 			return nil, nil, err
 		}
-		// fmt.Println("amount is", amount)
 		txn := models.Transaction{
 			Date:        record[0],
 			Description: record[2],
@@ -160,7 +204,6 @@ func (s CapitalOneCredictCardCSVParser) Parse(statement string) (transactions []
 			}
 		}
 		// TODO: use category from capital one to set category in transaction
-		// fmt.Println("amount is", amount)
 		txn := models.Transaction{
 			Date:        record[0],
 			Description: record[3],
@@ -209,7 +252,6 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 		if record[3] == "Debit" {
 			amount = amount * -1
 		}
-		// fmt.Println("amount is", amount)
 		txn := models.Transaction{
 			Date:        record[2],
 			Description: record[1],
@@ -223,9 +265,10 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 }
 
 var parsersByInstitution map[string]Parser = map[string]Parser{
-	"schwab":               SchwabCSVParser{},
-	"fidelity":             FidelityCSVParser{},
-	"chase":                ChaseCSVParser{},
+	"schwabChecking":       SchwabCheckingCSVParser{},
+	"fidelityCreditCard":   FidelityCreditCardCSVParser{},
+	"fidelityBrokerage":    FidelityBrokerageCSVParser{},
+	"chaseCreditCard":      ChaseCreditCardCSVParser{},
 	"capitalOneCreditCard": CapitalOneCredictCardCSVParser{},
 	"capitalOneSavings":    CapitalOneSavingsCSVParser{},
 }
