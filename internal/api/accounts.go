@@ -10,6 +10,7 @@ import (
 
 	"github.com/alexdglover/sage/internal/models"
 	"github.com/alexdglover/sage/internal/utils"
+	humanize "github.com/dustin/go-humanize"
 )
 
 //go:embed accounts.html
@@ -60,6 +61,18 @@ func generateAccountsView(w http.ResponseWriter, req *http.Request) {
 	accountsDTO := make([]AccountDTO, len(accounts))
 	for i, account := range accounts {
 		balance := br.GetLatestBalanceForAccount(context.TODO(), account.ID)
+
+		// there may not be a balance associated with an account
+		// in those cases, we want to display "Never" as the last updated date
+		var balanceLastUpdated string
+		// A real Balance will never have ID 0, but an unpopulated model.Balance
+		// struct will use the default value for the ID field, which is 0
+		if balance.ID == 0 {
+			balanceLastUpdated = "Never"
+		} else {
+			balanceLastUpdated = humanize.Time(balance.UpdatedAt)
+		}
+
 		accountsDTO[i] = AccountDTO{
 			ID:                 account.ID,
 			Name:               account.Name,
@@ -67,7 +80,7 @@ func generateAccountsView(w http.ResponseWriter, req *http.Request) {
 			AccountType:        account.AccountType,
 			DefaultParser:      account.DefaultParser,
 			Balance:            utils.CentsToDollarString(balance.Amount),
-			BalanceLastUpdated: balance.UpdatedAt.String(),
+			BalanceLastUpdated: balanceLastUpdated,
 		}
 	}
 	accountsPageDTO := AccountsPageDTO{
