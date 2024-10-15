@@ -42,7 +42,7 @@
     <div class="col-sm-12">
       <div class="form-floating mb-3">
         <select class="form-select" aria-label="statement format selector" name="defaultParser" id="defaultParser">
-          <option {{ if eq .DefaultParser "schwabChecking" }}selected{{ end }} value="schwab">Schwab Checking</option>
+          <option {{ if eq .DefaultParser "schwabChecking" }}selected{{ end }} value="schwabChecking">Schwab Checking</option>
           <option {{ if eq .DefaultParser "fidelityCreditCard" }}selected{{ end }} value="fidelityCreditCard">Fidelity Credit Card</option>
           <option {{ if eq .DefaultParser "fidelityBrokerage" }}selected{{ end }} value="fidelityBrokerage">Fidelity Brokerage</option>
           <option {{ if eq .DefaultParser "chaseCreditCard" }}selected{{ end }} value="chaseCreditCard">Chase</option>
