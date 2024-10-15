@@ -44,7 +44,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 	submission.ID = id
 
 	var transactions []models.Transaction
-	// var balances []models.Balance
+	var balances []models.Balance
 
 	// parse the statement using the appropriate parser, getting a slice of transactions and balances
 	ar := models.GetAccountRepository()
@@ -60,7 +60,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		return nil, &NoParserError{}
 	}
 	parser := parsersByInstitution[*account.DefaultParser]
-	transactions, _, err = parser.Parse(statement)
+	transactions, balances, err = parser.Parse(statement)
 	if err != nil {
 		submission.Status = models.Failed
 		isr.Save(submission)
@@ -69,6 +69,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 
 	hasher := sha256.New()
 	tr := models.GetTransactionRepository()
+	br := models.GetBalanceRepository()
 
 	for idx, transaction := range transactions {
 		if idx == 0 {
@@ -111,6 +112,13 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 			return nil, dbError
 		}
 		submission.TransactionsImported = submission.TransactionsImported + 1
+	}
+
+	for _, balance := range balances {
+		balance.AccountID = accountID
+		balance.ImportSubmissionID = &submission.ID
+		br.Save(balance)
+		submission.BalancesImported = submission.BalancesImported + 1
 	}
 
 	submission.Status = models.Completed

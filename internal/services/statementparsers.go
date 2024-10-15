@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/alexdglover/sage/internal/models"
+	"github.com/alexdglover/sage/internal/utils"
 )
 
 type Parser interface {
@@ -15,9 +16,9 @@ type Parser interface {
 
 type SchwabCheckingCSVParser struct{}
 
-// Parses CSVs with the header as the 1st row, Date in col0, Description in
-// col4, withdrawal Amount col5, deposit Amount in col6, and running
-// balance in col7
+// Parses CSVs with the header as the 1st row, date in 0th column,
+// description in 4th column, withdrawal amount in 5th column,
+// deposit Amount in 6th column, and running balance in 7th column
 func (s SchwabCheckingCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
 	// parse the string into a CSV
 	csvReader := csv.NewReader(strings.NewReader(statement))
@@ -29,6 +30,17 @@ func (s SchwabCheckingCSVParser) Parse(statement string) (transactions []models.
 		// Skip the header row
 		if idx == 0 {
 			continue
+		}
+		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
+		if idx == 1 {
+			balance, err := parseAmount(record[7])
+			if err != nil {
+				return nil, nil, err
+			}
+			balances = append(balances, models.Balance{
+				EffectiveDate: isoDate,
+				Amount:        balance,
+			})
 		}
 		var amount int64
 		if record[5] != "" {
@@ -43,7 +55,7 @@ func (s SchwabCheckingCSVParser) Parse(statement string) (transactions []models.
 			}
 		}
 		txn := models.Transaction{
-			Date:        record[0],
+			Date:        isoDate,
 			Description: record[4],
 			Amount:      amount,
 		}
@@ -51,7 +63,7 @@ func (s SchwabCheckingCSVParser) Parse(statement string) (transactions []models.
 
 	}
 	// for each row in the CSV, parse the columns and add it to transactions
-	return transactions, []models.Balance{}, nil
+	return transactions, balances, nil
 }
 
 type FidelityCreditCardCSVParser struct{}
@@ -70,13 +82,14 @@ func (FidelityCreditCardCSVParser) Parse(statement string) (transactions []model
 		if idx == 0 {
 			continue
 		}
+		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
 		var amount int64
 		amount, err = parseAmount(record[4])
 		if err != nil {
 			return nil, nil, err
 		}
 		txn := models.Transaction{
-			Date:        record[0],
+			Date:        isoDate,
 			Description: record[2],
 			Amount:      amount,
 		}
@@ -112,13 +125,14 @@ func (FidelityBrokerageCSVParser) Parse(statement string) (transactions []models
 		if len(record) < 13 {
 			continue
 		}
+		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
 		if idx == 3 {
 			balance, err := parseAmount(record[11])
 			if err != nil {
 				return nil, nil, err
 			}
 			balances = append(balances, models.Balance{
-				EffectiveDate: record[0],
+				EffectiveDate: isoDate,
 				Amount:        balance,
 			})
 		}
@@ -127,9 +141,8 @@ func (FidelityBrokerageCSVParser) Parse(statement string) (transactions []models
 		if err != nil {
 			return nil, nil, err
 		}
-		// fmt.Println("amount is", amount)
 		txn := models.Transaction{
-			Date:        record[0],
+			Date:        isoDate,
 			Description: record[1],
 			Amount:      amount,
 		}
@@ -137,7 +150,7 @@ func (FidelityBrokerageCSVParser) Parse(statement string) (transactions []models
 
 	}
 	// for each row in the CSV, parse the columns and add it to transactions
-	return transactions, []models.Balance{}, nil
+	return transactions, balances, nil
 }
 
 type ChaseCreditCardCSVParser struct{}
@@ -156,13 +169,14 @@ func (s ChaseCreditCardCSVParser) Parse(statement string) (transactions []models
 		if idx == 0 {
 			continue
 		}
+		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
 		var amount int64
 		amount, err = parseAmount(record[4])
 		if err != nil {
 			return nil, nil, err
 		}
 		txn := models.Transaction{
-			Date:        record[0],
+			Date:        isoDate,
 			Description: record[2],
 			Amount:      amount,
 		}
@@ -189,6 +203,7 @@ func (s CapitalOneCredictCardCSVParser) Parse(statement string) (transactions []
 		if idx == 0 {
 			continue
 		}
+		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
 		var amount int64
 		if record[5] != "" {
 			amount, err = parseAmount(record[5])
@@ -205,7 +220,7 @@ func (s CapitalOneCredictCardCSVParser) Parse(statement string) (transactions []
 		}
 		// TODO: use category from capital one to set category in transaction
 		txn := models.Transaction{
-			Date:        record[0],
+			Date:        isoDate,
 			Description: record[3],
 			Amount:      amount,
 		}
@@ -233,13 +248,14 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 		if idx == 0 {
 			continue
 		}
+		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[2])
 		if idx == 1 {
 			balance, err := parseAmount(record[5])
 			if err != nil {
 				return nil, nil, err
 			}
 			balances = append(balances, models.Balance{
-				EffectiveDate: record[2],
+				EffectiveDate: isoDate,
 				Amount:        balance,
 			})
 		}
@@ -253,15 +269,14 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 			amount = amount * -1
 		}
 		txn := models.Transaction{
-			Date:        record[2],
+			Date:        isoDate,
 			Description: record[1],
 			Amount:      amount,
 		}
 		transactions = append(transactions, txn)
 
 	}
-	// for each row in the CSV, parse the columns and add it to transactions
-	return transactions, []models.Balance{}, nil
+	return transactions, balances, nil
 }
 
 var parsersByInstitution map[string]Parser = map[string]Parser{

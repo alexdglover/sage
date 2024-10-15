@@ -20,6 +20,14 @@
       <th scope="row" class="table-success">Transactions skipped</th>
       <td>{{ .Submission.TransactionsSkipped }}{{ if gt .Submission.TransactionsSkipped 0 }} &#x26A0; {{ end }}</td>
     </tr>
+    <tr>
+      <th scope="row" class="table-success">Balances imported</th>
+      <td>{{ .Submission.BalancesImported }}</td>
+    </tr>
+    <tr>
+      <th scope="row" class="table-success">Balances skipped</th>
+      <td>{{ .Submission.BalancesSkipped }}{{ if gt .Submission.BalancesSkipped 0 }} &#x26A0; {{ end }}</td>
+    </tr>
   </tbody>
 </table>
 
