@@ -12,6 +12,40 @@ type Parser interface {
 	Parse(string) ([]models.Transaction, []models.Balance, error)
 }
 
+type GeneralCSVParser struct{}
+
+var generalCsvParser = GeneralCSVParser{}
+
+func (g GeneralCSVParser) Parse(statement string, dateCol int, descCol int, amountCol int, skipHeader bool, skipRecordLengthValidation bool) (transactions []models.Transaction, balances []models.Balance, err error) {
+	// parse the string into a CSV
+	csvReader := csv.NewReader(strings.NewReader(statement))
+	// Some exports include a trailing comma or extra commentary in the data
+	// In those cases we need to disable FieldsPerRecord column count validation
+	if skipRecordLengthValidation {
+		csvReader.FieldsPerRecord = -1
+	}
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	for idx, record := range records {
+		// Skip the header row
+		if idx == 0 && skipHeader {
+			continue
+		}
+		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[dateCol])
+		amount := utils.DollarStringToCents(record[amountCol])
+		txn := models.Transaction{
+			Date:        isoDate,
+			Description: record[descCol],
+			Amount:      amount,
+		}
+		transactions = append(transactions, txn)
+
+	}
+	return transactions, []models.Balance{}, nil
+}
+
 type SchwabCheckingCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 0th column,
@@ -164,6 +198,16 @@ func (FidelityBrokerageCSVParser) Parse(statement string) (transactions []models
 	return transactions, balances, nil
 }
 
+type ChaseCheckingCSVParser struct {
+	generalCSVParser GeneralCSVParser
+}
+
+// Parses CSVs with the header as the 1st row, date in 1st column, description
+// in 2nd column, and amount in 3rd column
+func (s ChaseCheckingCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	return s.generalCSVParser.Parse(statement, 1, 2, 3, true, true)
+}
+
 type ChaseCreditCardCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 0th column, description
@@ -273,11 +317,14 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 }
 
 var parsersByInstitution map[string]Parser = map[string]Parser{
-	"schwabChecking":       SchwabCheckingCSVParser{},
-	"schwabBrokerage":      SchwabBrokerageCSVParser{},
-	"fidelityCreditCard":   FidelityCreditCardCSVParser{},
-	"fidelityBrokerage":    FidelityBrokerageCSVParser{},
-	"chaseCreditCard":      ChaseCreditCardCSVParser{},
+	"schwabChecking":     SchwabCheckingCSVParser{},
+	"schwabBrokerage":    SchwabBrokerageCSVParser{},
+	"fidelityCreditCard": FidelityCreditCardCSVParser{},
+	"fidelityBrokerage":  FidelityBrokerageCSVParser{},
+	"chaseCreditCard":    ChaseCreditCardCSVParser{},
+	"chaseChecking": ChaseCheckingCSVParser{
+		generalCSVParser: GeneralCSVParser{},
+	},
 	"capitalOneCreditCard": CapitalOneCredictCardCSVParser{},
 	"capitalOneSavings":    CapitalOneSavingsCSVParser{},
 }
