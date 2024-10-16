@@ -25,12 +25,20 @@ func CentsToDollarString(input int64) string {
 }
 
 func DollarStringToCents(input string) int64 {
-	// Convert string to float first
-	amount, err := strconv.ParseFloat(input, 64)
+	if input == "" {
+		return 0
+	}
+
+	// Remove all non-numeric characters (like commas, dollar signs) from the input string
+	re := regexp.MustCompile(`[^0-9.-]`)
+	amount := re.ReplaceAllString(input, "")
+
+	amountAsFloat, err := strconv.ParseFloat(amount, 64)
 	if err != nil {
 		panic(err)
 	}
-	return int64(amount * 100)
+	amountAsInt := int64(amountAsFloat * 100)
+	return amountAsInt
 }
 
 func TimeToISO8601DateString(input time.Time) string {
