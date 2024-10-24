@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/alexdglover/sage/internal/utils"
+	"gorm.io/gorm/clause"
 )
 
 func BootstrapDatabase(ctx context.Context) {
@@ -30,8 +31,10 @@ func BootstrapDatabase(ctx context.Context) {
 	db.AutoMigrate(&ImportSubmission{})
 
 	// Insert common seed data
-	for _, name := range []string{"Home", "Income", "Auto", "Food", "Dining"} {
-		db.Create(&Category{Name: name})
+	for _, name := range []string{"Unknown", "Home", "Income", "Auto", "Food", "Dining"} {
+		// The Category table has a unique index on the Name column, so we can use the DoNothing option
+		// to safely attempt to insert a record that may already exist
+		db.Clauses(clause.OnConflict{DoNothing: true}).Create(&Category{Name: name})
 	}
 
 	// Conditionally insert sample date for testing purposes
