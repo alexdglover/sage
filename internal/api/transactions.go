@@ -37,7 +37,7 @@ type TransactionFormDTO struct {
 	// If we're editing an existing transaction, Editing will be true
 	// If we're creating a new transaction, Editing will be false
 	Editing            bool
-	ID                 uint
+	TransactionID      uint
 	Date               string
 	Description        string
 	Amount             string
@@ -110,7 +110,7 @@ func generateTransactionForm(w http.ResponseWriter, req *http.Request) {
 
 		dto = TransactionFormDTO{
 			Editing:            true,
-			ID:                 txn.ID,
+			TransactionID:      txn.ID,
 			Date:               txn.Date,
 			Description:        txn.Description,
 			Amount:             utils.CentsToDollarString(txn.Amount),
