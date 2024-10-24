@@ -105,6 +105,10 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		transaction.Hash = hashHex
 		transaction.AccountID = accountID
 		transaction.ImportSubmissionID = &submission.ID
+
+		// TODO: Add a check for the category and set it to the default category if it is not set
+		transaction.CategoryID = 1 // Default to Unknown
+
 		_, dbError := tr.Save(transaction)
 		if dbError != nil {
 			submission.Status = models.Failed
