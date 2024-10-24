@@ -14,7 +14,7 @@ type Parser interface {
 
 type GeneralCSVParser struct{}
 
-var generalCsvParser = GeneralCSVParser{}
+var generalCSVParser = GeneralCSVParser{}
 
 func (g GeneralCSVParser) Parse(statement string, dateCol int, descCol int, amountCol int, skipHeader bool, skipRecordLengthValidation bool) (transactions []models.Transaction, balances []models.Balance, err error) {
 	// parse the string into a CSV
@@ -198,14 +198,19 @@ func (FidelityBrokerageCSVParser) Parse(statement string) (transactions []models
 	return transactions, balances, nil
 }
 
-type ChaseCheckingCSVParser struct {
-	generalCSVParser GeneralCSVParser
-}
+type ChaseCheckingCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 1st column, description
 // in 2nd column, and amount in 3rd column
-func (s ChaseCheckingCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
-	return s.generalCSVParser.Parse(statement, 1, 2, 3, true, true)
+func (ChaseCheckingCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	return generalCSVParser.Parse(statement, 1, 2, 3, true, true)
+}
+
+type BankOfAmericaCreditCardCSVParser struct{}
+
+// Parses CSVs with the header as the 1st row, date in 0th column, description in 2nd column, and amount in 4th column
+func (BankOfAmericaCreditCardCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	return generalCSVParser.Parse(statement, 0, 2, 4, true, false)
 }
 
 type ChaseCreditCardCSVParser struct{}
@@ -317,14 +322,13 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 }
 
 var parsersByInstitution map[string]Parser = map[string]Parser{
-	"schwabChecking":     SchwabCheckingCSVParser{},
-	"schwabBrokerage":    SchwabBrokerageCSVParser{},
-	"fidelityCreditCard": FidelityCreditCardCSVParser{},
-	"fidelityBrokerage":  FidelityBrokerageCSVParser{},
-	"chaseCreditCard":    ChaseCreditCardCSVParser{},
-	"chaseChecking": ChaseCheckingCSVParser{
-		generalCSVParser: GeneralCSVParser{},
-	},
-	"capitalOneCreditCard": CapitalOneCredictCardCSVParser{},
-	"capitalOneSavings":    CapitalOneSavingsCSVParser{},
+	"bankOfAmericaCreditCard": BankOfAmericaCreditCardCSVParser{},
+	"schwabChecking":          SchwabCheckingCSVParser{},
+	"schwabBrokerage":         SchwabBrokerageCSVParser{},
+	"fidelityCreditCard":      FidelityCreditCardCSVParser{},
+	"fidelityBrokerage":       FidelityBrokerageCSVParser{},
+	"chaseCreditCard":         ChaseCreditCardCSVParser{},
+	"chaseChecking":           ChaseCheckingCSVParser{},
+	"capitalOneCreditCard":    CapitalOneCredictCardCSVParser{},
+	"capitalOneSavings":       CapitalOneSavingsCSVParser{},
 }

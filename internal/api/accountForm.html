@@ -42,6 +42,7 @@
     <div class="col-sm-12">
       <div class="form-floating mb-3">
         <select class="form-select" aria-label="statement format selector" name="defaultParser" id="defaultParser">
+          <option {{ if eq .DefaultParser "bankOfAmericaCreditCard" }}selected{{ end }} value="bankOfAmericaCreditCard">Bank Of America Credit Card</option>
           <option {{ if eq .DefaultParser "schwabChecking" }}selected{{ end }} value="schwabChecking">Schwab Checking</option>
           <option {{ if eq .DefaultParser "schwabBrokerage" }}selected{{ end }} value="schwabBrokerage">Schwab Brokerage</option>
           <option {{ if eq .DefaultParser "fidelityCreditCard" }}selected{{ end }} value="fidelityCreditCard">Fidelity Credit Card</option>
