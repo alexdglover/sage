@@ -175,15 +175,9 @@ func upsertTransaction(w http.ResponseWriter, req *http.Request) {
 
 	tr := models.GetTransactionRepository()
 
-	transaction := models.Transaction{
-		Date:        date,
-		Description: description,
-		Amount:      utils.DollarStringToCents(amount),
-		Excluded:    excluded,
-		AccountID:   accountID,
-		CategoryID:  categoryID,
-	}
-
+	// If there is a transactionID, we are editing an existing transaction
+	// so we should pull the existing record from the DB
+	var transaction models.Transaction
 	transactionID := req.FormValue("transactionID")
 	if transactionID != "" {
 		id, err := utils.StringToUint(transactionID)
@@ -191,8 +185,22 @@ func upsertTransaction(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Unable to parse transactionID", http.StatusBadRequest)
 			return
 		}
-		transaction.ID = id
+		transaction, err = tr.GetTransactionByID(id)
+		if err != nil {
+			errorMessage := "Unable to get transaction with ID " + transactionID + " from the database"
+			http.Error(w, errorMessage, http.StatusBadRequest)
+			return
+		}
+	} else {
+		transaction = models.Transaction{}
 	}
+
+	transaction.Date = date
+	transaction.Description = description
+	transaction.Amount = utils.DollarStringToCents(amount)
+	transaction.Excluded = excluded
+	transaction.AccountID = accountID
+	transaction.CategoryID = categoryID
 
 	_, err = tr.Save(transaction)
 	if err != nil {
