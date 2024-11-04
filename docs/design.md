@@ -211,3 +211,7 @@ AND total_spend > (
     WHERE category_id = 1
 )
 ```
+
+## SEMVER
+
+Once a stable version is released, the project will treat any breaking change to any public interface (either JSON APIs or database schema) as a breaking change.
