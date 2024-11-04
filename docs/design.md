@@ -37,33 +37,24 @@ consider this the balance for the month of April.
 
 Sage treats balances as sparse data so that accounts don't need to be constantly
 updated, especially accounts that don't change frequently (like your car or
-house for example). To accomplish this, Sage tracks an effective start date
-(when the balance should be considered active) and an effective end date (when
-the balance has been superseded by a new balance).
-
-For example, let's say you have a Savings Account defined in Sage. You
-manually enter a balance of $100 on March 17. This is recorded as a balance
-with a start date of March 1, and no end date. At this point, Sage will show a
-balance of $100 starting in March and every month thereafter. Next, you
-manually enter a balance of $105 on June 3. This updates the previous balance,
-setting the end date to May 31, and creates a new balance with a start date of
-June 1. Sage now displays $100 from March through May, and then $105 in June
-and every month thereafter.
+house for example). To accomplish this, Sage will use the most recent balance
+within a given timeframe. For example, if an account had a balance defined
+for October 2 and October 17, the balance for October 17 would be displayed
+when viewing the balance for October. If there is no balance newer than October
+17, then Sage will show this same balance for November, December, and so on
+until a newer balance is added.
 
 Sage reports on balances by month and year ("year-months"), such as January
 2024. To do this, Sage uses the following logic to group balances by month and
 year:
 
 1. Define all year-months requested in a report
-1. Query the balances table for each year-month. A valid balance for a given
-year-month is a balance with a start date on or before the first day of the
-given month, and the end date is on or after the first day of the
-month (or null).
+1. Query the balances table for each year-month. The balance for a given
+year-month is the balance with the most recent date that is before the end date
+of the given month.
 
 This captures all balances while handling discrepancies in when a balance
-starts or ends. Note that this does create the possibility of double counting
-balances for a particular account, if more than one balance meets the above
-criteria.
+starts or ends.
 
 ## Entities and Relationships
 
