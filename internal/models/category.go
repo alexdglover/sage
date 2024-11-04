@@ -23,3 +23,9 @@ func (*CategoryRepository) GetAllCategories() ([]Category, error) {
 	result := db.Find(&categories)
 	return categories, result.Error
 }
+
+func (*CategoryRepository) GetCategoryByID(id uint) (Category, error) {
+	var category Category
+	result := db.Where("id = ?", id).First(&category)
+	return category, result.Error
+}

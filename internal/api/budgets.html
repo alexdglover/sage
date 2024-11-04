@@ -1,0 +1,65 @@
+<div class="row">
+  <div class="col-sm-4">
+    <h2>Budgets</h2>
+  </div>
+  <div class="col-sm-8">
+    <button class="btn btn-success" style="float: right;"
+    hx-get="/budgetForm"
+              hx-trigger="click"
+              hx-target="#reportContent"
+              hx-swap="innerHTML">
+      Add budget
+    </button>
+  </div>
+</div>
+
+{{range $i, $budget := .Budgets}}
+  {{/* every 3rd element, start a new row */}}
+  {{if mod $i 3 | eq 0}}
+  <div class="row" style="margin-top: 1rem;">
+  {{end}}
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-header">
+          <h5>
+            {{ $budget.CategoryName }}
+            <a href="#"
+              class="btn btn-light"
+              hx-get="/budgetForm?budgetID={{ $budget.ID }}"
+              hx-trigger="click"
+              hx-target="#reportContent"
+              hx-swap="innerHTML">
+              &#x1F58B;
+            </a>
+          </h5>
+        </div>
+        <div class="card-body">
+          <h5>${{ $budget.Amount }} </h5>
+      </div>
+    </div>
+  </div>
+  {{/* after every 3rd element, end the row */}}
+  {{if mod $i 3 | eq 2 }}
+  </div>
+  {{end}}
+{{end}}
+
+{{ if eq .BudgetSaved true }}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="budgetSavedToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">Budget saved</strong>
+      <small>Just now</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      Budget saved successfully
+    </div>
+  </div>
+</div>
+<script>
+  toastLiveExample = document.getElementById('budgetSavedToast')
+  toast = new bootstrap.Toast(toastLiveExample)
+  toast.show()
+</script>
+{{ end }}

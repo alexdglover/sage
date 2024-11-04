@@ -25,6 +25,10 @@ func StartApiServer(ctx context.Context) {
 	http.HandleFunc("POST /balances", upsertBalance)
 	http.HandleFunc("GET /balanceForm", generateBalanceForm)
 
+	http.HandleFunc("GET /budgets", generateBudgetsView)
+	http.HandleFunc("POST /budgets", upsertBudget)
+	http.HandleFunc("GET /budgetForm", generateBudgetForm)
+
 	http.HandleFunc("GET /transactions", generateTransactionsView)
 	http.HandleFunc("POST /transactions", upsertTransaction)
 	http.HandleFunc("GET /transactionForm", generateTransactionForm)

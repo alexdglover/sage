@@ -184,3 +184,39 @@ the statement because it has already been processed
 balances in return. For each transaction, compute a hash of the account ID,
 amount, date, and description. 
 
+## Budgets
+
+A budget can be defined for any particular category or for all categories. By
+defining a budget on all categories, this provides a total spending budget.
+
+A budget has a per-month limit.
+
+```mermaid
+erDiagram
+    CATEGORY {
+        int    id
+        string name
+    }
+    BUDGET {
+        int id
+        id category_id
+        float amount
+    }
+```
+
+This model will allow us to handle the following use cases:
+
+```sql
+-- Get all budgets
+SELECT * FROM BUDGET;
+
+-- Get any budget that has been exceeded
+SELECT SUM(AMOUNT) as total_spend
+FROM transactions
+WHERE category_id = 1
+AND total_spend > (
+    SElECT amount 
+    FROM budgets
+    WHERE category_id = 1
+)
+```

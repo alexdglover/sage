@@ -1,0 +1,41 @@
+<div class="row">
+  <div class="col-sm-4">
+    <h2>{{ if eq .Updating true }}Update{{ else }}Add{{ end }} Budget</h2>
+  </div>
+</div>
+
+<form hx-post="/budget" hx-target="#reportContent" enctype="multipart/form-data">
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="budgetID" name="budgetID" style="display:none;" value="{{ .BudgetID }}">
+        <select class="form-select" aria-label="budget category selector" name="budgetCategory" id="budgetCategory">
+          {{ range .Categories }}
+          <option {{ if eq $.CategoryName .Name }}selected{{ end }} value="{{ .ID }}">{{ .Name }}</option>
+          {{ end }}
+        </select>
+        <label for="categoryName" class="form-label">Category</label>
+      </div>
+      <div class="col-sm-6">
+        <div class="form-floating mb-3">
+          <input type="number" step="0.01" class="form-control" id="amount" name="amount" value="{{ .Amount }}">
+          <label for="amount" class="form-label">Amount</label>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-success"
+    hx-post="/budgets"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+    Save
+  </button>
+  <button type="button" class="btn btn-light"
+    hx-get="/budgets"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+      Cancel
+  </button>
+</form>
