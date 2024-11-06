@@ -9,9 +9,12 @@ type AccountNameAndID struct {
 	AccountID   uint
 }
 
-func GetAccountNamesAndIDs() (result []AccountNameAndID, err error) {
-	ar := models.GetAccountRepository()
-	account, err := ar.GetAllAccounts()
+type AccountManager struct {
+	AccountRepository *models.AccountRepository
+}
+
+func (am *AccountManager) GetAccountNamesAndIDs() (result []AccountNameAndID, err error) {
+	account, err := am.AccountRepository.GetAllAccounts()
 	if err != nil {
 		return nil, err
 	}

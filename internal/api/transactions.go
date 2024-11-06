@@ -10,6 +10,11 @@ import (
 	"github.com/alexdglover/sage/internal/utils"
 )
 
+type TransactionController struct {
+	AccountRepository     *models.AccountRepository
+	TransactionRepository *models.TransactionRepository
+}
+
 //go:embed transactions.html
 var transactionsPageTmpl string
 
@@ -49,10 +54,9 @@ type TransactionFormDTO struct {
 	Categories         []models.Category
 }
 
-func generateTransactionsView(w http.ResponseWriter, req *http.Request) {
+func (tc *TransactionController) generateTransactionsView(w http.ResponseWriter, req *http.Request) {
 	// Get all Transactions
-	tr := models.GetTransactionRepository()
-	transactions, err := tr.GetAllTransactions()
+	transactions, err := tc.TransactionRepository.GetAllTransactions()
 	if err != nil {
 		http.Error(w, "Unable to get transactions", http.StatusInternalServerError)
 		return
@@ -90,19 +94,18 @@ func generateTransactionsView(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func generateTransactionForm(w http.ResponseWriter, req *http.Request) {
+func (tc *TransactionController) generateTransactionForm(w http.ResponseWriter, req *http.Request) {
 	var dto TransactionFormDTO
 
 	txnIDQueryParameter := req.URL.Query().Get("id")
 
 	if txnIDQueryParameter != "" {
-		tr := models.GetTransactionRepository()
 		txnID, err := utils.StringToUint(txnIDQueryParameter)
 		if err != nil {
 			http.Error(w, "Unable to parse transaction ID", http.StatusInternalServerError)
 			return
 		}
-		txn, err := tr.GetTransactionByID(txnID)
+		txn, err := tc.TransactionRepository.GetTransactionByID(txnID)
 		if err != nil {
 			http.Error(w, "Unable to get Transaction", http.StatusInternalServerError)
 			return
@@ -121,8 +124,7 @@ func generateTransactionForm(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	ar := models.GetAccountRepository()
-	accounts, err := ar.GetAllAccounts()
+	accounts, err := tc.AccountRepository.GetAllAccounts()
 	if err != nil {
 		http.Error(w, "Unable to get accounts", http.StatusInternalServerError)
 	}
@@ -146,7 +148,7 @@ func generateTransactionForm(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func upsertTransaction(w http.ResponseWriter, req *http.Request) {
+func (tc *TransactionController) upsertTransaction(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 
 	date := req.FormValue("date")
@@ -173,8 +175,6 @@ func upsertTransaction(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	tr := models.GetTransactionRepository()
-
 	// If there is a transactionID, we are editing an existing transaction
 	// so we should pull the existing record from the DB
 	var transaction models.Transaction
@@ -185,7 +185,7 @@ func upsertTransaction(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Unable to parse transactionID", http.StatusBadRequest)
 			return
 		}
-		transaction, err = tr.GetTransactionByID(id)
+		transaction, err = tc.TransactionRepository.GetTransactionByID(id)
 		if err != nil {
 			errorMessage := "Unable to get transaction with ID " + transactionID + " from the database"
 			http.Error(w, errorMessage, http.StatusBadRequest)
@@ -202,7 +202,7 @@ func upsertTransaction(w http.ResponseWriter, req *http.Request) {
 	transaction.AccountID = accountID
 	transaction.CategoryID = categoryID
 
-	_, err = tr.Save(transaction)
+	_, err = tc.TransactionRepository.Save(transaction)
 	if err != nil {
 		http.Error(w, "Unable to save transaction", http.StatusBadRequest)
 		return
@@ -220,5 +220,5 @@ func upsertTransaction(w http.ResponseWriter, req *http.Request) {
 	}
 	transactionViewReq.URL.RawQuery = queryValues.Encode()
 
-	generateTransactionsView(w, &transactionViewReq)
+	tc.generateTransactionsView(w, &transactionViewReq)
 }

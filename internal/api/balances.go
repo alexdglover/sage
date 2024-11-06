@@ -13,6 +13,11 @@ import (
 	"github.com/alexdglover/sage/internal/utils"
 )
 
+type BalanceController struct {
+	AccountRepository *models.AccountRepository
+	BalanceRepository *models.BalanceRepository
+}
+
 //go:embed balances.html
 var balancesPageTmpl string
 
@@ -48,16 +53,15 @@ type BalanceFormDTO struct {
 	ErrorMessage string
 }
 
-func generateBalancesView(w http.ResponseWriter, req *http.Request) {
+func (bc *BalanceController) generateBalancesView(w http.ResponseWriter, req *http.Request) {
 	// Get all balances for a given account
-	br := models.GetBalanceRepository()
 	accountIDQueryParameter := req.URL.Query().Get("accountID")
 	accountID, err := utils.StringToUint(accountIDQueryParameter)
 	if err != nil {
 		http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
 		return
 	}
-	balances := br.GetBalancesForAccount(context.TODO(), accountID)
+	balances := bc.BalanceRepository.GetBalancesForAccount(context.TODO(), accountID)
 
 	// Create balance DTO for each balance
 	balancesDTO := make([]BalanceDTO, len(balances))
@@ -93,7 +97,7 @@ func generateBalancesView(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func generateBalanceForm(w http.ResponseWriter, req *http.Request) {
+func (bc *BalanceController) generateBalanceForm(w http.ResponseWriter, req *http.Request) {
 	var balanceID uint
 	var accountID uint
 	var err error
@@ -115,14 +119,13 @@ func generateBalanceForm(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	errorMessage := req.URL.Query().Get("errorMessage")
-	balanceFormContent(w, balanceID, accountID, errorMessage)
+	bc.balanceFormContent(w, balanceID, accountID, errorMessage)
 }
 
-func balanceFormContent(w http.ResponseWriter, balanceID uint, accountID uint, errorMessage string) {
+func (bc *BalanceController) balanceFormContent(w http.ResponseWriter, balanceID uint, accountID uint, errorMessage string) {
 	var dto BalanceFormDTO
 	if balanceID != 0 {
-		br := models.GetBalanceRepository()
-		balance := br.GetBalanceByID(context.TODO(), balanceID)
+		balance := bc.BalanceRepository.GetBalanceByID(context.TODO(), balanceID)
 
 		dto = BalanceFormDTO{
 			Editing:   true,
@@ -157,7 +160,7 @@ func balanceFormContent(w http.ResponseWriter, balanceID uint, accountID uint, e
 	}
 }
 
-func upsertBalance(w http.ResponseWriter, req *http.Request) {
+func (bc *BalanceController) upsertBalance(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	balanceIDFormValue := req.FormValue("balanceID")
 	balanceID, err := utils.StringToUint(balanceIDFormValue)
@@ -178,17 +181,16 @@ func upsertBalance(w http.ResponseWriter, req *http.Request) {
 	amount = strings.Replace(amount, "$", "", -1)
 	amount = strings.Replace(amount, " ", "", -1)
 	if !utils.AmountValid(amount) {
-		balanceFormContent(w, balanceID, accountID, fmt.Sprintf("%s is not a valid amount format", amount))
+		bc.balanceFormContent(w, balanceID, accountID, fmt.Sprintf("%s is not a valid amount format", amount))
 		return
 	}
 
 	effectiveDate := req.FormValue("effectiveDate")
 	if !utils.DateValid(effectiveDate) {
-		balanceFormContent(w, balanceID, accountID, fmt.Sprintf("%s is not a valid date format - please use YYYY-MM-DD", effectiveDate))
+		bc.balanceFormContent(w, balanceID, accountID, fmt.Sprintf("%s is not a valid date format - please use YYYY-MM-DD", effectiveDate))
 		return
 	}
 
-	br := models.GetBalanceRepository()
 	var balance models.Balance
 
 	if balanceID != 0 {
@@ -199,16 +201,15 @@ func upsertBalance(w http.ResponseWriter, req *http.Request) {
 	balance.EffectiveDate = effectiveDate
 	balance.AccountID = accountID
 
-	_, err = br.Save(balance)
+	_, err = bc.BalanceRepository.Save(balance)
 	if err != nil {
 		http.Error(w, "Unable to save balance", http.StatusBadRequest)
 		return
 	}
 
 	// Redirect to the balances page with the balanceSaved query parameter set to true
-	ar := models.GetAccountRepository()
 	var balanceSavedMessage string
-	account, err := ar.GetAccountByID(accountID)
+	account, err := bc.AccountRepository.GetAccountByID(accountID)
 	// If we can't get the account, we'll just show a generic message. Nothing actually broke
 	if err != nil {
 		balanceSavedMessage = "Balanced saved"
@@ -229,5 +230,5 @@ func upsertBalance(w http.ResponseWriter, req *http.Request) {
 	}
 	balanceViewReq.URL.RawQuery = queryValues.Encode()
 
-	generateBalancesView(w, &balanceViewReq)
+	bc.generateBalancesView(w, &balanceViewReq)
 }

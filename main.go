@@ -7,10 +7,8 @@ import (
 	"os/exec"
 	"runtime"
 
+	"github.com/alexdglover/sage/internal/dependencyregistry"
 	"gorm.io/gorm"
-
-	"github.com/alexdglover/sage/internal/api"
-	"github.com/alexdglover/sage/internal/models"
 )
 
 type Configuration struct {
@@ -22,14 +20,20 @@ var Config Configuration
 func main() {
 
 	ctx := context.TODO()
-
-	models.BootstrapDatabase(ctx)
+	dependencyRegistry := dependencyregistry.DependencyRegistry{}
+	bootstrapper := dependencyRegistry.GetBootstrapper()
+	bootstrapper.BootstrapDatabase(ctx)
 
 	// open local browser to localhost:8080
 	// openbrowser("http://localhost:8080")
 
 	// start the API server
-	api.StartApiServer(ctx)
+	apiServer, err := dependencyRegistry.GetApiServer()
+	if err != nil {
+		fmt.Println("Error starting API server")
+		panic(err)
+	}
+	apiServer.StartApiServer(ctx)
 
 }
 

@@ -13,6 +13,11 @@ import (
 	humanize "github.com/dustin/go-humanize"
 )
 
+type AccountController struct {
+	AccountRepository *models.AccountRepository
+	BalanceRepository *models.BalanceRepository
+}
+
 //go:embed accounts.html
 var accountsPageTmpl string
 
@@ -46,21 +51,18 @@ type AccountFormDTO struct {
 	DefaultParser   string
 }
 
-func generateAccountsView(w http.ResponseWriter, req *http.Request) {
+func (ac *AccountController) generateAccountsView(w http.ResponseWriter, req *http.Request) {
 	// Get all accounts
-	ar := models.GetAccountRepository()
-	accounts, err := ar.GetAllAccounts()
+	accounts, err := ac.AccountRepository.GetAllAccounts()
 	if err != nil {
 		http.Error(w, "Unable to get accounts", http.StatusInternalServerError)
 		return
 	}
 
-	br := models.GetBalanceRepository()
-
 	// Build accounts DTO
 	accountsDTO := make([]AccountDTO, len(accounts))
 	for i, account := range accounts {
-		balance := br.GetLatestBalanceForAccount(context.TODO(), account.ID)
+		balance := ac.BalanceRepository.GetLatestBalanceForAccount(context.TODO(), account.ID)
 
 		// there may not be a balance associated with an account
 		// in those cases, we want to display "Never" as the last updated date
@@ -101,18 +103,17 @@ func generateAccountsView(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func generateAccountForm(w http.ResponseWriter, req *http.Request) {
+func (ac *AccountController) generateAccountForm(w http.ResponseWriter, req *http.Request) {
 	var dto AccountFormDTO
 
 	accountIDQueryParameter := req.URL.Query().Get("accountID")
 	if accountIDQueryParameter != "" {
-		ar := models.GetAccountRepository()
 		accountID, err := utils.StringToUint(accountIDQueryParameter)
 		if err != nil {
 			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
 			return
 		}
-		account, err := ar.GetAccountByID(accountID)
+		account, err := ac.AccountRepository.GetAccountByID(accountID)
 		if err != nil {
 			http.Error(w, "Unable to get account", http.StatusInternalServerError)
 			return
@@ -142,7 +143,7 @@ func generateAccountForm(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func upsertAccount(w http.ResponseWriter, req *http.Request) {
+func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 
 	accountID := req.FormValue("accountID")
@@ -151,7 +152,6 @@ func upsertAccount(w http.ResponseWriter, req *http.Request) {
 	accountType := req.FormValue("accountType")
 	defaultParser := req.FormValue("defaultParser")
 
-	ar := models.GetAccountRepository()
 	var account models.Account
 
 	if accountID != "" {
@@ -160,7 +160,7 @@ func upsertAccount(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Unable to parse account ID", http.StatusBadRequest)
 			return
 		}
-		account, err = ar.GetAccountByID(id)
+		account, err = ac.AccountRepository.GetAccountByID(id)
 		if err != nil {
 			http.Error(w, "Unable to get account", http.StatusBadRequest)
 			return
@@ -174,7 +174,7 @@ func upsertAccount(w http.ResponseWriter, req *http.Request) {
 	account.AccountType = accountType
 	account.DefaultParser = &defaultParser
 
-	_, err := ar.Save(account)
+	_, err := ac.AccountRepository.Save(account)
 	if err != nil {
 		http.Error(w, "Unable to save account", http.StatusBadRequest)
 		return
@@ -192,5 +192,5 @@ func upsertAccount(w http.ResponseWriter, req *http.Request) {
 	}
 	accountViewReq.URL.RawQuery = queryValues.Encode()
 
-	generateAccountsView(w, &accountViewReq)
+	ac.generateAccountsView(w, &accountViewReq)
 }

@@ -5,47 +5,41 @@ import (
 	"time"
 
 	"github.com/alexdglover/sage/internal/utils"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-type BalanceRepository struct{}
-
-var balanceRepository *BalanceRepository
+type BalanceRepository struct {
+	DB *gorm.DB
+}
 
 type BalancesWithDate struct {
 	Date     time.Time
 	Balances []Balance
 }
 
-func GetBalanceRepository() *BalanceRepository {
-	if balanceRepository == nil {
-		balanceRepository = &BalanceRepository{}
-	}
-	return balanceRepository
-}
-
-func (*BalanceRepository) GetAllBalances(ctx context.Context) ([]Balance, error) {
+func (br *BalanceRepository) GetAllBalances(ctx context.Context) ([]Balance, error) {
 	var balances []Balance
-	result := db.Find(&balances)
+	result := br.DB.Find(&balances)
 	return balances, result.Error
 }
 
-func (*BalanceRepository) GetBalancesOfAllAssetsByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
-	return balanceRepository.GetBalancesByMonth(ctx, "asset", startYearMonth, endYearMonth)
+func (br *BalanceRepository) GetBalancesOfAllAssetsByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
+	return br.GetBalancesByMonth(ctx, "asset", startYearMonth, endYearMonth)
 }
 
-func (*BalanceRepository) GetBalancesOfAllLiabilitiesByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
-	return balanceRepository.GetBalancesByMonth(ctx, "liability", startYearMonth, endYearMonth)
+func (br *BalanceRepository) GetBalancesOfAllLiabilitiesByMonth(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
+	return br.GetBalancesByMonth(ctx, "liability", startYearMonth, endYearMonth)
 }
 
-func (*BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType string, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
+func (br *BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType string, startYearMonth time.Time, endYearMonth time.Time) []BalancesWithDate {
 	// TODO: implement a better way of limiting input options (like an enum)
 	if accountType != "asset" && accountType != "liability" {
 		panic("only `asset` or `liability` are valid accountType options")
 	}
 
 	var result []BalancesWithDate
-	accountIDs := db.Select("id").Where("account_type=?", accountType).Table("accounts")
+	accountIDs := br.DB.Select("id").Where("account_type=?", accountType).Table("accounts")
 
 	//create a slice of months in Go instead of relying on SQL
 	months := []time.Time{}
@@ -61,7 +55,7 @@ func (*BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType st
 		// Convert dates to YYYY-MM-DD so date comparisons work consistently with strings in SQLite
 		lastDayOfMonth := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
 
-		db.Raw("select *, max(effective_date) from balances "+
+		br.DB.Raw("select *, max(effective_date) from balances "+
 			"where account_id in (?) "+
 			"and effective_date <= (?) "+
 			"group by account_id "+
@@ -76,26 +70,26 @@ func (*BalanceRepository) GetBalancesByMonth(ctx context.Context, accountType st
 	return result
 }
 
-func (*BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) Balance {
+func (br *BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) Balance {
 	var balance Balance
-	db.Where("account_id = ?", accountID).Order("effective_date desc").Limit(1).Find(&balance)
+	br.DB.Where("account_id = ?", accountID).Order("effective_date desc").Limit(1).Find(&balance)
 	return balance
 }
 
-func (*BalanceRepository) GetBalancesForAccount(ctx context.Context, accountID uint) []Balance {
+func (br *BalanceRepository) GetBalancesForAccount(ctx context.Context, accountID uint) []Balance {
 	var balances []Balance
-	db.Preload(clause.Associations).Where("account_id = ?", accountID).Order("effective_date desc").Find(&balances)
+	br.DB.Preload(clause.Associations).Where("account_id = ?", accountID).Order("effective_date desc").Find(&balances)
 	return balances
 }
 
-func (*BalanceRepository) GetBalanceByID(ctx context.Context, balanceID uint) Balance {
+func (br *BalanceRepository) GetBalanceByID(ctx context.Context, balanceID uint) Balance {
 	var balance Balance
-	db.Preload(clause.Associations).Where("id = ?", balanceID).Find(&balance)
+	br.DB.Preload(clause.Associations).Where("id = ?", balanceID).Find(&balance)
 	return balance
 }
 
 // Save is an UPSERT operation, returning the ID of the record and an optional error
-func (*BalanceRepository) Save(balance Balance) (id uint, err error) {
-	result := db.Save(&balance).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
+func (br *BalanceRepository) Save(balance Balance) (id uint, err error) {
+	result := br.DB.Save(&balance).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
 	return balance.ID, result.Error
 }

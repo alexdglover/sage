@@ -12,6 +12,10 @@ import (
 	"github.com/alexdglover/sage/internal/utils"
 )
 
+type NetWorthController struct {
+	BalanceRepository *models.BalanceRepository
+}
+
 //go:embed networth.html.tmpl
 var netWorthTmpl string
 
@@ -32,7 +36,7 @@ type netWorthTmplVariables struct {
 }
 
 // TODO: Consider moving this into a service class that returns just the data needed
-func netWorthHandler(w http.ResponseWriter, req *http.Request) {
+func (nc *NetWorthController) netWorthHandler(w http.ResponseWriter, req *http.Request) {
 	var relativeWindow int
 	tmplVariables := netWorthTmplVariables{}
 	if req.FormValue("relativeWindow") == "" {
@@ -67,9 +71,8 @@ func netWorthHandler(w http.ResponseWriter, req *http.Request) {
 	// And calculate start date
 	startDate := endDate.AddDate(0, (relativeWindow * -1), 0)
 
-	br := models.GetBalanceRepository()
-	assetBalances := br.GetBalancesOfAllAssetsByMonth(context.TODO(), startDate, endDate)
-	liabilityBalances := br.GetBalancesOfAllLiabilitiesByMonth(context.TODO(), startDate, endDate)
+	assetBalances := nc.BalanceRepository.GetBalancesOfAllAssetsByMonth(context.TODO(), startDate, endDate)
+	liabilityBalances := nc.BalanceRepository.GetBalancesOfAllLiabilitiesByMonth(context.TODO(), startDate, endDate)
 
 	// A map of year-month to total by type, so we can aggregate the sum of balances for each year-month
 	totalByMonthAndType := map[string]totalByType{}

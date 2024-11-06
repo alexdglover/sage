@@ -10,6 +10,13 @@ import (
 	"github.com/alexdglover/sage/internal/models"
 )
 
+type ImportService struct {
+	AccountRepository          *models.AccountRepository
+	BalanceRepository          *models.BalanceRepository
+	ImportSubmissionRepository *models.ImportSubmissionRepository
+	TransactionRepository      *models.TransactionRepository
+}
+
 type NoParserError struct{}
 
 func (*NoParserError) Error() string {
@@ -24,8 +31,7 @@ func (a *AccountNotFoundError) Error() string {
 	return fmt.Sprintf("Could not find an account with ID %v", a.AccountID)
 }
 
-func ImportStatement(filename string, statement string, accountID uint) (result *models.ImportSubmission, err error) {
-	isr := models.GetImportSubmissionRepository()
+func (is *ImportService) ImportStatement(filename string, statement string, accountID uint) (result *models.ImportSubmission, err error) {
 
 	submission := models.ImportSubmission{
 		FileName:             filename,
@@ -37,7 +43,7 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		BalancesSkipped:      0,
 		AccountID:            accountID,
 	}
-	id, err := isr.Save(submission)
+	id, err := is.ImportSubmissionRepository.Save(submission)
 	if err != nil {
 		return nil, err
 	}
@@ -47,34 +53,31 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 	var balances []models.Balance
 
 	// parse the statement using the appropriate parser, getting a slice of transactions and balances
-	ar := models.GetAccountRepository()
-	account, err := ar.GetAccountByID(accountID)
+	account, err := is.AccountRepository.GetAccountByID(accountID)
 	if err != nil {
 		submission.Status = models.Failed
-		isr.Save(submission)
+		is.ImportSubmissionRepository.Save(submission)
 		return nil, &AccountNotFoundError{}
 	}
 	if account.DefaultParser == nil {
 		submission.Status = models.Failed
-		isr.Save(submission)
+		is.ImportSubmissionRepository.Save(submission)
 		return nil, &NoParserError{}
 	}
 	parser := parsersByInstitution[*account.DefaultParser]
 	transactions, balances, err = parser.Parse(statement)
 	if err != nil {
 		submission.Status = models.Failed
-		isr.Save(submission)
+		is.ImportSubmissionRepository.Save(submission)
 		return nil, err
 	}
 
 	hasher := sha256.New()
-	tr := models.GetTransactionRepository()
-	br := models.GetBalanceRepository()
 
 	for idx, transaction := range transactions {
 		if idx == 0 {
 			submission.Status = models.Processing
-			isr.Save(submission)
+			is.ImportSubmissionRepository.Save(submission)
 		}
 		// Create a hash of all the relevant fields - date, amount, description
 		builder := strings.Builder{}
@@ -89,10 +92,10 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		// use hash to check if this is a duplicate transaction, but ignore
 		// duplicates from the statement currently being imported since it is possible
 		// to have a transcation with same date, amount, description, and account
-		txns, err := tr.GetTransactionsByHash(hashHex, submission.ID)
+		txns, err := is.TransactionRepository.GetTransactionsByHash(hashHex, submission.ID)
 		if err != nil {
 			submission.Status = models.Failed
-			isr.Save(submission)
+			is.ImportSubmissionRepository.Save(submission)
 			return nil, err
 		}
 
@@ -109,10 +112,10 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 		// TODO: Add a check for the category and set it to the default category if it is not set
 		transaction.CategoryID = 1 // Default to Unknown
 
-		_, dbError := tr.Save(transaction)
+		_, dbError := is.TransactionRepository.Save(transaction)
 		if dbError != nil {
 			submission.Status = models.Failed
-			isr.Save(submission)
+			is.ImportSubmissionRepository.Save(submission)
 			return nil, dbError
 		}
 		submission.TransactionsImported = submission.TransactionsImported + 1
@@ -121,12 +124,12 @@ func ImportStatement(filename string, statement string, accountID uint) (result 
 	for _, balance := range balances {
 		balance.AccountID = accountID
 		balance.ImportSubmissionID = &submission.ID
-		br.Save(balance)
+		is.BalanceRepository.Save(balance)
 		submission.BalancesImported = submission.BalancesImported + 1
 	}
 
 	submission.Status = models.Completed
-	isr.Save(submission)
+	is.ImportSubmissionRepository.Save(submission)
 
 	result = &submission
 	return result, nil

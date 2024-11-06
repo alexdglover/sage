@@ -13,6 +13,12 @@ import (
 	"github.com/alexdglover/sage/internal/utils"
 )
 
+type ImportController struct {
+	AccountManager        *services.AccountManager
+	ImportService         *services.ImportService
+	TransactionRepository *models.TransactionRepository
+}
+
 //go:embed importStatementForm.html.tmpl
 var importStatementFormTmpl string
 
@@ -28,9 +34,9 @@ type ImportStatusPageDTO struct {
 	Transactions []TransactionDTO
 }
 
-func importStatementFormHandler(w http.ResponseWriter, req *http.Request) {
+func (ic *ImportController) importStatementFormHandler(w http.ResponseWriter, req *http.Request) {
 	formDTO := ImportStatementFormDTO{}
-	data, err := services.GetAccountNamesAndIDs()
+	data, err := ic.AccountManager.GetAccountNamesAndIDs()
 	if err != nil {
 		http.Error(w, "Unable to get account names and IDs", http.StatusInternalServerError)
 	}
@@ -48,7 +54,7 @@ func importStatementFormHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
+func (ic *ImportController) importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	req.ParseMultipartForm(1024 * 1024 * 1024 * 4) // limit max input length to 4 GB
 
 	file, header, err := req.FormFile("statementFile")
@@ -72,15 +78,14 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 	buf.Reset()
 
 	// call service class to execute import
-	importSubmission, err := services.ImportStatement(fileName, statement, accountID)
+	importSubmission, err := ic.ImportService.ImportStatement(fileName, statement, accountID)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Unable to import statement: %v", err)
 		http.Error(w, errorMessage, http.StatusBadRequest)
 		return
 	}
 
-	tr := models.GetTransactionRepository()
-	transactions, err := tr.GetTransactionsByImportSubmission(importSubmission.ID)
+	transactions, err := ic.TransactionRepository.GetTransactionsByImportSubmission(importSubmission.ID)
 	if err != nil {
 		errorMessage := fmt.Sprintf("Unable to get transactions for import submission: %v", err)
 		http.Error(w, errorMessage, http.StatusInternalServerError)
@@ -104,11 +109,11 @@ func importSubmissionHandler(w http.ResponseWriter, req *http.Request) {
 		Transactions: transactionDTOs,
 	}
 
-	importStatusHandler(w, dto)
+	ic.importStatusHandler(w, dto)
 }
 
 // Handler to return HTML for the status of a single import submission
-func importStatusHandler(w http.ResponseWriter, dto ImportStatusPageDTO) {
+func (ic *ImportController) importStatusHandler(w http.ResponseWriter, dto ImportStatusPageDTO) {
 	tmpl, err := template.New("importStatusPage").Parse(importStatusPageTmpl)
 	if err != nil {
 		panic(err)

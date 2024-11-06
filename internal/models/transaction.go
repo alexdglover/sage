@@ -21,51 +21,44 @@ type Transaction struct {
 	ImportSubmission   *ImportSubmission
 }
 
-type TransactionRepository struct{}
-
-var transactionRepository *TransactionRepository
-
-func GetTransactionRepository() *TransactionRepository {
-	if transactionRepository == nil {
-		transactionRepository = &TransactionRepository{}
-	}
-	return transactionRepository
+type TransactionRepository struct {
+	DB *gorm.DB
 }
 
-func (*TransactionRepository) GetAllTransactions() ([]Transaction, error) {
+func (tr *TransactionRepository) GetAllTransactions() ([]Transaction, error) {
 	// TODO: Need to implement pagination
 	var txns []Transaction
-	result := db.Preload(clause.Associations).Order("date desc").Find(&txns)
+	result := tr.DB.Preload(clause.Associations).Order("date desc").Find(&txns)
 	return txns, result.Error
 }
 
-func (*TransactionRepository) GetTransactionsByHash(hash string, submissionID uint) ([]Transaction, error) {
+func (tr *TransactionRepository) GetTransactionsByHash(hash string, submissionID uint) ([]Transaction, error) {
 	// Implement GORM query to look up transactions by hash
 	var transactions []Transaction
-	result := db.Where("import_submission_id != ?", submissionID).Where("hash = ?", hash).Find(&transactions)
+	result := tr.DB.Where("import_submission_id != ?", submissionID).Where("hash = ?", hash).Find(&transactions)
 	return transactions, result.Error
 }
 
-func (*TransactionRepository) Create(txn *Transaction) error {
-	result := db.Create(txn)
+func (tr *TransactionRepository) Create(txn *Transaction) error {
+	result := tr.DB.Create(txn)
 	return result.Error
 }
 
 // Save is an UPSERT operation, returning the ID of the record and an optional error
-func (*TransactionRepository) Save(txn Transaction) (id uint, err error) {
-	result := db.Save(&txn).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
+func (tr *TransactionRepository) Save(txn Transaction) (id uint, err error) {
+	result := tr.DB.Save(&txn).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
 
 	return txn.ID, result.Error
 }
 
-func (*TransactionRepository) GetTransactionsByImportSubmission(id uint) ([]Transaction, error) {
+func (tr *TransactionRepository) GetTransactionsByImportSubmission(id uint) ([]Transaction, error) {
 	var transactions []Transaction
-	result := db.Preload(clause.Associations).Where("import_submission_id = ?", id).Find(&transactions)
+	result := tr.DB.Preload(clause.Associations).Where("import_submission_id = ?", id).Find(&transactions)
 	return transactions, result.Error
 }
 
-func (*TransactionRepository) GetTransactionByID(id uint) (Transaction, error) {
+func (tr *TransactionRepository) GetTransactionByID(id uint) (Transaction, error) {
 	var transaction Transaction
-	result := db.Preload(clause.Associations).Where("id = ?", id).Find(&transaction)
+	result := tr.DB.Preload(clause.Associations).Where("id = ?", id).Find(&transaction)
 	return transaction, result.Error
 }
