@@ -212,6 +212,19 @@ AND total_spend > (
 )
 ```
 
+## Categorization
+
+To show spending by categories, every transaction needs to be assigned to a category. Sage achieves
+this in two ways. First, users can manually edit any transaction and set the category. Second, Sage
+uses the [gopherml/bag](https://github.com/gopherml/bag) module to automatically categorize
+transactions using a Naive Bayes classifier machine learning model, which is trained on the
+transactions that have been previously categorized manually by the user. This approach gives the
+user full control while also limiting the toil and burden associated with categorizing
+transactions.
+
+There is an open question about whether some initial rules should be seeded into the model (to
+give some automatic classification on day 1) and whether they should be editable.
+
 ## SEMVER
 
 Once a stable version is released, the project will treat any breaking change to any public interface (either JSON APIs or database schema) as a breaking change.

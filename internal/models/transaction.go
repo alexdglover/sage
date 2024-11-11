@@ -7,12 +7,12 @@ import (
 
 type Transaction struct {
 	gorm.Model
-	Date        string
-	Description string
-	Amount      int64
-	// Excluded           int // 0 = false, 1 = true. SQLite doesn't have a boolean type
+	Date               string
+	Description        string
+	Amount             int64
 	Excluded           bool // Will be stored as 0 or 1 in SQLite
 	Hash               string
+	UseForTraining     bool
 	AccountID          uint
 	Account            Account
 	CategoryID         uint
@@ -61,4 +61,10 @@ func (tr *TransactionRepository) GetTransactionByID(id uint) (Transaction, error
 	var transaction Transaction
 	result := tr.DB.Preload(clause.Associations).Where("id = ?", id).Find(&transaction)
 	return transaction, result.Error
+}
+
+func (tr *TransactionRepository) GetTransactionsForTraining() ([]Transaction, error) {
+	var transactions []Transaction
+	result := tr.DB.Preload(clause.Associations).Where("use_for_training = ", 1).Find(&transactions)
+	return transactions, result.Error
 }
