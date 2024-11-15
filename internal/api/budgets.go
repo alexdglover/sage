@@ -10,6 +10,11 @@ import (
 	"github.com/alexdglover/sage/internal/utils"
 )
 
+type BudgetController struct {
+	BudgetRepository   *models.BudgetRepository
+	CategoryRepository *models.CategoryRepository
+}
+
 //go:embed budgets.html
 var budgetsPageTmpl string
 
@@ -37,15 +42,14 @@ type BudgetFormDTO struct {
 	Categories   []models.Category
 }
 
-func generateBudgetsView(w http.ResponseWriter, req *http.Request) {
-	sendViewResponse(w, false)
+func (bc *BudgetController) generateBudgetsView(w http.ResponseWriter, req *http.Request) {
+	bc.sendViewResponse(w, false)
 }
 
-func generateBudgetForm(w http.ResponseWriter, req *http.Request) {
+func (bc *BudgetController) generateBudgetForm(w http.ResponseWriter, req *http.Request) {
 	var dto BudgetFormDTO
 
-	cr := models.GetCategoryRepository()
-	categories, err := cr.GetAllCategories()
+	categories, err := bc.CategoryRepository.GetAllCategories()
 	if err != nil {
 		http.Error(w, "Unable to get categories", http.StatusInternalServerError)
 	}
@@ -53,13 +57,12 @@ func generateBudgetForm(w http.ResponseWriter, req *http.Request) {
 
 	budgetIDQueryParameter := req.URL.Query().Get("budgetID")
 	if budgetIDQueryParameter != "" {
-		br := models.GetBudgetRepository()
 		budgetID, err := utils.StringToUint(budgetIDQueryParameter)
 		if err != nil {
 			http.Error(w, "Unable to parse budget ID", http.StatusInternalServerError)
 			return
 		}
-		budget, err := br.GetBudgetByID(budgetID)
+		budget, err := bc.BudgetRepository.GetBudgetByID(budgetID)
 		if err != nil {
 			http.Error(w, "Unable to get budget", http.StatusInternalServerError)
 			return
@@ -84,14 +87,13 @@ func generateBudgetForm(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func upsertBudget(w http.ResponseWriter, req *http.Request) {
+func (bc *BudgetController) upsertBudget(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 
 	budgetID := req.FormValue("budgetID")
 	budgetCategory := req.FormValue("budgetCategory")
 	amount := req.FormValue("amount")
 
-	br := models.GetBudgetRepository()
 	var budget models.Budget
 
 	if budgetID != "" {
@@ -100,7 +102,7 @@ func upsertBudget(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Unable to parse budget ID", http.StatusBadRequest)
 			return
 		}
-		budget, err = br.GetBudgetByID(id)
+		budget, err = bc.BudgetRepository.GetBudgetByID(id)
 		if err != nil {
 			http.Error(w, "Unable to get budget", http.StatusBadRequest)
 			return
@@ -115,8 +117,7 @@ func upsertBudget(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	budget.CategoryID = budgetCategoryID
-	cr := models.GetCategoryRepository()
-	category, err := cr.GetCategoryByID(budget.CategoryID)
+	category, err := bc.CategoryRepository.GetCategoryByID(budget.CategoryID)
 	if err != nil {
 		panic("failed to get category from CategoryID")
 	}
@@ -124,20 +125,19 @@ func upsertBudget(w http.ResponseWriter, req *http.Request) {
 
 	budget.Amount = utils.DollarStringToCents(amount)
 
-	_, err = br.Save(budget)
+	_, err = bc.BudgetRepository.Save(budget)
 	if err != nil {
 		http.Error(w, "Unable to save budget", http.StatusBadRequest)
 		return
 	}
 
-	sendViewResponse(w, true)
+	bc.sendViewResponse(w, true)
 }
 
 // Generic function to send the view response
-func sendViewResponse(w http.ResponseWriter, update bool) {
+func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool) {
 	// Get all budgets
-	br := models.GetBudgetRepository()
-	budgets, err := br.GetAllBudgets()
+	budgets, err := bc.BudgetRepository.GetAllBudgets()
 	if err != nil {
 		http.Error(w, "Unable to get budgets", http.StatusInternalServerError)
 		return

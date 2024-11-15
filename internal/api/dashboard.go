@@ -6,6 +6,8 @@ import (
 	"text/template"
 )
 
+type DashbaordController struct{}
+
 //go:embed dashboard.html.tmpl
 var dashboardTmpl string
 
@@ -24,7 +26,3 @@ func dashboardHandler(w http.ResponseWriter, req *http.Request) {
 		panic(err)
 	}
 }
-
-// func netWorthHandler(w http.ResponseWriter, req *http.Request) {
-// 	io.WriteString(w, "<html><body><strong>howdy howdy howdy</strong></body></html>")
-// }
