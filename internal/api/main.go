@@ -6,11 +6,13 @@ import (
 	"text/template"
 )
 
+type MainController struct{}
+
 //go:embed main.html.tmpl
 var mainTmpl string
 
 // TODO: Consider moving this into a service class that returns just the data needed
-func mainPageHandler(w http.ResponseWriter, req *http.Request) {
+func (mc *MainController) mainPageHandler(w http.ResponseWriter, req *http.Request) {
 	type emptyTmplVariables struct{}
 
 	foo := emptyTmplVariables{}

@@ -12,6 +12,7 @@ import (
 
 type TransactionController struct {
 	AccountRepository     *models.AccountRepository
+	CategoryRepository    *models.CategoryRepository
 	TransactionRepository *models.TransactionRepository
 }
 
@@ -130,8 +131,7 @@ func (tc *TransactionController) generateTransactionForm(w http.ResponseWriter, 
 	}
 	dto.Accounts = accounts
 
-	cr := models.GetCategoryRepository()
-	categories, err := cr.GetAllCategories()
+	categories, err := tc.CategoryRepository.GetAllCategories()
 	if err != nil {
 		http.Error(w, "Unable to get categories", http.StatusInternalServerError)
 	}

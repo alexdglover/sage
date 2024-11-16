@@ -13,13 +13,15 @@ var mainPageTmpl string
 type ApiServer struct {
 	AccountController     *AccountController
 	BalanceController     *BalanceController
+	BudgetController      *BudgetController
 	ImportController      *ImportController
+	MainController        *MainController
 	NetWorthController    *NetWorthController
 	TransactionController *TransactionController
 }
 
 func (as *ApiServer) StartApiServer(ctx context.Context) {
-	http.HandleFunc("/", mainPageHandler)
+	http.HandleFunc("/", as.MainController.mainPageHandler)
 	http.HandleFunc("/dashboard", dashboardHandler)
 	http.HandleFunc("GET /net-worth", as.NetWorthController.netWorthHandler)
 	http.HandleFunc("GET /import-form", as.ImportController.importStatementFormHandler)
@@ -33,9 +35,9 @@ func (as *ApiServer) StartApiServer(ctx context.Context) {
 	http.HandleFunc("POST /balances", as.BalanceController.upsertBalance)
 	http.HandleFunc("GET /balanceForm", as.BalanceController.generateBalanceForm)
 
-	http.HandleFunc("GET /budgets", generateBudgetsView)
-	http.HandleFunc("POST /budgets", upsertBudget)
-	http.HandleFunc("GET /budgetForm", generateBudgetForm)
+	http.HandleFunc("GET /budgets", as.BudgetController.generateBudgetsView)
+	http.HandleFunc("POST /budgets", as.BudgetController.upsertBudget)
+	http.HandleFunc("GET /budgetForm", as.BudgetController.generateBudgetForm)
 
 	http.HandleFunc("GET /transactions", as.TransactionController.generateTransactionsView)
 	http.HandleFunc("POST /transactions", as.TransactionController.upsertTransaction)

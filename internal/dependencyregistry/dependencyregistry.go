@@ -18,6 +18,8 @@ type DependencyRegistry struct {
 	Bootstrapper               *models.Bootstrapper
 	AccountRepository          *models.AccountRepository
 	BalanceRepository          *models.BalanceRepository
+	BudgetRepository           *models.BudgetRepository
+	CategoryRepository         *models.CategoryRepository
 	ImportSubmissionRepository *models.ImportSubmissionRepository
 	TransactionRepository      *models.TransactionRepository
 
@@ -26,7 +28,9 @@ type DependencyRegistry struct {
 
 	AccountController     *api.AccountController
 	BalanceController     *api.BalanceController
+	BudgetController      *api.BudgetController
 	ImportController      *api.ImportController
+	MainController        *api.MainController
 	NetWorthController    *api.NetWorthController
 	TransactionController *api.TransactionController
 	ApiServer             *api.ApiServer
@@ -78,6 +82,8 @@ func (dr *DependencyRegistry) GetDbConnection() (*gorm.DB, error) {
 	return dr.DbConnection, nil
 }
 
+// Repositories
+
 func (dr *DependencyRegistry) GetAccountRepository() (*models.AccountRepository, error) {
 	if dr.AccountRepository == nil {
 		dbConnection, err := dr.GetDbConnection()
@@ -102,6 +108,32 @@ func (dr *DependencyRegistry) GetBalanceRepository() (*models.BalanceRepository,
 		}
 	}
 	return dr.BalanceRepository, nil
+}
+
+func (dr *DependencyRegistry) GetBudgetRepository() (*models.BudgetRepository, error) {
+	if dr.BudgetRepository == nil {
+		dbConnection, err := dr.GetDbConnection()
+		if err != nil {
+			return nil, err
+		}
+		dr.BudgetRepository = &models.BudgetRepository{
+			DB: dbConnection,
+		}
+	}
+	return dr.BudgetRepository, nil
+}
+
+func (dr *DependencyRegistry) GetCategoryRepository() (*models.CategoryRepository, error) {
+	if dr.CategoryRepository == nil {
+		dbConnection, err := dr.GetDbConnection()
+		if err != nil {
+			return nil, err
+		}
+		dr.CategoryRepository = &models.CategoryRepository{
+			DB: dbConnection,
+		}
+	}
+	return dr.CategoryRepository, nil
 }
 
 func (dr *DependencyRegistry) GetTransactionRepository() (*models.TransactionRepository, error) {
@@ -130,9 +162,8 @@ func (dr *DependencyRegistry) GetImportSubmissionRepository() (*models.ImportSub
 	return dr.ImportSubmissionRepository, nil
 }
 
-// models DI bootstrapping ends here
+// Services
 
-// services DI bootstrapping starts here
 func (dr *DependencyRegistry) GetAccountManager() (*services.AccountManager, error) {
 	if dr.AccountManager == nil {
 		accountRepository, err := dr.GetAccountRepository()
@@ -174,7 +205,7 @@ func (dr *DependencyRegistry) GetImportService() (*services.ImportService, error
 	return dr.ImportService, nil
 }
 
-// API DI bootstrapping starts here
+// APIs
 
 func (dr *DependencyRegistry) GetAccountController() (*api.AccountController, error) {
 	if dr.AccountController == nil {
@@ -212,6 +243,24 @@ func (dr *DependencyRegistry) GetBalanceController() (*api.BalanceController, er
 	return dr.BalanceController, nil
 }
 
+func (dr *DependencyRegistry) GetBudgetController() (*api.BudgetController, error) {
+	if dr.BudgetController == nil {
+		budgetRepository, err := dr.GetBudgetRepository()
+		if err != nil {
+			return nil, err
+		}
+		categoryRepository, err := dr.GetCategoryRepository()
+		if err != nil {
+			return nil, err
+		}
+		dr.BudgetController = &api.BudgetController{
+			BudgetRepository:   budgetRepository,
+			CategoryRepository: categoryRepository,
+		}
+	}
+	return dr.BudgetController, nil
+}
+
 func (dr *DependencyRegistry) GetImportController() (*api.ImportController, error) {
 	if dr.ImportController == nil {
 		accountManager, err := dr.GetAccountManager()
@@ -233,6 +282,13 @@ func (dr *DependencyRegistry) GetImportController() (*api.ImportController, erro
 		}
 	}
 	return dr.ImportController, nil
+}
+
+func (dr *DependencyRegistry) GetMainController() (*api.MainController, error) {
+	if dr.MainController == nil {
+		dr.MainController = &api.MainController{}
+	}
+	return dr.MainController, nil
 }
 
 func (dr *DependencyRegistry) GetNetWorthController() (*api.NetWorthController, error) {
@@ -266,8 +322,6 @@ func (dr *DependencyRegistry) GetTransactionController() (*api.TransactionContro
 	return dr.TransactionController, nil
 }
 
-// 	TransactionController *TransactionController
-
 func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 	if dr.ApiServer == nil {
 		accountController, err := dr.GetAccountController()
@@ -278,7 +332,15 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 		if err != nil {
 			return nil, err
 		}
+		budgetController, err := dr.GetBudgetController()
+		if err != nil {
+			return nil, err
+		}
 		importController, err := dr.GetImportController()
+		if err != nil {
+			return nil, err
+		}
+		mainController, err := dr.GetMainController()
 		if err != nil {
 			return nil, err
 		}
@@ -293,7 +355,9 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 		dr.ApiServer = &api.ApiServer{
 			AccountController:     accountController,
 			BalanceController:     balanceController,
+			BudgetController:      budgetController,
 			ImportController:      importController,
+			MainController:        mainController,
 			NetWorthController:    netWorthController,
 			TransactionController: transactionController,
 		}

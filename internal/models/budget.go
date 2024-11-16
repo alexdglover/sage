@@ -12,15 +12,8 @@ type Budget struct {
 	Category   Category
 }
 
-type BudgetRepository struct{}
-
-var budgetRepository *BudgetRepository
-
-func GetBudgetRepository() *BudgetRepository {
-	if budgetRepository == nil {
-		budgetRepository = &BudgetRepository{}
-	}
-	return budgetRepository
+type BudgetRepository struct {
+	DB *gorm.DB
 }
 
 func (*BudgetRepository) GetAllBudgets() ([]Budget, error) {
