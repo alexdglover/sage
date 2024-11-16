@@ -65,6 +65,6 @@ func (tr *TransactionRepository) GetTransactionByID(id uint) (Transaction, error
 
 func (tr *TransactionRepository) GetTransactionsForTraining() ([]Transaction, error) {
 	var transactions []Transaction
-	result := tr.DB.Preload(clause.Associations).Where("use_for_training = ", 1).Find(&transactions)
+	result := tr.DB.Preload(clause.Associations).Where("use_for_training = ?", 1).Find(&transactions)
 	return transactions, result.Error
 }

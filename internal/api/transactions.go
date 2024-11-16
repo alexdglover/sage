@@ -201,6 +201,7 @@ func (tc *TransactionController) upsertTransaction(w http.ResponseWriter, req *h
 	transaction.Excluded = excluded
 	transaction.AccountID = accountID
 	transaction.CategoryID = categoryID
+	transaction.UseForTraining = true
 
 	_, err = tc.TransactionRepository.Save(transaction)
 	if err != nil {

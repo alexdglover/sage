@@ -15,6 +15,10 @@ type ImportService struct {
 	BalanceRepository          *models.BalanceRepository
 	ImportSubmissionRepository *models.ImportSubmissionRepository
 	TransactionRepository      *models.TransactionRepository
+
+	// For now this is statically defined as a pointer to a single instance of the MLCategorizer,
+	// but in the future this should be an interface that can be swapped out for different categorization methods
+	Categorizer *MLCategorizer
 }
 
 type NoParserError struct{}
@@ -110,7 +114,13 @@ func (is *ImportService) ImportStatement(filename string, statement string, acco
 		transaction.ImportSubmissionID = &submission.ID
 
 		// TODO: Add a check for the category and set it to the default category if it is not set
-		transaction.CategoryID = 1 // Default to Unknown
+		fmt.Println("about to call categorize")
+		category, err := is.Categorizer.CategorizeTransaction(&transaction)
+		if err != nil {
+			// handle this error
+		}
+		fmt.Println("categorize called, category for ", transaction.Description, " is ", category.Name)
+		transaction.CategoryID = category.ID
 
 		_, dbError := is.TransactionRepository.Save(transaction)
 		if dbError != nil {

@@ -138,11 +138,9 @@ func (FidelityCreditCardCSVParser) Parse(statement string) (transactions []model
 		if idx == 0 {
 			continue
 		}
-		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
-		var amount int64
-		amount = utils.DollarStringToCents(record[4])
+		amount := utils.DollarStringToCents(record[4])
 		txn := models.Transaction{
-			Date:        isoDate,
+			Date:        record[0],
 			Description: record[2],
 			Amount:      amount,
 		}

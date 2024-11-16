@@ -9,6 +9,7 @@ import (
 
 type MLCategorizer struct {
 	Bag                   *bag.Bag
+	CategoryRepository    *models.CategoryRepository
 	TransactionRepository *models.TransactionRepository
 }
 
@@ -31,9 +32,19 @@ func (mc *MLCategorizer) BuildModel() error {
 	return nil
 }
 
-func (mc *MLCategorizer) CategorizeTransaction(transaction *models.Transaction) (string, error) {
+// Should this return just the category name as a string, a category object, both, or something else?
+func (mc *MLCategorizer) CategorizeTransaction(transaction *models.Transaction) (category models.Category, err error) {
+	fmt.Println("yo categorizetransaction was invoked")
+	fmt.Println("bag is nil? ", mc.Bag == nil)
 	results := mc.Bag.GetResults(transaction.Description)
-	category := results.GetHighestProbability()
-	fmt.Println("Categorizing transaction: ", transaction.Description, " as ", category, " with score ", results[category])
+	fmt.Println("Results: ", results)
+	categoryName := results.GetHighestProbability()
+	category, err = mc.CategoryRepository.GetCategoryByName(categoryName)
+	if err != nil {
+		category = models.Category{}
+		return category, err
+
+	}
+	fmt.Println("Categorizing transaction: ", transaction.Description, " as ", category, " with score ", results[categoryName])
 	return category, nil
 }

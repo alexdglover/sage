@@ -25,6 +25,7 @@ type DependencyRegistry struct {
 
 	AccountManager *services.AccountManager
 	ImportService  *services.ImportService
+	MLCategorizer  *services.MLCategorizer
 
 	AccountController     *api.AccountController
 	BalanceController     *api.BalanceController
@@ -82,7 +83,9 @@ func (dr *DependencyRegistry) GetDbConnection() (*gorm.DB, error) {
 	return dr.DbConnection, nil
 }
 
+//
 // Repositories
+//
 
 func (dr *DependencyRegistry) GetAccountRepository() (*models.AccountRepository, error) {
 	if dr.AccountRepository == nil {
@@ -162,7 +165,9 @@ func (dr *DependencyRegistry) GetImportSubmissionRepository() (*models.ImportSub
 	return dr.ImportSubmissionRepository, nil
 }
 
+//
 // Services
+//
 
 func (dr *DependencyRegistry) GetAccountManager() (*services.AccountManager, error) {
 	if dr.AccountManager == nil {
@@ -175,6 +180,21 @@ func (dr *DependencyRegistry) GetAccountManager() (*services.AccountManager, err
 		}
 	}
 	return dr.AccountManager, nil
+}
+
+func (dr *DependencyRegistry) GetMLCategorizer() (*services.MLCategorizer, error) {
+	if dr.MLCategorizer == nil {
+		transactionRepository, err := dr.GetTransactionRepository()
+		if err != nil {
+			return nil, err
+		}
+		mlCategorizer := &services.MLCategorizer{
+			TransactionRepository: transactionRepository,
+		}
+		mlCategorizer.BuildModel()
+		dr.MLCategorizer = mlCategorizer
+	}
+	return dr.MLCategorizer, nil
 }
 
 func (dr *DependencyRegistry) GetImportService() (*services.ImportService, error) {
@@ -195,17 +215,27 @@ func (dr *DependencyRegistry) GetImportService() (*services.ImportService, error
 		if err != nil {
 			return nil, err
 		}
+
+		mlCategorizer, err := dr.GetMLCategorizer()
+		if err != nil {
+			return nil, err
+		}
+
 		dr.ImportService = &services.ImportService{
 			AccountRepository:          accountRepository,
 			BalanceRepository:          balanceRepository,
 			ImportSubmissionRepository: importSubmissionRepository,
 			TransactionRepository:      transactionRepository,
+
+			Categorizer: mlCategorizer,
 		}
 	}
 	return dr.ImportService, nil
 }
 
+//
 // APIs
+//
 
 func (dr *DependencyRegistry) GetAccountController() (*api.AccountController, error) {
 	if dr.AccountController == nil {
