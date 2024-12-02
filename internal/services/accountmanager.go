@@ -1,8 +1,6 @@
 package services
 
-import (
-	"github.com/alexdglover/sage/internal/models"
-)
+import "github.com/alexdglover/sage/internal/models"
 
 type AccountNameAndID struct {
 	AccountName string
@@ -10,7 +8,11 @@ type AccountNameAndID struct {
 }
 
 type AccountManager struct {
-	AccountRepository *models.AccountRepository
+	AccountRepository AccountManagerAccountRepositoryInterface
+}
+
+type AccountManagerAccountRepositoryInterface interface {
+	GetAllAccounts() ([]models.Account, error)
 }
 
 func (am *AccountManager) GetAccountNamesAndIDs() (result []AccountNameAndID, err error) {

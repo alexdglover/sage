@@ -10,11 +10,25 @@ import (
 	"github.com/alexdglover/sage/internal/models"
 )
 
+type ImportServiceAccountRepositoryInterface interface {
+	GetAccountByID(id uint) (models.Account, error)
+}
+type ImportServiceBalanceRepositoryInterface interface {
+	Save(balance models.Balance) (id uint, err error)
+}
+type ImportServiceImportSubmissionRepositoryInterface interface {
+	Save(submission models.ImportSubmission) (id uint, err error)
+}
+type ImportServiceTransactionRepositoryInterface interface {
+	GetTransactionsByHash(hash string, submissionID uint) ([]models.Transaction, error)
+	Save(txn models.Transaction) (id uint, err error)
+}
+
 type ImportService struct {
-	AccountRepository          *models.AccountRepository
-	BalanceRepository          *models.BalanceRepository
-	ImportSubmissionRepository *models.ImportSubmissionRepository
-	TransactionRepository      *models.TransactionRepository
+	AccountRepository          ImportServiceAccountRepositoryInterface
+	BalanceRepository          ImportServiceBalanceRepositoryInterface
+	ImportSubmissionRepository ImportServiceImportSubmissionRepositoryInterface
+	TransactionRepository      ImportServiceTransactionRepositoryInterface
 }
 
 type NoParserError struct{}
