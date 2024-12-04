@@ -9,7 +9,7 @@ import (
 type MainController struct{}
 
 //go:embed main.html.tmpl
-var mainTmpl string
+var mainPageTmpl string
 
 // TODO: Consider moving this into a service class that returns just the data needed
 func (mc *MainController) mainPageHandler(w http.ResponseWriter, req *http.Request) {

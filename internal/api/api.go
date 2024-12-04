@@ -2,13 +2,11 @@ package api
 
 import (
 	"context"
+	"embed"
 	_ "embed"
 	"log"
 	"net/http"
 )
-
-//go:embed main.html.tmpl
-var mainPageTmpl string
 
 type ApiServer struct {
 	AccountController     *AccountController
@@ -20,7 +18,12 @@ type ApiServer struct {
 	TransactionController *TransactionController
 }
 
+//go:embed assets
+var assets embed.FS
+
 func (as *ApiServer) StartApiServer(ctx context.Context) {
+	http.Handle("/assets/", http.FileServer(http.FS(assets)))
+
 	http.HandleFunc("/", as.MainController.mainPageHandler)
 	http.HandleFunc("/dashboard", dashboardHandler)
 	http.HandleFunc("GET /net-worth", as.NetWorthController.netWorthHandler)
