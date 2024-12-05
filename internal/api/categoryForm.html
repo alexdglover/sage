@@ -1,0 +1,31 @@
+<div class="row">
+  <div class="col-sm-4">
+    <h2>{{ if eq .Updating true }}Update{{ else }}Add{{ end }} Category</h2>
+  </div>
+</div>
+
+<form hx-post="/category" hx-target="#reportContent" enctype="multipart/form-data">
+  <div class="row">
+    <div class="col-sm-6">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="categoryID" name="categoryID" style="display:none;" value="{{ .CategoryID }}">
+        <input type="text" class="form-control" id="categoryName" name="categoryName" value="{{ .CategoryName }}">
+        <label for="categoryName" class="form-label">Category Name</label>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-success"
+    hx-post="/categories"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+    Save
+  </button>
+  <button type="button" class="btn btn-light"
+    hx-get="/categories"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+      Cancel
+  </button>
+</form>

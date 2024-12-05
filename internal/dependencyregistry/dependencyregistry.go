@@ -29,6 +29,7 @@ type DependencyRegistry struct {
 	AccountController     *api.AccountController
 	BalanceController     *api.BalanceController
 	BudgetController      *api.BudgetController
+	CategoryController    *api.CategoryController
 	ImportController      *api.ImportController
 	MainController        *api.MainController
 	NetWorthController    *api.NetWorthController
@@ -261,6 +262,24 @@ func (dr *DependencyRegistry) GetBudgetController() (*api.BudgetController, erro
 	return dr.BudgetController, nil
 }
 
+func (dr *DependencyRegistry) GetCategoryController() (*api.CategoryController, error) {
+	if dr.CategoryController == nil {
+		balanceRepository, err := dr.GetBalanceRepository()
+		if err != nil {
+			return nil, err
+		}
+		categoryRepository, err := dr.GetCategoryRepository()
+		if err != nil {
+			return nil, err
+		}
+		dr.CategoryController = &api.CategoryController{
+			BalanceRepository:  balanceRepository,
+			CategoryRepository: categoryRepository,
+		}
+	}
+	return dr.CategoryController, nil
+}
+
 func (dr *DependencyRegistry) GetImportController() (*api.ImportController, error) {
 	if dr.ImportController == nil {
 		accountManager, err := dr.GetAccountManager()
@@ -336,6 +355,10 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 		if err != nil {
 			return nil, err
 		}
+		categoryController, err := dr.GetCategoryController()
+		if err != nil {
+			return nil, err
+		}
 		importController, err := dr.GetImportController()
 		if err != nil {
 			return nil, err
@@ -356,6 +379,7 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 			AccountController:     accountController,
 			BalanceController:     balanceController,
 			BudgetController:      budgetController,
+			CategoryController:    categoryController,
 			ImportController:      importController,
 			MainController:        mainController,
 			NetWorthController:    netWorthController,

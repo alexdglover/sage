@@ -1,0 +1,62 @@
+<div class="row">
+  <div class="col-sm-4">
+    <h2>Categories</h2>
+  </div>
+  <div class="col-sm-8">
+    <button class="btn btn-success" style="float: right;"
+    hx-get="/categoryForm"
+              hx-trigger="click"
+              hx-target="#reportContent"
+              hx-swap="innerHTML">
+      Add category
+    </button>
+  </div>
+</div>
+
+{{range $i, $category:= .Categories}}
+  {{/* every 3rd element, start a new row */}}
+  {{if mod $i 3 | eq 0}}
+  <div class="row" style="margin-top: 1rem;">
+  {{end}}
+    <div class="col-sm-4">
+      <div class="card">
+        <div class="card-header">
+          <h5>
+            {{ $category.Name }}
+            <a href="#"
+              class="btn btn-light"
+              hx-get="/categoryForm?categoryID={{ $category.ID }}"
+              hx-trigger="click"
+              hx-target="#reportContent"
+              hx-swap="innerHTML">
+              &#x1F58B;
+            </a>
+          </h5>
+        </div>
+      </div>
+    </div>
+  {{/* after every 3rd element, end the row */}}
+  {{if mod $i 3 | eq 2 }}
+  </div>
+  {{end}}
+{{end}}
+
+{{ if eq .CategorySaved true }}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="categorySavedToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">Category saved</strong>
+      <small>Just now</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      Category {{ .CreatedCategoryName }} saved successfully
+    </div>
+  </div>
+</div>
+<script>
+  toastLiveExample = document.getElementById('categorySavedToast')
+  toast = new bootstrap.Toast(toastLiveExample)
+  toast.show()
+</script>
+{{ end }}
