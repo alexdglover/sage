@@ -14,6 +14,7 @@ import (
 type CategoryController struct {
 	CategoryRepository *models.CategoryRepository
 	BalanceRepository  *models.BalanceRepository
+	BudgetRepository   *models.BudgetRepository
 }
 
 //go:embed categories.html
@@ -23,8 +24,9 @@ var categoriesPageTmpl string
 var categoryFormTmpl string
 
 type CategoryDTO struct {
-	ID   uint
-	Name string
+	ID        uint
+	Name      string
+	HasBudget bool
 }
 
 type CategoriesPageDTO struct {
@@ -43,7 +45,7 @@ type CategoryFormDTO struct {
 
 func (ac *CategoryController) generateCategoriesView(w http.ResponseWriter, req *http.Request) {
 	// Get all categories
-	categories, err := ac.CategoryRepository.GetAllCategories()
+	categories, err := ac.CategoryRepository.GetAllCategoriesAndBudgetStatus()
 	if err != nil {
 		http.Error(w, "Unable to get categories", http.StatusInternalServerError)
 		return
@@ -57,8 +59,9 @@ func (ac *CategoryController) generateCategoriesView(w http.ResponseWriter, req 
 			continue
 		}
 		categoriesDTO = append(categoriesDTO, CategoryDTO{
-			ID:   category.ID,
-			Name: category.Name,
+			ID:        category.ID,
+			Name:      category.Name,
+			HasBudget: category.HasBudget,
 		})
 	}
 	categoriesPageDTO := CategoriesPageDTO{
