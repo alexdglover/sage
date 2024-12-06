@@ -7,10 +7,9 @@ import (
 
 type Account struct {
 	gorm.Model
-	Name            string
-	AccountCategory string
-	AccountType     string
-	DefaultParser   *string
+	Name          string
+	AccountTypeID uint
+	AccountType   AccountType
 }
 
 type AccountRepository struct {
@@ -25,7 +24,8 @@ func (ar *AccountRepository) GetAllAccounts() ([]Account, error) {
 
 func (ar *AccountRepository) GetAccountByID(id uint) (Account, error) {
 	var account Account
-	result := ar.DB.Where("id = ?", id).First(&account)
+	result := ar.DB.Preload(clause.Associations).Where("id = ?", id).Find(&account)
+	// result := ar.DB.Where("id = ?", id).First(&account)
 	return account, result.Error
 }
 

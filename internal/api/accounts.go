@@ -14,8 +14,9 @@ import (
 )
 
 type AccountController struct {
-	AccountRepository *models.AccountRepository
-	BalanceRepository *models.BalanceRepository
+	AccountRepository     *models.AccountRepository
+	AccountTypeRepository *models.AccountTypeRepository
+	BalanceRepository     *models.BalanceRepository
 }
 
 //go:embed accounts.html
@@ -46,8 +47,8 @@ type AccountFormDTO struct {
 	Updating        bool
 	AccountID       string
 	AccountName     string
-	AccountCategory string
-	AccountType     string
+	AccountTypeName string
+	AccountTypes    []models.AccountType // the DTO probably shouldn't be using the models
 	DefaultParser   string
 }
 
@@ -78,9 +79,9 @@ func (ac *AccountController) generateAccountsView(w http.ResponseWriter, req *ht
 		accountsDTO[i] = AccountDTO{
 			ID:                 account.ID,
 			Name:               account.Name,
-			AccountCategory:    account.AccountCategory,
-			AccountType:        account.AccountType,
-			DefaultParser:      account.DefaultParser,
+			AccountCategory:    account.AccountType.AccountCategory,
+			AccountType:        account.AccountType.LedgerType,
+			DefaultParser:      account.AccountType.DefaultParser,
 			Balance:            utils.CentsToDollarString(balance.Amount),
 			BalanceLastUpdated: balanceLastUpdated,
 		}
@@ -123,14 +124,16 @@ func (ac *AccountController) generateAccountForm(w http.ResponseWriter, req *htt
 			Updating:        true,
 			AccountID:       fmt.Sprint(account.ID),
 			AccountName:     account.Name,
-			AccountCategory: account.AccountCategory,
-			AccountType:     account.AccountType,
-		}
-		// If the account has a default parser, set it. Otherwise let it default to empty string
-		if account.DefaultParser != nil {
-			dto.DefaultParser = *account.DefaultParser
+			AccountTypeName: account.AccountType.Name,
 		}
 	}
+
+	accountTypes, err := ac.AccountTypeRepository.GetAllAccountTypes()
+	if err != nil {
+		http.Error(w, "Unable to get account types", http.StatusInternalServerError)
+		return
+	}
+	dto.AccountTypes = accountTypes
 
 	tmpl, err := template.New("accountForm").Parse(accountFormTmpl)
 	if err != nil {
@@ -148,9 +151,7 @@ func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Requ
 
 	accountID := req.FormValue("accountID")
 	accountName := req.FormValue("accountName")
-	accountCategory := req.FormValue("accountCategory")
-	accountType := req.FormValue("accountType")
-	defaultParser := req.FormValue("defaultParser")
+	accountTypeIDFormValue := req.FormValue("accountTypeID")
 
 	var account models.Account
 
@@ -170,11 +171,14 @@ func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Requ
 	}
 
 	account.Name = accountName
-	account.AccountCategory = accountCategory
-	account.AccountType = accountType
-	account.DefaultParser = &defaultParser
+	accountTypeID, err := utils.StringToUint(accountTypeIDFormValue)
+	if err != nil {
+		http.Error(w, "Unable to find parse an account type ID", http.StatusBadRequest)
+		return
+	}
+	account.AccountTypeID = accountTypeID
 
-	_, err := ac.AccountRepository.Save(account)
+	_, err = ac.AccountRepository.Save(account)
 	if err != nil {
 		http.Error(w, "Unable to save account", http.StatusBadRequest)
 		return

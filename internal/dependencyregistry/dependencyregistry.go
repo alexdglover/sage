@@ -17,6 +17,7 @@ type DependencyRegistry struct {
 	DbConnection               *gorm.DB
 	Bootstrapper               *models.Bootstrapper
 	AccountRepository          *models.AccountRepository
+	AccountTypeRepository      *models.AccountTypeRepository
 	BalanceRepository          *models.BalanceRepository
 	BudgetRepository           *models.BudgetRepository
 	CategoryRepository         *models.CategoryRepository
@@ -96,6 +97,19 @@ func (dr *DependencyRegistry) GetAccountRepository() (*models.AccountRepository,
 		}
 	}
 	return dr.AccountRepository, nil
+}
+
+func (dr *DependencyRegistry) GetAccountTypeRepository() (*models.AccountTypeRepository, error) {
+	if dr.AccountTypeRepository == nil {
+		dbConnection, err := dr.GetDbConnection()
+		if err != nil {
+			return nil, err
+		}
+		dr.AccountTypeRepository = &models.AccountTypeRepository{
+			DB: dbConnection,
+		}
+	}
+	return dr.AccountTypeRepository, nil
 }
 
 func (dr *DependencyRegistry) GetBalanceRepository() (*models.BalanceRepository, error) {
@@ -214,13 +228,18 @@ func (dr *DependencyRegistry) GetAccountController() (*api.AccountController, er
 		if err != nil {
 			return nil, err
 		}
+		accountTypeRepository, err := dr.GetAccountTypeRepository()
+		if err != nil {
+			return nil, err
+		}
 		balanceRepository, err := dr.GetBalanceRepository()
 		if err != nil {
 			return nil, err
 		}
 		dr.AccountController = &api.AccountController{
-			AccountRepository: accountRepository,
-			BalanceRepository: balanceRepository,
+			AccountRepository:     accountRepository,
+			AccountTypeRepository: accountTypeRepository,
+			BalanceRepository:     balanceRepository,
 		}
 	}
 	return dr.AccountController, nil
