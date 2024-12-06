@@ -21,7 +21,7 @@ type CategoryRepository struct {
 
 func (cr *CategoryRepository) GetAllCategories() ([]Category, error) {
 	var categories []Category
-	result := db.Find(&categories)
+	result := db.Order("name asc").Find(&categories)
 	return categories, result.Error
 }
 
