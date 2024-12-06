@@ -7,6 +7,10 @@ import (
 	"github.com/alexdglover/sage/internal/models"
 )
 
+type Categorizes interface {
+	CategorizeTransaction(transaction *models.Transaction) (category models.Category, err error)
+}
+
 type MLCategorizer struct {
 	Bag                   *bag.Bag
 	CategoryRepository    *models.CategoryRepository
@@ -34,10 +38,7 @@ func (mc *MLCategorizer) BuildModel() error {
 
 // Should this return just the category name as a string, a category object, both, or something else?
 func (mc *MLCategorizer) CategorizeTransaction(transaction *models.Transaction) (category models.Category, err error) {
-	fmt.Println("yo categorizetransaction was invoked")
-	fmt.Println("bag is nil? ", mc.Bag == nil)
 	results := mc.Bag.GetResults(transaction.Description)
-	fmt.Println("Results: ", results)
 	categoryName := results.GetHighestProbability()
 	category, err = mc.CategoryRepository.GetCategoryByName(categoryName)
 	if err != nil {

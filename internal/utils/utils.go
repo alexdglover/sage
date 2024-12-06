@@ -46,7 +46,7 @@ func TimeToISO8601DateString(input time.Time) string {
 }
 
 func ISO8601DateStringToTime(input string) time.Time {
-	t, err := time.Parse("02/01/2006", input)
+	t, err := time.Parse("2006-01-02", input)
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +54,7 @@ func ISO8601DateStringToTime(input string) time.Time {
 }
 
 func ConvertMMDDYYYYtoISO8601(input string) string {
-	t, err := time.Parse("02/01/2006", input)
+	t, err := time.Parse("01/02/2006", input)
 	if err != nil {
 		panic(err)
 	}

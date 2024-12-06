@@ -241,8 +241,7 @@ func (dr *DependencyRegistry) GetImportService() (*services.ImportService, error
 			BalanceRepository:          balanceRepository,
 			ImportSubmissionRepository: importSubmissionRepository,
 			TransactionRepository:      transactionRepository,
-
-			Categorizer: mlCategorizer,
+			Categorizer:                mlCategorizer,
 		}
 	}
 	return dr.ImportService, nil

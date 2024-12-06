@@ -114,12 +114,14 @@ func (is *ImportService) ImportStatement(filename string, statement string, acco
 		transaction.ImportSubmissionID = &submission.ID
 
 		// TODO: Add a check for the category and set it to the default category if it is not set
-		fmt.Println("about to call categorize")
+
+		// Rebuild the model first. Consider making this optional
+		is.Categorizer.BuildModel()
 		category, err := is.Categorizer.CategorizeTransaction(&transaction)
 		if err != nil {
-			// handle this error
+			fmt.Println("error while categorizing transaction")
+			return nil, err
 		}
-		fmt.Println("categorize called, category for ", transaction.Description, " is ", category.Name)
 		transaction.CategoryID = category.ID
 
 		_, dbError := is.TransactionRepository.Save(transaction)

@@ -52,15 +52,15 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 	}
 
 	accountTypesData := map[string]map[string]string{
-		"Bank of America Credit Card": {"ledgerType": Liability, "accountCategory": "creditCard"},
-		"Schwab Brokerage":            {"ledgerType": Asset, "accountCategory": "brokerage"},
-		"Schwab Checking":             {"ledgerType": Asset, "accountCategory": "checking"},
-		"Fidelity Credit Card":        {"ledgerType": Liability, "accountCategory": "creditCard"},
-		"Fidelity Brokerage":          {"ledgerType": Asset, "accountCategory": "brokerage"},
-		"Chase Checking":              {"ledgerType": Asset, "accountCategory": "checking"},
-		"Chase Credit Card":           {"ledgerType": Liability, "accountCategory": "creditCard"},
-		"Capital One Credit Card":     {"ledgerType": Liability, "accountCategory": "creditCard"},
-		"Capital One Savings":         {"ledgerType": Asset, "accountCategory": "savings"},
+		"Bank of America Credit Card": {"ledgerType": Liability, "accountCategory": "creditCard", "defaultParser": "bankOfAmericaCreditCard"},
+		"Schwab Brokerage":            {"ledgerType": Asset, "accountCategory": "brokerage", "defaultParser": "schwabBrokerage"},
+		"Schwab Checking":             {"ledgerType": Asset, "accountCategory": "checking", "defaultParser": "schwabChecking"},
+		"Fidelity Credit Card":        {"ledgerType": Liability, "accountCategory": "creditCard", "defaultParser": "fidelityCreditCard"},
+		"Fidelity Brokerage":          {"ledgerType": Asset, "accountCategory": "brokerage", "defaultParser": "fideltyBrokerage"},
+		"Chase Checking":              {"ledgerType": Asset, "accountCategory": "checking", "defaultParser": "chaseChecking"},
+		"Chase Credit Card":           {"ledgerType": Liability, "accountCategory": "creditCard", "defaultParser": "chaseCreditCard"},
+		"Capital One Credit Card":     {"ledgerType": Liability, "accountCategory": "creditCard", "defaultParser": "capitalOneCreditCard"},
+		"Capital One Savings":         {"ledgerType": Asset, "accountCategory": "savings", "defaultParser": "capitalOneSavings"},
 		"Real Estate":                 {"ledgerType": Asset, "accountCategory": "realEstate"},
 		"Mortgage":                    {"ledgerType": Liability, "accountCategory": "loan"},
 		"Misc Asset":                  {"ledgerType": Asset, "accountCategory": Asset},
@@ -74,8 +74,9 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 		b.db.Clauses(clause.OnConflict{DoNothing: true}).Create(
 			&AccountType{
 				Name:            name,
-				LedgerType:      accountTypeDetails["ledgerType"],
 				AccountCategory: accountTypeDetails["accountCategory"],
+				DefaultParser:   utils.StrPointer(accountTypeDetails["defaultParser"]),
+				LedgerType:      accountTypeDetails["ledgerType"],
 			})
 	}
 
