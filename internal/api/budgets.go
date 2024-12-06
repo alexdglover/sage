@@ -7,11 +7,13 @@ import (
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
+	"github.com/alexdglover/sage/internal/services"
 	"github.com/alexdglover/sage/internal/utils"
 )
 
 type BudgetController struct {
 	BudgetRepository   *models.BudgetRepository
+	BudgetService      *services.BudgetService
 	CategoryRepository *models.CategoryRepository
 }
 
@@ -25,6 +27,8 @@ type BudgetDTO struct {
 	ID           uint
 	CategoryName string
 	Amount       string
+	Spend        string
+	PercentUsed  int64
 }
 
 type BudgetsPageDTO struct {
@@ -143,20 +147,18 @@ func (bc *BudgetController) upsertBudget(w http.ResponseWriter, req *http.Reques
 
 // Generic function to send the view response
 func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool) {
-	// Get all budgets
-	budgets, err := bc.BudgetRepository.GetAllBudgets()
-	if err != nil {
-		http.Error(w, "Unable to get budgets", http.StatusInternalServerError)
-		return
-	}
+	// Get all budget and associated spend
+	budgetsAndSpend, err := bc.BudgetService.GetAllBudgetsAndCurrentSpend()
 
 	// Build budgets DTO
-	budgetsDTO := make([]BudgetDTO, len(budgets))
-	for i, budget := range budgets {
+	budgetsDTO := make([]BudgetDTO, len(budgetsAndSpend))
+	for i, budget := range budgetsAndSpend {
 		budgetsDTO[i] = BudgetDTO{
 			ID:           budget.ID,
-			CategoryName: budget.Category.Name,
+			CategoryName: budget.CategoryName,
 			Amount:       utils.CentsToDollarString(budget.Amount),
+			Spend:        utils.CentsToDollarString(budget.Spend),
+			PercentUsed:  budget.PercentUsed,
 		}
 	}
 	budgetsPageDTO := BudgetsPageDTO{

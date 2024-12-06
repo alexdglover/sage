@@ -38,7 +38,11 @@
           </div>
         </div>
         <div class="card-body">
-          <h5>${{ $budget.Amount }} </h5>
+          <h5>Monthly budget: ${{ $budget.Amount }}</h5>
+          <h5>Spend month to date: ${{ $budget.Spend }}</h5>
+          <div class="progress" style="height: 20px;">
+            <div class="progress-bar {{ if gt $budget.PercentUsed 95}} bg-danger {{ else if gt $budget.PercentUsed 75 }} bg-warning {{ else }} bg-success {{ end }}" role="progressbar" style="width: {{ $budget.PercentUsed }}%;" aria-valuenow="{{ $budget.PercentUsed }}" aria-valuemin="0" aria-valuemax="100">{{ $budget.PercentUsed }}%</div>
+          </div>
       </div>
     </div>
   </div>

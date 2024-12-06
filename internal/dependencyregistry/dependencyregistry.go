@@ -25,6 +25,7 @@ type DependencyRegistry struct {
 	TransactionRepository      *models.TransactionRepository
 
 	AccountManager *services.AccountManager
+	BudgetService  *services.BudgetService
 	ImportService  *services.ImportService
 	MLCategorizer  *services.MLCategorizer
 
@@ -212,6 +213,25 @@ func (dr *DependencyRegistry) GetMLCategorizer() (*services.MLCategorizer, error
 	return dr.MLCategorizer, nil
 }
 
+func (dr *DependencyRegistry) GetBudgetService() (*services.BudgetService, error) {
+	if dr.BudgetService == nil {
+		categoryRepository, err := dr.GetCategoryRepository()
+		if err != nil {
+			return nil, err
+		}
+		transactionRepository, err := dr.GetTransactionRepository()
+		if err != nil {
+			return nil, err
+		}
+
+		dr.BudgetService = &services.BudgetService{
+			CategoryRepository:    categoryRepository,
+			TransactionRepository: transactionRepository,
+		}
+	}
+	return dr.BudgetService, nil
+}
+
 func (dr *DependencyRegistry) GetImportService() (*services.ImportService, error) {
 	if dr.ImportService == nil {
 		accountRepository, err := dr.GetAccountRepository()
@@ -298,12 +318,17 @@ func (dr *DependencyRegistry) GetBudgetController() (*api.BudgetController, erro
 		if err != nil {
 			return nil, err
 		}
+		budgetService, err := dr.GetBudgetService()
+		if err != nil {
+			return nil, err
+		}
 		categoryRepository, err := dr.GetCategoryRepository()
 		if err != nil {
 			return nil, err
 		}
 		dr.BudgetController = &api.BudgetController{
 			BudgetRepository:   budgetRepository,
+			BudgetService:      budgetService,
 			CategoryRepository: categoryRepository,
 		}
 	}

@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -30,6 +32,16 @@ func (tr *TransactionRepository) GetAllTransactions() ([]Transaction, error) {
 	var txns []Transaction
 	result := tr.DB.Preload(clause.Associations).Order("date desc").Find(&txns)
 	return txns, result.Error
+}
+
+func (tr *TransactionRepository) GetSumOfTransactionsByCategoryID(categoryID uint, startDate time.Time, endDate time.Time) (int64, error) {
+	var sum int64
+	queryResult := tr.DB.Raw(`SELECT coalesce(sum(amount), 0)
+		FROM transactions
+		WHERE category_id=?
+		AND date >= ?
+		AND date <= ?`, categoryID, startDate, endDate).Scan(&sum)
+	return sum, queryResult.Error
 }
 
 func (tr *TransactionRepository) GetTransactionsByHash(hash string, submissionID uint) ([]Transaction, error) {
