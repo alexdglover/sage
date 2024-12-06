@@ -14,11 +14,11 @@
 </div>
 
 {{range $i, $account := .Accounts}}
-  {{/* every 3rd element, start a new row */}}
-  {{if mod $i 3 | eq 0}}
+  {{/* every 4th element, start a new row */}}
+  {{if mod $i 4 | eq 0}}
   <div class="row" style="margin-top: 1rem;">
   {{end}}
-    <div class="col-lg-4">
+    <div class="col-lg-3">
       <div class="card category-card mb-3 shadow-sm">
         <div class="card-header d-flex align-items-center">
           <div class="flex-grow-1">
@@ -59,8 +59,8 @@
         </div>
       </div>
     </div>
-  {{/* after every 3rd element, end the row */}}
-  {{if mod $i 3 | eq 2 }}
+  {{/* after every 4th element, end the row */}}
+  {{if mod $i 4 | eq 3 }}
   </div>
   {{end}}
 {{end}}
