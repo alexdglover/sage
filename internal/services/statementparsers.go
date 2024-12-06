@@ -295,7 +295,7 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 		if idx == 0 {
 			continue
 		}
-		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[2])
+		isoDate := utils.ConvertMMDDYYtoISO8601(record[2])
 		if idx == 1 {
 			balance := utils.DollarStringToCents(record[5])
 			balances = append(balances, models.Balance{

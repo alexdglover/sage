@@ -195,12 +195,19 @@ func (tc *TransactionController) upsertTransaction(w http.ResponseWriter, req *h
 		transaction = models.Transaction{}
 	}
 
+	category, err := tc.CategoryRepository.GetCategoryByID(categoryID)
+	if err != nil {
+		http.Error(w, "Unable to get category by categoryID", http.StatusInternalServerError)
+		return
+	}
+
 	transaction.Date = date
 	transaction.Description = description
 	transaction.Amount = utils.DollarStringToCents(amount)
 	transaction.Excluded = excluded
 	transaction.AccountID = accountID
 	transaction.CategoryID = categoryID
+	transaction.Category = category
 	transaction.UseForTraining = true
 
 	_, err = tc.TransactionRepository.Save(transaction)

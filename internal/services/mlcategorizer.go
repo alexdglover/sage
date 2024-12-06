@@ -40,12 +40,15 @@ func (mc *MLCategorizer) BuildModel() error {
 func (mc *MLCategorizer) CategorizeTransaction(transaction *models.Transaction) (category models.Category, err error) {
 	results := mc.Bag.GetResults(transaction.Description)
 	categoryName := results.GetHighestProbability()
+	// On the initial run, there will be no training data and therefore categoryName will be the empty string
+	if categoryName == "" {
+		categoryName = "Unknown"
+	}
 	category, err = mc.CategoryRepository.GetCategoryByName(categoryName)
 	if err != nil {
-		category = models.Category{}
 		return category, err
 
 	}
-	fmt.Println("Categorizing transaction: ", transaction.Description, " as ", category, " with score ", results[categoryName])
+	fmt.Println("Categorizing transaction: ", transaction.Description, " as ", category.Name, " with score ", results[categoryName])
 	return category, nil
 }

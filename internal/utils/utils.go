@@ -61,6 +61,14 @@ func ConvertMMDDYYYYtoISO8601(input string) string {
 	return TimeToISO8601DateString(t)
 }
 
+func ConvertMMDDYYtoISO8601(input string) string {
+	t, err := time.Parse("01/02/06", input)
+	if err != nil {
+		panic(err)
+	}
+	return TimeToISO8601DateString(t)
+}
+
 func StrPointer(input string) *string {
 	return &input
 }

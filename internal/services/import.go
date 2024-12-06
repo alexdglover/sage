@@ -120,6 +120,7 @@ func (is *ImportService) ImportStatement(filename string, statement string, acco
 		category, err := is.Categorizer.CategorizeTransaction(&transaction)
 		if err != nil {
 			fmt.Println("error while categorizing transaction")
+			fmt.Println(err)
 			return nil, err
 		}
 		transaction.CategoryID = category.ID
