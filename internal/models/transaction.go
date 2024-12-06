@@ -1,6 +1,10 @@
 package models
 
 import (
+	"context"
+	"time"
+
+	"github.com/alexdglover/sage/internal/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -19,6 +23,11 @@ type Transaction struct {
 	Category           Category
 	ImportSubmissionID *uint
 	ImportSubmission   *ImportSubmission
+}
+
+type TransactionsByDate struct {
+	Date         time.Time
+	Transactions []Transaction
 }
 
 type TransactionRepository struct {
@@ -67,4 +76,59 @@ func (tr *TransactionRepository) GetTransactionsForTraining() ([]Transaction, er
 	var transactions []Transaction
 	result := tr.DB.Preload(clause.Associations).Where("use_for_training = ?", 1).Find(&transactions)
 	return transactions, result.Error
+}
+
+func (tr *TransactionRepository) GetAllIncomeTransactions(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) (txnsByDate []TransactionsByDate, err error) {
+	return tr.GetAllTransactionsByNetIncomeType(ctx, "income", startYearMonth, endYearMonth)
+}
+
+func (tr *TransactionRepository) GetAllExpenseTransactions(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) (txnsByDate []TransactionsByDate, err error) {
+	return tr.GetAllTransactionsByNetIncomeType(ctx, "expense", startYearMonth, endYearMonth)
+}
+
+func (tr *TransactionRepository) GetAllTransactionsByNetIncomeType(ctx context.Context, incomeOrExpense string, startYearMonth time.Time, endYearMonth time.Time) (txnsByDate []TransactionsByDate, err error) {
+	//create a slice of months in Go instead of relying on SQL
+	months := []time.Time{}
+	for month := startYearMonth; month.Before(endYearMonth); month = month.AddDate(0, 1, 0) {
+		// Set the date to the first of the month
+		month = month.AddDate(0, 0, 1-month.Day())
+		months = append(months, month)
+	}
+	for _, month := range months {
+		var transactions []Transaction
+		// Convert dates to YYYY-MM-DD so date comparisons work consistently with strings in SQLite
+		lastDayOfMonth := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
+		if incomeOrExpense == "income" {
+			queryResult := tr.DB.Raw(`SELECT t.*
+			FROM transactions AS t
+			JOIN categories AS c
+			ON c.id=t.category_id
+			WHERE c.name="Income"
+			AND date >= (?)
+			AND date <= (?)`, month, lastDayOfMonth).Scan(&transactions)
+
+			if queryResult.Error != nil {
+				return []TransactionsByDate{}, queryResult.Error
+			}
+		} else if incomeOrExpense == "expense" {
+			queryResult := tr.DB.Raw(`SELECT t.*
+			FROM transactions AS t
+			JOIN categories AS c
+			ON c.id=t.category_id
+			WHERE c.name not in ("Income", "Transfers")
+			AND date >= (?)
+			AND date <= (?)`, month, lastDayOfMonth).Scan(&transactions)
+
+			if queryResult.Error != nil {
+				return []TransactionsByDate{}, queryResult.Error
+			}
+		}
+
+		txnsByDate = append(txnsByDate, TransactionsByDate{
+			Date:         month,
+			Transactions: transactions,
+		})
+	}
+
+	return txnsByDate, nil
 }

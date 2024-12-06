@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/dustin/go-humanize"
 )
 
 func StringToUint(input string) (uint, error) {
@@ -17,10 +19,15 @@ func StringToUint(input string) (uint, error) {
 	return uint(output), nil
 }
 
-func CentsToDollarString(input int64) string {
+func CentsToDollarStringHumanized(input int64) string {
 	// Convert whole cents (as int64) to dollars (as float64)
 	amount := float64(input) / 100
-	// Convert float to string with 2 decimal places, to force 2 decimal places
+	return humanize.CommafWithDigits(amount, 2)
+}
+
+func CentsToDollarStringMachineSafe(input int64) string {
+	// Convert whole cents (as int64) to dollars (as float64)
+	amount := float64(input) / 100
 	return fmt.Sprintf("%.2f", amount)
 }
 

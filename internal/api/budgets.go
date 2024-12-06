@@ -71,7 +71,7 @@ func (bc *BudgetController) generateBudgetForm(w http.ResponseWriter, req *http.
 		dto.Updating = true
 		dto.BudgetID = fmt.Sprint(budget.ID)
 		dto.CategoryName = budget.Category.Name
-		dto.Amount = utils.CentsToDollarString(budget.Amount)
+		dto.Amount = utils.CentsToDollarStringHumanized(budget.Amount)
 	} else {
 		dto.Updating = false
 	}
@@ -156,7 +156,7 @@ func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool)
 		budgetsDTO[i] = BudgetDTO{
 			ID:           budget.ID,
 			CategoryName: budget.Category.Name,
-			Amount:       utils.CentsToDollarString(budget.Amount),
+			Amount:       utils.CentsToDollarStringHumanized(budget.Amount),
 		}
 	}
 	budgetsPageDTO := BudgetsPageDTO{

@@ -70,7 +70,7 @@ func (bc *BalanceController) generateBalancesView(w http.ResponseWriter, req *ht
 			ID:            balance.ID,
 			UpdatedAt:     balance.UpdatedAt.String(),
 			EffectiveDate: balance.EffectiveDate,
-			Amount:        utils.CentsToDollarString(balance.Amount),
+			Amount:        utils.CentsToDollarStringHumanized(balance.Amount),
 			AccountID:     balance.AccountID,
 			AccountName:   balance.Account.Name,
 		}
@@ -134,7 +134,7 @@ func (bc *BalanceController) balanceFormContent(w http.ResponseWriter, balanceID
 				ID:            balance.ID,
 				UpdatedAt:     balance.UpdatedAt.String(),
 				EffectiveDate: balance.EffectiveDate,
-				Amount:        utils.CentsToDollarString(balance.Amount),
+				Amount:        utils.CentsToDollarStringHumanized(balance.Amount),
 				AccountID:     balance.AccountID,
 				AccountName:   balance.Account.Name,
 			},

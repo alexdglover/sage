@@ -107,9 +107,9 @@ func (nc *NetWorthController) netWorthHandler(w http.ResponseWriter, req *http.R
 		if totalByMonthAndTypeDTO[date] == nil {
 			totalByMonthAndTypeDTO[date] = totalByTypeDTO{}
 		}
-		totalByMonthAndTypeDTO[date]["assets"] = utils.CentsToDollarString(totalByMonthAndType[date]["assets"])
-		totalByMonthAndTypeDTO[date]["liabilities"] = utils.CentsToDollarString(totalByMonthAndType[date]["liabilities"])
-		totalByMonthAndTypeDTO[date]["netWorth"] = utils.CentsToDollarString(totalByMonthAndType[date]["netWorth"])
+		totalByMonthAndTypeDTO[date]["assets"] = utils.CentsToDollarStringMachineSafe(totalByMonthAndType[date]["assets"])
+		totalByMonthAndTypeDTO[date]["liabilities"] = utils.CentsToDollarStringMachineSafe(totalByMonthAndType[date]["liabilities"])
+		totalByMonthAndTypeDTO[date]["netWorth"] = utils.CentsToDollarStringMachineSafe(totalByMonthAndType[date]["netWorth"])
 
 	}
 

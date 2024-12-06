@@ -34,6 +34,7 @@ type DependencyRegistry struct {
 	CategoryController    *api.CategoryController
 	ImportController      *api.ImportController
 	MainController        *api.MainController
+	NetIncomeController   *api.NetIncomeController
 	NetWorthController    *api.NetWorthController
 	TransactionController *api.TransactionController
 	ApiServer             *api.ApiServer
@@ -358,6 +359,19 @@ func (dr *DependencyRegistry) GetMainController() (*api.MainController, error) {
 	return dr.MainController, nil
 }
 
+func (dr *DependencyRegistry) GetNetIncomeController() (*api.NetIncomeController, error) {
+	if dr.NetIncomeController == nil {
+		transactionRepository, err := dr.GetTransactionRepository()
+		if err != nil {
+			return nil, err
+		}
+		dr.NetIncomeController = &api.NetIncomeController{
+			TransactionRepository: transactionRepository,
+		}
+	}
+	return dr.NetIncomeController, nil
+}
+
 func (dr *DependencyRegistry) GetNetWorthController() (*api.NetWorthController, error) {
 	if dr.NetWorthController == nil {
 		balanceRepository, err := dr.GetBalanceRepository()
@@ -415,6 +429,10 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 		if err != nil {
 			return nil, err
 		}
+		netIncomeController, err := dr.GetNetIncomeController()
+		if err != nil {
+			return nil, err
+		}
 		netWorthController, err := dr.GetNetWorthController()
 		if err != nil {
 			return nil, err
@@ -430,6 +448,7 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 			CategoryController:    categoryController,
 			ImportController:      importController,
 			MainController:        mainController,
+			NetIncomeController:   netIncomeController,
 			NetWorthController:    netWorthController,
 			TransactionController: transactionController,
 		}

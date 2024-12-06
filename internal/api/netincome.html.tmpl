@@ -1,0 +1,141 @@
+<h2>Net income</h2>
+
+<div style="padding-left: 10%; padding-right: 10%;">
+  <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
+    <button
+      type="button"
+      hx-get="/net-worth?relativeWindow=allTime"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      All time
+    </button>
+    <button
+      type="button"
+      hx-get="/net-worth?relativeWindow=12"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 12 months
+    </button>
+    <button
+      type="button"
+      hx-get="/net-worth?relativeWindow=6"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 6 months
+    </button>
+    <button
+      type="button"
+      hx-get="/net-worth?relativeWindow=3"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 3 months
+    </button>
+  </div>
+  <canvas class="my-4 w-100" id="myChart"></canvas>
+</div>
+
+<script>
+  /* globals Chart:false, feather:false */
+
+(function () {
+  'use strict'
+
+  // Graphs
+  var ctx = document.getElementById('myChart')
+  // eslint-disable-next-line no-unused-vars
+  var myChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [
+        {{ range $incomeExpenseDataset := .DataSets }}
+        "{{ $incomeExpenseDataset.Date }}",
+        {{ end }}
+      ],
+      datasets: [
+        {
+          label: 'Net Income',
+          fill: false,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.NetIncome }}",
+          {{ end }}
+          ],
+          lineTension: 0,
+          backgroundColor: '#000000',
+          borderColor: '#000000',
+          borderWidth: 4,
+          borderDash: [5, 5],
+          pointBackgroundColor: '#000000'
+        },
+        {
+          label: 'Income',
+          fill: true,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.Income }}",
+          {{ end }}
+          ],
+          lineTension: 0,
+          backgroundColor: '#198754',
+          borderColor: '#198754',
+          borderWidth: 4,
+          pointBackgroundColor: '#198754'
+        },
+        {
+          label: 'Expenses',
+          fill: true,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.Expenses }}",
+          {{ end }}
+          ],
+          lineTension: 0,
+          backgroundColor: '#dc3545',
+          borderColor: '#dc3545',
+          borderWidth: 4,
+          pointBackgroundColor: '#dc3545'
+        }
+      ]
+    },
+    options: {
+      scales: {
+        y: {
+            ticks: {
+                // Include a dollar sign in the ticks
+                callback: function(value, index, ticks) {
+                    return '$' + value;
+                }
+            }
+        }
+      },
+      legend: {
+        display: true
+      }
+    }
+  })
+})()
+
+</script>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Income</th>
+        <th scope="col">Expenses</th>
+        <th scope="col">Net Income</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range $incomeExpenseDataset := .DataSets }}
+      <tr>
+        <td>{{ $incomeExpenseDataset.Date }}</td>
+        <td>{{ $incomeExpenseDataset.Income }}</td>
+        <td>{{ $incomeExpenseDataset.Expenses }}</td>
+        <td>{{ $incomeExpenseDataset.NetIncome }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
