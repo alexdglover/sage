@@ -17,24 +17,60 @@ type NetIncomeController struct {
 }
 
 type IncomeAndExpensesDataSet struct {
-	Date      string
-	Income    string
-	Expenses  string
-	NetIncome string
+	Date               string
+	Income             string
+	IncomeHumanized    string
+	Expenses           string
+	ExpensesHumanized  string
+	NetIncome          string
+	NetIncomeHumanized string
 }
 
 type IncomeAndExpensesDTO struct {
-	DataSets []IncomeAndExpensesDataSet
+	AllTimeActive      bool
+	Last12MonthsActive bool
+	Last6MonthsActive  bool
+	Last3MonthsActive  bool
+	DataSets           []IncomeAndExpensesDataSet
 }
 
 //go:embed netincome.html.tmpl
 var netIncomeTmpl string
 
+// netIncomeHandler is the HTTP handler for the net income page
+// TODO: Implement logic for relative date controls
 func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http.Request) {
+
+	dto := IncomeAndExpensesDTO{}
+	var relativeWindow int
+
+	if req.FormValue("relativeWindow") == "" {
+		relativeWindow = 6
+		dto.Last6MonthsActive = true
+	} else {
+		switch req.FormValue("relativeWindow") {
+		case "12":
+			relativeWindow = 12
+			dto.Last12MonthsActive = true
+		case "6":
+			relativeWindow = 6
+			dto.Last6MonthsActive = true
+		case "3":
+			relativeWindow = 3
+			dto.Last3MonthsActive = true
+		case "allTime":
+			// 10 years in months, as a useful approximation of all time for now
+			relativeWindow = 120
+			dto.AllTimeActive = true
+		default:
+			fmt.Println("invalid relative window provided, falling back to 6 months")
+			relativeWindow = 6
+			dto.Last6MonthsActive = true
+		}
+	}
+
 	// We always start with today's date and work backwards based on relative window value
 	endDate := time.Now()
-	// Decrement relativeWindow by 1 (to account for the current month already being included)
-	relativeWindow := 6
 	relativeWindow = relativeWindow - 1
 	// And calculate start date
 	startDate := endDate.AddDate(0, (relativeWindow * -1), 0)
@@ -52,8 +88,6 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 		//TODO: add an HTTP return here
 	}
 
-	dto := IncomeAndExpensesDTO{}
-
 	for idx, txnsWithDate := range incomeTxns {
 		var runningIncomeTotal, runningExpenseTotal int64
 		// Explicitly set these back to zero to avoid accumulating data across months
@@ -70,10 +104,13 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 		netIncomeTotal := runningIncomeTotal + runningExpenseTotal
 
 		incomeAndExpenses := IncomeAndExpensesDataSet{
-			Date:      txnsWithDate.Date.Format("2006-01"),
-			Income:    utils.CentsToDollarStringMachineSafe(runningIncomeTotal),
-			Expenses:  utils.CentsToDollarStringMachineSafe(runningExpenseTotal),
-			NetIncome: utils.CentsToDollarStringMachineSafe(netIncomeTotal),
+			Date:               txnsWithDate.Date.Format("2006-01"),
+			Income:             utils.CentsToDollarStringMachineSafe(runningIncomeTotal),
+			IncomeHumanized:    utils.CentsToDollarStringHumanized(runningIncomeTotal),
+			Expenses:           utils.CentsToDollarStringMachineSafe(runningExpenseTotal),
+			ExpensesHumanized:  utils.CentsToDollarStringHumanized(runningExpenseTotal),
+			NetIncome:          utils.CentsToDollarStringMachineSafe(netIncomeTotal),
+			NetIncomeHumanized: utils.CentsToDollarStringHumanized(netIncomeTotal),
 		}
 		dto.DataSets = append(dto.DataSets, incomeAndExpenses)
 	}

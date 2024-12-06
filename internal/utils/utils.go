@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -61,7 +62,8 @@ func ISO8601DateStringToTime(input string) time.Time {
 }
 
 func ConvertMMDDYYYYtoISO8601(input string) string {
-	t, err := time.Parse("01/02/2006", input)
+	sanitizedInput := strings.TrimSpace(input)
+	t, err := time.Parse("01/02/2006", sanitizedInput)
 	if err != nil {
 		panic(err)
 	}
@@ -69,7 +71,8 @@ func ConvertMMDDYYYYtoISO8601(input string) string {
 }
 
 func ConvertMMDDYYtoISO8601(input string) string {
-	t, err := time.Parse("01/02/06", input)
+	sanitizedInput := strings.TrimSpace(input)
+	t, err := time.Parse("01/02/06", sanitizedInput)
 	if err != nil {
 		panic(err)
 	}

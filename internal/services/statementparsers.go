@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/csv"
+	"fmt"
 	"strings"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -35,6 +36,9 @@ func (g GeneralCSVParser) Parse(statement string, dateCol int, descCol int, amou
 		}
 		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[dateCol])
 		amount := utils.DollarStringToCents(record[amountCol])
+		if amount < 0 {
+			amount = amount * -1
+		}
 		txn := models.Transaction{
 			Date:        isoDate,
 			Description: record[descCol],
@@ -139,6 +143,10 @@ func (FidelityCreditCardCSVParser) Parse(statement string) (transactions []model
 			continue
 		}
 		amount := utils.DollarStringToCents(record[4])
+		// We negate by transaction category rather than at the amount property, so convert any negative amounts into positive
+		if amount < 0 {
+			amount = amount * -1
+		}
 		txn := models.Transaction{
 			Date:        record[0],
 			Description: record[2],
@@ -227,9 +235,12 @@ func (s ChaseCreditCardCSVParser) Parse(statement string) (transactions []models
 		if idx == 0 {
 			continue
 		}
+		fmt.Println("working on record", idx)
 		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
-		var amount int64
-		amount = utils.DollarStringToCents(record[4])
+		amount := utils.DollarStringToCents(record[5])
+		if amount < 0 {
+			amount = amount * -1
+		}
 		txn := models.Transaction{
 			Date:        isoDate,
 			Description: record[2],
@@ -241,12 +252,12 @@ func (s ChaseCreditCardCSVParser) Parse(statement string) (transactions []models
 	return transactions, []models.Balance{}, nil
 }
 
-type CapitalOneCredictCardCSVParser struct{}
+type CapitalOneCreditCardCSVParser struct{}
 
 // Parses CSVs with the header as the 1st row, date in 0th column, description
 // in 3rd column, category in 4th column, debits (purchases) in 5th column,
 // credit (payments/refunds) amount in 6th column
-func (s CapitalOneCredictCardCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+func (s CapitalOneCreditCardCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
 	csvReader := csv.NewReader(strings.NewReader(statement))
 	records, err := csvReader.ReadAll()
 	if err != nil {
@@ -257,18 +268,15 @@ func (s CapitalOneCredictCardCSVParser) Parse(statement string) (transactions []
 		if idx == 0 {
 			continue
 		}
-		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
 		var amount int64
 		if record[5] != "" {
 			amount = utils.DollarStringToCents(record[5])
-			// Negate the amount since it's a debit
-			amount = amount * -1
 		} else if record[6] != "" {
 			amount = utils.DollarStringToCents(record[6])
 		}
 		// TODO: use category from capital one to set category in transaction
 		txn := models.Transaction{
-			Date:        isoDate,
+			Date:        record[0],
 			Description: record[3],
 			Amount:      amount,
 		}
@@ -303,12 +311,7 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 				Amount:        balance,
 			})
 		}
-		var amount int64
-		amount = utils.DollarStringToCents(record[4])
-
-		if record[3] == "Debit" {
-			amount = amount * -1
-		}
+		amount := utils.DollarStringToCents(record[4])
 		txn := models.Transaction{
 			Date:        isoDate,
 			Description: record[1],
@@ -327,6 +330,6 @@ var parsersByInstitution map[string]Parser = map[string]Parser{
 	"fidelityBrokerage":       FidelityBrokerageCSVParser{},
 	"chaseCreditCard":         ChaseCreditCardCSVParser{},
 	"chaseChecking":           ChaseCheckingCSVParser{},
-	"capitalOneCreditCard":    CapitalOneCredictCardCSVParser{},
+	"capitalOneCreditCard":    CapitalOneCreditCardCSVParser{},
 	"capitalOneSavings":       CapitalOneSavingsCSVParser{},
 }

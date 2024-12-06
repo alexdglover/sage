@@ -4,28 +4,32 @@
   <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
     <button
       type="button"
-      hx-get="/net-worth?relativeWindow=allTime"
+      class="btn {{ if .AllTimeActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+      hx-get="/net-income?relativeWindow=allTime"
       hx-target="#reportContent"
       hx-swap="innerHTML">
       All time
     </button>
     <button
       type="button"
-      hx-get="/net-worth?relativeWindow=12"
+      class="btn {{ if .Last12MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+      hx-get="/net-income?relativeWindow=12"
       hx-target="#reportContent"
       hx-swap="innerHTML">
       Last 12 months
     </button>
     <button
       type="button"
-      hx-get="/net-worth?relativeWindow=6"
+      class="btn {{ if .Last6MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+      hx-get="/net-income?relativeWindow=6"
       hx-target="#reportContent"
       hx-swap="innerHTML">
       Last 6 months
     </button>
     <button
       type="button"
-      hx-get="/net-worth?relativeWindow=3"
+      class="btn {{ if .Last3MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+      hx-get="/net-income?relativeWindow=3"
       hx-target="#reportContent"
       hx-swap="innerHTML">
       Last 3 months
@@ -131,9 +135,9 @@
       {{ range $incomeExpenseDataset := .DataSets }}
       <tr>
         <td>{{ $incomeExpenseDataset.Date }}</td>
-        <td>{{ $incomeExpenseDataset.Income }}</td>
-        <td>{{ $incomeExpenseDataset.Expenses }}</td>
-        <td>{{ $incomeExpenseDataset.NetIncome }}</td>
+        <td>${{ $incomeExpenseDataset.IncomeHumanized }}</td>
+        <td>${{ $incomeExpenseDataset.ExpensesHumanized }}</td>
+        <td>${{ $incomeExpenseDataset.NetIncomeHumanized }}</td>
       </tr>
       {{ end }}
     </tbody>
