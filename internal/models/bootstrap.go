@@ -9,6 +9,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+const Asset = "asset"
+const Liability = "liability"
+
 type Bootstrapper struct {
 	db *gorm.DB
 }
@@ -24,6 +27,7 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 	// Conditionally drop all tables to start from scratch
 	if os.Getenv("DROP_TABLES") != "" {
 		b.db.Migrator().DropTable(&Account{})
+		b.db.Migrator().DropTable(&AccountType{})
 		b.db.Migrator().DropTable(&Balance{})
 		b.db.Migrator().DropTable(&Budget{})
 		b.db.Migrator().DropTable(&Category{})
@@ -33,27 +37,60 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 
 	// Migrate the schema
 	b.db.AutoMigrate(&Account{})
+	b.db.AutoMigrate(&AccountType{})
 	b.db.AutoMigrate(&Balance{})
 	b.db.AutoMigrate(&Budget{})
 	b.db.AutoMigrate(&Category{})
 	b.db.AutoMigrate(&Transaction{})
 	b.db.AutoMigrate(&ImportSubmission{})
 
-	// Insert common seed data
+	// Seed data for common categories, if they don't exist already
 	for _, name := range []string{"Unknown", "Home", "Income", "Auto", "Food", "Dining"} {
 		// The Category table has a unique index on the Name column, so we can use the DoNothing option
 		// to safely attempt to insert a record that may already exist
 		b.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&Category{Name: name})
 	}
 
+	accountTypesData := map[string]map[string]string{
+		"Bank of America Credit Card": {"ledgerType": Liability, "accountCategory": "creditCard"},
+		"Schwab Brokerage":            {"ledgerType": Asset, "accountCategory": "brokerage"},
+		"Schwab Checking":             {"ledgerType": Asset, "accountCategory": "checking"},
+		"Fidelity Credit Card":        {"ledgerType": Liability, "accountCategory": "creditCard"},
+		"Fidelity Brokerage":          {"ledgerType": Asset, "accountCategory": "brokerage"},
+		"Chase Checking":              {"ledgerType": Asset, "accountCategory": "checking"},
+		"Chase Credit Card":           {"ledgerType": Liability, "accountCategory": "creditCard"},
+		"Capital One Credit Card":     {"ledgerType": Liability, "accountCategory": "creditCard"},
+		"Capital One Savings":         {"ledgerType": Asset, "accountCategory": "savings"},
+		"Real Estate":                 {"ledgerType": Asset, "accountCategory": "realEstate"},
+		"Mortgage":                    {"ledgerType": Liability, "accountCategory": "loan"},
+		"Misc Asset":                  {"ledgerType": Asset, "accountCategory": Asset},
+		"Misc Liability":              {"ledgerType": Liability, "accountCategory": Asset},
+	}
+
+	// Seed data for supported account types, if they don't exist already
+	for name, accountTypeDetails := range accountTypesData {
+		// The Category table has a unique index on the Name column, so we can use the DoNothing option
+		// to safely attempt to insert a record that may already exist
+		b.db.Clauses(clause.OnConflict{DoNothing: true}).Create(
+			&AccountType{
+				Name:            name,
+				LedgerType:      accountTypeDetails["ledgerType"],
+				AccountCategory: accountTypeDetails["accountCategory"],
+			})
+	}
+
 	// Conditionally insert sample date for testing purposes
 	if os.Getenv("ADD_SAMPLE_DATA") != "" {
 		// Create one normal asset account, one normal liability account, and one infrequently updated account
 		// of each type
-		b.db.Create(&Account{Name: "Schwab", AccountCategory: "checking", AccountType: "asset", DefaultParser: utils.StrPointer("schwabChecking")})
-		b.db.Create(&Account{Name: "Fidelity Visa", AccountCategory: "creditCard", AccountType: "liability", DefaultParser: utils.StrPointer("fidelityCreditCard")})
-		b.db.Create(&Account{Name: "My House", AccountCategory: "realEstate", AccountType: "asset"})
-		b.db.Create(&Account{Name: "Mortgage", AccountCategory: "loan", AccountType: "liability"})
+		b.db.Create(&AccountType{Name: "Schwab Checking", AccountCategory: "checking", LedgerType: Asset, DefaultParser: utils.StrPointer("schwabChecking")})
+		b.db.Create(&Account{Name: "Schwab", AccountTypeID: 1})
+		b.db.Create(&AccountType{Name: "Fidelity Visa", AccountCategory: "creditCard", LedgerType: Liability, DefaultParser: utils.StrPointer("schwabChecking")})
+		b.db.Create(&Account{Name: "Fidelity Visa", AccountTypeID: 2})
+		b.db.Create(&AccountType{Name: "Real Estate", AccountCategory: "realEstate", LedgerType: Asset, DefaultParser: utils.StrPointer("schwabChecking")})
+		b.db.Create(&Account{Name: "My House", AccountTypeID: 3})
+		b.db.Create(&AccountType{Name: "Mortgage", AccountCategory: "loan", LedgerType: Liability, DefaultParser: utils.StrPointer("schwabChecking")})
+		b.db.Create(&Account{Name: "Mortgage", AccountTypeID: 4})
 
 		// Create open-ended balances for infrequently updated accounts
 		// b.db.Create(&Balance{EffectiveDate: "2024-01-17", Amount: 2500, AccountID: 3})

@@ -63,12 +63,12 @@ func (is *ImportService) ImportStatement(filename string, statement string, acco
 		is.ImportSubmissionRepository.Save(submission)
 		return nil, &AccountNotFoundError{}
 	}
-	if account.DefaultParser == nil {
+	if account.AccountType.DefaultParser == nil {
 		submission.Status = models.Failed
 		is.ImportSubmissionRepository.Save(submission)
 		return nil, &NoParserError{}
 	}
-	parser := parsersByInstitution[*account.DefaultParser]
+	parser := parsersByInstitution[*account.AccountType.DefaultParser]
 	transactions, balances, err = parser.Parse(statement)
 	if err != nil {
 		submission.Status = models.Failed

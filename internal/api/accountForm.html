@@ -17,42 +17,12 @@
   <div class="row">
     <div class="col-sm-6">
       <div class="form-floating mb-3">
-        <select class="form-select" aria-label="account category selector" name="accountCategory" id="accountCategory">
-          <option {{ if eq .AccountCategory "savings" }}selected{{ end }} value="savings">Checking/Savings</option>
-          <option {{ if eq .AccountCategory "creditCard" }}selected{{ end }} value="creditCard">Credit Card</option>
-          <option {{ if eq .AccountCategory "realEstate" }}selected{{ end }} value="realEstate">Real Estate</option>
-          <option {{ if eq .AccountCategory "loan" }}selected{{ end }} value="loan">Loan</option>
-          <option {{ if eq .AccountCategory "brokerage" }}selected{{ end }} value="brokerage">Brokerage</option>
-          <option {{ if eq .AccountCategory "retirement" }}selected{{ end }} value="retirement">Retirement Account</option>
-        </select>
-        <label for="accountCategory" class="form-label">Account Category</label>
-      </div>
-    </div>
-    <div class="col-sm-6">
-      <div class="form-floating mb-3">
-        <select class="form-select" aria-label="account type selector" name="accountType" id="accountType">
-          <option {{ if eq .AccountType "asset" }}selected{{ end }} value="asset">Asset</option>
-          <option {{ if eq .AccountType "liability" }}selected{{ end }} value="liability">Liability</option>
+        <select class="form-select" aria-label="account type selector" name="accountTypeID" id="accountTypeID">
+          {{range $i, $accountType := .AccountTypes}}
+          <option {{ if eq $.AccountTypeName $accountType.Name }}selected{{ end }} value="{{ $accountType.ID }}">{{ $accountType.Name }}</option>
+          {{ end }}
         </select>
         <label for="accountType" class="form-label">Account Type</label>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-12">
-      <div class="form-floating mb-3">
-        <select class="form-select" aria-label="statement format selector" name="defaultParser" id="defaultParser">
-          <option {{ if eq .DefaultParser "bankOfAmericaCreditCard" }}selected{{ end }} value="bankOfAmericaCreditCard">Bank Of America Credit Card</option>
-          <option {{ if eq .DefaultParser "schwabChecking" }}selected{{ end }} value="schwabChecking">Schwab Checking</option>
-          <option {{ if eq .DefaultParser "schwabBrokerage" }}selected{{ end }} value="schwabBrokerage">Schwab Brokerage</option>
-          <option {{ if eq .DefaultParser "fidelityCreditCard" }}selected{{ end }} value="fidelityCreditCard">Fidelity Credit Card</option>
-          <option {{ if eq .DefaultParser "fidelityBrokerage" }}selected{{ end }} value="fidelityBrokerage">Fidelity Brokerage</option>
-          <option {{ if eq .DefaultParser "chaseCreditCard" }}selected{{ end }} value="chaseCreditCard">Chase Credit Card</option>
-          <option {{ if eq .DefaultParser "chaseChecking" }}selected{{ end }} value="chaseChecking">Chase Checking</option>
-          <option {{ if eq .DefaultParser "capitalOneCreditCard" }}selected{{ end }} value="capitalOneCreditCard">CapitalOne Credit Card</option>
-          <option {{ if eq .DefaultParser "capitalOneSavings" }}selected{{ end }} value="capitalOneSavings">CapitalOne Savings</option>
-        </select>
-        <label for="defaultParser" class="form-label">Statement format</label>
       </div>
     </div>
   </div>

@@ -2,25 +2,29 @@ package api
 
 import (
 	"context"
+	"embed"
 	_ "embed"
 	"log"
 	"net/http"
 )
 
-//go:embed main.html.tmpl
-var mainPageTmpl string
-
 type ApiServer struct {
 	AccountController     *AccountController
 	BalanceController     *BalanceController
 	BudgetController      *BudgetController
+	CategoryController    *CategoryController
 	ImportController      *ImportController
 	MainController        *MainController
 	NetWorthController    *NetWorthController
 	TransactionController *TransactionController
 }
 
+//go:embed assets
+var assets embed.FS
+
 func (as *ApiServer) StartApiServer(ctx context.Context) {
+	http.Handle("/assets/", http.FileServer(http.FS(assets)))
+
 	http.HandleFunc("/", as.MainController.mainPageHandler)
 	http.HandleFunc("/dashboard", dashboardHandler)
 	http.HandleFunc("GET /net-worth", as.NetWorthController.netWorthHandler)
@@ -38,6 +42,10 @@ func (as *ApiServer) StartApiServer(ctx context.Context) {
 	http.HandleFunc("GET /budgets", as.BudgetController.generateBudgetsView)
 	http.HandleFunc("POST /budgets", as.BudgetController.upsertBudget)
 	http.HandleFunc("GET /budgetForm", as.BudgetController.generateBudgetForm)
+
+	http.HandleFunc("GET /categories", as.CategoryController.generateCategoriesView)
+	http.HandleFunc("POST /categories", as.CategoryController.upsertCategory)
+	http.HandleFunc("GET /categoryForm", as.CategoryController.generateCategoryForm)
 
 	http.HandleFunc("GET /transactions", as.TransactionController.generateTransactionsView)
 	http.HandleFunc("POST /transactions", as.TransactionController.upsertTransaction)

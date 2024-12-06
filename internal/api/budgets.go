@@ -76,6 +76,13 @@ func (bc *BudgetController) generateBudgetForm(w http.ResponseWriter, req *http.
 		dto.Updating = false
 	}
 
+	// If a user creates a budget from the categories page, we should pre-populate the category dropdown even
+	// though a budget doesn't exist yet
+	categoryNameQueryParameter := req.URL.Query().Get("categoryName")
+	if categoryNameQueryParameter != "" {
+		dto.CategoryName = categoryNameQueryParameter
+	}
+
 	tmpl, err := template.New("budgetForm").Parse(budgetsFormTmpl)
 	if err != nil {
 		panic(err)
