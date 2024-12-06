@@ -6,7 +6,7 @@ import (
 
 type AccountType struct {
 	gorm.Model
-	Name            string
+	Name            string  `gorm:"uniqueIndex"`
 	LedgerType      string  // asset vs liability
 	AccountCategory string  // checking, brokerage, credit card, loan, etc
 	DefaultParser   *string // institution-specific parser for CSVs
@@ -18,7 +18,7 @@ type AccountTypeRepository struct {
 
 func (atr *AccountTypeRepository) GetAllAccountTypes() ([]AccountType, error) {
 	var accountTypes []AccountType
-	result := atr.DB.Find(&accountTypes)
+	result := atr.DB.Order("name asc").Find(&accountTypes)
 	return accountTypes, result.Error
 }
 

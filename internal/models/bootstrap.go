@@ -9,6 +9,9 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+const Asset = "asset"
+const Liability = "liability"
+
 type Bootstrapper struct {
 	db *gorm.DB
 }
@@ -49,15 +52,19 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 	}
 
 	accountTypesData := map[string]map[string]string{
-		"Bank of America Credit Card": {"ledgerType": "liability", "accountCategory": "creditCard"},
-		"Schwab Brokerage":            {"ledgerType": "asset", "accountCategory": "brokerage"},
-		"Schwab Checking":             {"ledgerType": "asset", "accountCategory": "checking"},
-		"Fidelity Credit Card":        {"ledgerType": "liability", "accountCategory": "creditCard"},
-		"Fidelity Brokerage":          {"ledgerType": "asset", "accountCategory": "brokerage"},
-		"Chase Checking":              {"ledgerType": "asset", "accountCategory": "checking"},
-		"Chase Credit Card":           {"ledgerType": "liability", "accountCategory": "creditCard"},
-		"Capital One Credit Card":     {"ledgerType": "liability", "accountCategory": "creditCard"},
-		"Capital One Savings":         {"ledgerType": "asset", "accountCategory": "savings"},
+		"Bank of America Credit Card": {"ledgerType": Liability, "accountCategory": "creditCard"},
+		"Schwab Brokerage":            {"ledgerType": Asset, "accountCategory": "brokerage"},
+		"Schwab Checking":             {"ledgerType": Asset, "accountCategory": "checking"},
+		"Fidelity Credit Card":        {"ledgerType": Liability, "accountCategory": "creditCard"},
+		"Fidelity Brokerage":          {"ledgerType": Asset, "accountCategory": "brokerage"},
+		"Chase Checking":              {"ledgerType": Asset, "accountCategory": "checking"},
+		"Chase Credit Card":           {"ledgerType": Liability, "accountCategory": "creditCard"},
+		"Capital One Credit Card":     {"ledgerType": Liability, "accountCategory": "creditCard"},
+		"Capital One Savings":         {"ledgerType": Asset, "accountCategory": "savings"},
+		"Real Estate":                 {"ledgerType": Asset, "accountCategory": "realEstate"},
+		"Mortgage":                    {"ledgerType": Liability, "accountCategory": "loan"},
+		"Misc Asset":                  {"ledgerType": Asset, "accountCategory": Asset},
+		"Misc Liability":              {"ledgerType": Liability, "accountCategory": Asset},
 	}
 
 	// Seed data for supported account types, if they don't exist already
@@ -76,13 +83,13 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 	if os.Getenv("ADD_SAMPLE_DATA") != "" {
 		// Create one normal asset account, one normal liability account, and one infrequently updated account
 		// of each type
-		b.db.Create(&AccountType{Name: "Schwab Checking", AccountCategory: "checking", LedgerType: "asset", DefaultParser: utils.StrPointer("schwabChecking")})
+		b.db.Create(&AccountType{Name: "Schwab Checking", AccountCategory: "checking", LedgerType: Asset, DefaultParser: utils.StrPointer("schwabChecking")})
 		b.db.Create(&Account{Name: "Schwab", AccountTypeID: 1})
-		b.db.Create(&AccountType{Name: "Fidelity Visa", AccountCategory: "creditCard", LedgerType: "liability", DefaultParser: utils.StrPointer("schwabChecking")})
+		b.db.Create(&AccountType{Name: "Fidelity Visa", AccountCategory: "creditCard", LedgerType: Liability, DefaultParser: utils.StrPointer("schwabChecking")})
 		b.db.Create(&Account{Name: "Fidelity Visa", AccountTypeID: 2})
-		b.db.Create(&AccountType{Name: "Real Estate", AccountCategory: "realEstate", LedgerType: "asset", DefaultParser: utils.StrPointer("schwabChecking")})
+		b.db.Create(&AccountType{Name: "Real Estate", AccountCategory: "realEstate", LedgerType: Asset, DefaultParser: utils.StrPointer("schwabChecking")})
 		b.db.Create(&Account{Name: "My House", AccountTypeID: 3})
-		b.db.Create(&AccountType{Name: "Mortgage", AccountCategory: "loan", LedgerType: "liability", DefaultParser: utils.StrPointer("schwabChecking")})
+		b.db.Create(&AccountType{Name: "Mortgage", AccountCategory: "loan", LedgerType: Liability, DefaultParser: utils.StrPointer("schwabChecking")})
 		b.db.Create(&Account{Name: "Mortgage", AccountTypeID: 4})
 
 		// Create open-ended balances for infrequently updated accounts
