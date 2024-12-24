@@ -35,8 +35,37 @@
       Last 3 months
     </button>
   </div>
-  <canvas class="my-4 w-100" id="myChart"></canvas>
+  <canvas class="my-4 w-100" id="netIncomeChart"></canvas>
 </div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Income</th>
+        <th scope="col">Expenses</th>
+        <th scope="col">Net Income</th>
+        <th scope="col">Net Income - TTM average</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range $incomeExpenseDataset := .DataSets }}
+      <tr>
+        <td>{{ $incomeExpenseDataset.Date }}</td>
+        <td>${{ $incomeExpenseDataset.IncomeHumanized }}</td>
+        <td>${{ $incomeExpenseDataset.ExpensesHumanized }}</td>
+        <td>${{ $incomeExpenseDataset.NetIncomeHumanized }}</td>
+        <td>${{ $incomeExpenseDataset.TTMRollingAverage }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
+<h3>Statistical analysis</h3>
+
+<canvas class="my-4 w-100" id="netIncomeAverageChart"></canvas>
 
 <script>
   /* globals Chart:false, feather:false */
@@ -45,9 +74,9 @@
   'use strict'
 
   // Graphs
-  var ctx = document.getElementById('myChart')
+  var netIncomeChartCanvas = document.getElementById('netIncomeChart')
   // eslint-disable-next-line no-unused-vars
-  var myChart = new Chart(ctx, {
+  var netIncomeChart = new Chart(netIncomeChartCanvas, {
     type: 'line',
     data: {
       labels: [
@@ -64,7 +93,7 @@
           "{{ $incomeExpenseDataset.NetIncome }}",
           {{ end }}
           ],
-          lineTension: 0,
+          lineTension: 0.2,
           backgroundColor: '#000000',
           borderColor: '#000000',
           borderWidth: 4,
@@ -79,7 +108,7 @@
           "{{ $incomeExpenseDataset.Income }}",
           {{ end }}
           ],
-          lineTension: 0,
+          lineTension: 0.2,
           backgroundColor: '#198754',
           borderColor: '#198754',
           borderWidth: 4,
@@ -93,7 +122,7 @@
           "{{ $incomeExpenseDataset.Expenses }}",
           {{ end }}
           ],
-          lineTension: 0,
+          lineTension: 0.2,
           backgroundColor: '#dc3545',
           borderColor: '#dc3545',
           borderWidth: 4,
@@ -117,29 +146,92 @@
       }
     }
   })
+
+  var netIncomeAverageChartCanvas = document.getElementById('netIncomeAverageChart')
+  // eslint-disable-next-line no-unused-vars
+  var netIncomeAverageChart = new Chart(netIncomeAverageChartCanvas, {
+    type: 'line',
+    data: {
+      labels: [
+        {{ range $incomeExpenseDataset := .DataSets }}
+        "{{ $incomeExpenseDataset.Date }}",
+        {{ end }}
+      ],
+      datasets: [
+        {
+          label: 'Net Income',
+          fill: false,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.NetIncome }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#198754',
+          borderColor: '#198754',
+          borderWidth: 4,
+          pointBackgroundColor: '#198754'
+        },
+        {
+          label: 'Net Income TTM Average',
+          fill: false,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.TTMRollingAverage }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#000000',
+          borderColor: '#000000',
+          borderWidth: 4,
+          pointBackgroundColor: '#000000'
+        },
+        {
+          label: 'Fake upper bounds',
+          fill: '-1',
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "20000",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#dedede',
+          borderColor: '#000000',
+          borderWidth: 1,
+          pointBackgroundColor: '#000000'
+        },
+        {
+          label: 'Fake lower bounds',
+          fill: '-2',
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "4000",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#dedede',
+          borderColor: '#000000',
+          borderWidth: 1,
+          pointBackgroundColor: '#000000'
+        },
+      ]
+    },
+    options: {
+      scales: {
+        y: {
+            ticks: {
+                // Include a dollar sign in the ticks
+                callback: function(value, index, ticks) {
+                    return '$' + value;
+                }
+            }
+        }
+      },
+      legend: {
+        display: true
+      }
+    }
+  })
 })()
 
 </script>
-
-<div class="table-responsive">
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th scope="col">Date</th>
-        <th scope="col">Income</th>
-        <th scope="col">Expenses</th>
-        <th scope="col">Net Income</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{ range $incomeExpenseDataset := .DataSets }}
-      <tr>
-        <td>{{ $incomeExpenseDataset.Date }}</td>
-        <td>${{ $incomeExpenseDataset.IncomeHumanized }}</td>
-        <td>${{ $incomeExpenseDataset.ExpensesHumanized }}</td>
-        <td>${{ $incomeExpenseDataset.NetIncomeHumanized }}</td>
-      </tr>
-      {{ end }}
-    </tbody>
-  </table>
-</div>

@@ -84,13 +84,9 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 	if os.Getenv("ADD_SAMPLE_DATA") != "" {
 		// Create one normal asset account, one normal liability account, and one infrequently updated account
 		// of each type
-		b.db.Create(&AccountType{Name: "Schwab Checking", AccountCategory: "checking", LedgerType: Asset, DefaultParser: utils.StrPointer("schwabChecking")})
 		b.db.Create(&Account{Name: "Schwab", AccountTypeID: 1})
-		b.db.Create(&AccountType{Name: "Fidelity Visa", AccountCategory: "creditCard", LedgerType: Liability, DefaultParser: utils.StrPointer("schwabChecking")})
 		b.db.Create(&Account{Name: "Fidelity Visa", AccountTypeID: 2})
-		b.db.Create(&AccountType{Name: "Real Estate", AccountCategory: "realEstate", LedgerType: Asset, DefaultParser: utils.StrPointer("schwabChecking")})
 		b.db.Create(&Account{Name: "My House", AccountTypeID: 3})
-		b.db.Create(&AccountType{Name: "Mortgage", AccountCategory: "loan", LedgerType: Liability, DefaultParser: utils.StrPointer("schwabChecking")})
 		b.db.Create(&Account{Name: "Mortgage", AccountTypeID: 4})
 
 		// Create open-ended balances for infrequently updated accounts

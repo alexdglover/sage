@@ -24,6 +24,8 @@ type IncomeAndExpensesDataSet struct {
 	ExpensesHumanized  string
 	NetIncome          string
 	NetIncomeHumanized string
+	TTMRollingAverage  string
+	TTMVolatility      string
 }
 
 type IncomeAndExpensesDTO struct {
@@ -103,6 +105,8 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 		}
 		netIncomeTotal := runningIncomeTotal + runningExpenseTotal
 
+		netIncomeTTMAverage, _ := nc.TransactionRepository.GetTTMRollingAverage(context.TODO(), txnsWithDate.Date)
+
 		incomeAndExpenses := IncomeAndExpensesDataSet{
 			Date:               txnsWithDate.Date.Format("2006-01"),
 			Income:             utils.CentsToDollarStringMachineSafe(runningIncomeTotal),
@@ -111,6 +115,7 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 			ExpensesHumanized:  utils.CentsToDollarStringHumanized(runningExpenseTotal),
 			NetIncome:          utils.CentsToDollarStringMachineSafe(netIncomeTotal),
 			NetIncomeHumanized: utils.CentsToDollarStringHumanized(netIncomeTotal),
+			TTMRollingAverage:  utils.CentsToDollarStringMachineSafe(netIncomeTTMAverage),
 		}
 		dto.DataSets = append(dto.DataSets, incomeAndExpenses)
 	}

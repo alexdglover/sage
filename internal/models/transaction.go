@@ -30,6 +30,11 @@ type TransactionsByDate struct {
 	Transactions []Transaction
 }
 
+type TTMRollingAverageByDate struct {
+	Date              time.Time
+	TTMRollingAverage int64
+}
+
 type TransactionRepository struct {
 	DB *gorm.DB
 }
@@ -131,4 +136,67 @@ func (tr *TransactionRepository) GetAllTransactionsByNetIncomeType(ctx context.C
 	}
 
 	return txnsByDate, nil
+}
+
+func (tr *TransactionRepository) GetTTMRollingAverage(ctx context.Context, yearMonth time.Time) (average int64, err error) {
+	var netIncomeAmounts []int64
+
+	twelveMonthsEarlier := yearMonth.AddDate(0, -12, 0)
+
+	for month := yearMonth; month.After(twelveMonthsEarlier); month = month.AddDate(0, -1, 0) {
+		var netIncome int64
+		// Get dates for beginning and end of the month
+		firstDayOfTheMonth := month.AddDate(0, 0, 1-month.Day())
+		lastDayOfTheMonth := firstDayOfTheMonth.AddDate(0, 1, -1)
+		firstDayOfTheMonthISO := utils.TimeToISO8601DateString(firstDayOfTheMonth)
+		lastDayOfTheMonthISO := utils.TimeToISO8601DateString(lastDayOfTheMonth)
+
+		netIncomeQuery := tr.DB.Raw(`WITH income AS (
+				SELECT sum(t.amount) as amount,
+				STRFTIME('%Y-%m', t.date) as yearmonth
+				FROM transactions AS t
+				JOIN categories AS c
+				ON c.id=t.category_id
+				WHERE c.name="Income"
+				AND date >= (?)
+				AND date <= (?)
+				GROUP BY yearmonth
+			),
+			expenses AS (
+				SELECT sum(t.amount) as amount,
+				STRFTIME('%Y-%m', t.date) as yearmonth
+				FROM transactions AS t
+				JOIN categories AS c
+				ON c.id=t.category_id
+				WHERE c.name not in ("Income", "Transfers")
+				AND date >= (?)
+				AND date <= (?)
+				GROUP BY yearmonth
+			)
+			SELECT COALESCE(income.amount, 0) - COALESCE(expenses.amount, 0) as net_income
+			FROM income FULL OUTER JOIN expenses 
+			ON income.yearmonth = expenses.yearmonth
+		`, firstDayOfTheMonthISO, lastDayOfTheMonthISO, firstDayOfTheMonthISO, lastDayOfTheMonthISO).Scan(&netIncome)
+
+		if netIncomeQuery.Error != nil {
+			return 0, netIncomeQuery.Error
+		}
+
+		// a user may not have transactions going back 12 months, so we need to skip months where there is no data
+		// to avoid adding artificial zeros to the average
+		if netIncome != 0 {
+			netIncomeAmounts = append(netIncomeAmounts, netIncome)
+		}
+	}
+
+	// Calculate the average of the net income amounts
+	total := int64(0)
+	for _, amount := range netIncomeAmounts {
+		total += amount
+	}
+	if len(netIncomeAmounts) == 0 {
+		return 0, nil
+	}
+	average = total / int64(len(netIncomeAmounts))
+	return average, nil
 }
