@@ -17,15 +17,16 @@ type NetIncomeController struct {
 }
 
 type IncomeAndExpensesDataSet struct {
-	Date               string
-	Income             string
-	IncomeHumanized    string
-	Expenses           string
-	ExpensesHumanized  string
-	NetIncome          string
-	NetIncomeHumanized string
-	TTMRollingAverage  string
-	TTMVolatility      string
+	Date                      string
+	Income                    string
+	IncomeHumanized           string
+	Expenses                  string
+	ExpensesHumanized         string
+	NetIncome                 string
+	NetIncomeHumanized        string
+	TTMAverage                string
+	TTMSeventyFifthPercentile string
+	TTMTwentyFifthPercentile  string
 }
 
 type IncomeAndExpensesDTO struct {
@@ -77,13 +78,13 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 	// And calculate start date
 	startDate := endDate.AddDate(0, (relativeWindow * -1), 0)
 
-	// Get all transactions in asset accounts
-	// Get all transactions from liability accounts and negate the amounts
+	// Get all income transactions
 	incomeTxns, err := nc.TransactionRepository.GetAllIncomeTransactions(context.TODO(), startDate, endDate)
 	if err != nil {
 		fmt.Println("error while getting asset transactions:", err)
 		//TODO: add an HTTP return here
 	}
+	// Get all expense transactions
 	expenseTxns, err := nc.TransactionRepository.GetAllExpenseTransactions(context.TODO(), startDate, endDate)
 	if err != nil {
 		fmt.Println("error while getting asset transactions:", err)
@@ -91,7 +92,7 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 	}
 
 	for idx, txnsWithDate := range incomeTxns {
-		var runningIncomeTotal, runningExpenseTotal int64
+		var runningIncomeTotal, runningExpenseTotal int
 		// Explicitly set these back to zero to avoid accumulating data across months
 		runningIncomeTotal = 0
 		runningExpenseTotal = 0
@@ -105,17 +106,19 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 		}
 		netIncomeTotal := runningIncomeTotal + runningExpenseTotal
 
-		netIncomeTTMAverage, _ := nc.TransactionRepository.GetTTMRollingAverage(context.TODO(), txnsWithDate.Date)
+		netIncomeTTMAverage, twentyFifthPercentile, seventyFifthPercentile, _ := nc.TransactionRepository.GetTTMStatistics(context.TODO(), txnsWithDate.Date)
 
 		incomeAndExpenses := IncomeAndExpensesDataSet{
-			Date:               txnsWithDate.Date.Format("2006-01"),
-			Income:             utils.CentsToDollarStringMachineSafe(runningIncomeTotal),
-			IncomeHumanized:    utils.CentsToDollarStringHumanized(runningIncomeTotal),
-			Expenses:           utils.CentsToDollarStringMachineSafe(runningExpenseTotal),
-			ExpensesHumanized:  utils.CentsToDollarStringHumanized(runningExpenseTotal),
-			NetIncome:          utils.CentsToDollarStringMachineSafe(netIncomeTotal),
-			NetIncomeHumanized: utils.CentsToDollarStringHumanized(netIncomeTotal),
-			TTMRollingAverage:  utils.CentsToDollarStringMachineSafe(netIncomeTTMAverage),
+			Date:                      txnsWithDate.Date.Format("2006-01"),
+			Income:                    utils.CentsToDollarStringMachineSafe(runningIncomeTotal),
+			IncomeHumanized:           utils.CentsToDollarStringHumanized(runningIncomeTotal),
+			Expenses:                  utils.CentsToDollarStringMachineSafe(runningExpenseTotal),
+			ExpensesHumanized:         utils.CentsToDollarStringHumanized(runningExpenseTotal),
+			NetIncome:                 utils.CentsToDollarStringMachineSafe(netIncomeTotal),
+			NetIncomeHumanized:        utils.CentsToDollarStringHumanized(netIncomeTotal),
+			TTMAverage:                utils.CentsToDollarStringMachineSafe(netIncomeTTMAverage),
+			TTMSeventyFifthPercentile: utils.CentsToDollarStringMachineSafe(seventyFifthPercentile),
+			TTMTwentyFifthPercentile:  utils.CentsToDollarStringMachineSafe(twentyFifthPercentile),
 		}
 		dto.DataSets = append(dto.DataSets, incomeAndExpenses)
 	}

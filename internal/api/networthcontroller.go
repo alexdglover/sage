@@ -19,9 +19,9 @@ type NetWorthController struct {
 //go:embed networth.html.tmpl
 var netWorthTmpl string
 
-// A totalByType entry will be either 'asset': <some int64> or 'liablities': <some int64>
+// A totalByType entry will be either 'asset': <some int> or 'liablities': <some int>
 // This is used for aggregating balances, but is not the DTO to the front end HTML template
-type totalByType map[string]int64
+type totalByType map[string]int
 
 // The DTO is also a map of year-month to amount, but has the total converted to string for
 // expected currency format in the UI

@@ -43,20 +43,24 @@
     <thead>
       <tr>
         <th scope="col">Date</th>
-        <th scope="col">Income</th>
-        <th scope="col">Expenses</th>
-        <th scope="col">Net Income</th>
-        <th scope="col">Net Income - TTM average</th>
+        <th style="text-align: right;" scope="col">Income</th>
+        <th style="text-align: right;" scope="col">Expenses</th>
+        <th style="text-align: right;" scope="col">Net Income</th>
+        <!--<th style="text-align: right;" scope="col">Net Income - TTM average</th>
+        <th style="text-align: right;" scope="col">Upper bound</th>
+        <th style="text-align: right;" scope="col">Lower bound</th>-->
       </tr>
     </thead>
     <tbody>
       {{ range $incomeExpenseDataset := .DataSets }}
       <tr>
         <td>{{ $incomeExpenseDataset.Date }}</td>
-        <td>${{ $incomeExpenseDataset.IncomeHumanized }}</td>
-        <td>${{ $incomeExpenseDataset.ExpensesHumanized }}</td>
-        <td>${{ $incomeExpenseDataset.NetIncomeHumanized }}</td>
-        <td>${{ $incomeExpenseDataset.TTMRollingAverage }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.IncomeHumanized }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.ExpensesHumanized }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.NetIncomeHumanized }}</td>
+        <!--<td style="text-align: right;">${{ $incomeExpenseDataset.TTMAverage }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.TTMSeventyFifthPercentile }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.TTMTwentyFifthPercentile }}</td>-->
       </tr>
       {{ end }}
     </tbody>
@@ -133,12 +137,13 @@
     options: {
       scales: {
         y: {
-            ticks: {
-                // Include a dollar sign in the ticks
-                callback: function(value, index, ticks) {
-                    return '$' + value;
-                }
+          beginAtZero: true,
+          ticks: {
+            // Include a dollar sign in the ticks
+            callback: function(value, index, ticks) {
+                return '$' + value;
             }
+          }
         }
       },
       legend: {
@@ -173,58 +178,60 @@
           pointBackgroundColor: '#198754'
         },
         {
-          label: 'Net Income TTM Average',
+          label: 'TTM Average',
           fill: false,
           data: [
           {{ range $incomeExpenseDataset := .DataSets }}
-          "{{ $incomeExpenseDataset.TTMRollingAverage }}",
+          "{{ $incomeExpenseDataset.TTMAverage }}",
           {{ end }}
           ],
           lineTension: 0.2,
           backgroundColor: '#000000',
           borderColor: '#000000',
           borderWidth: 4,
+          borderDash: [5, 5],
           pointBackgroundColor: '#000000'
         },
         {
-          label: 'Fake upper bounds',
-          fill: '-1',
+          label: 'TTM 75%ile',
+          fill: '1',
           data: [
           {{ range $incomeExpenseDataset := .DataSets }}
-          "20000",
+          "{{ $incomeExpenseDataset.TTMSeventyFifthPercentile }}",
           {{ end }}
           ],
           lineTension: 0.2,
-          backgroundColor: '#dedede',
-          borderColor: '#000000',
+          //backgroundColor: 'rgba(220, 53, 69, 0.2)',
+          borderColor: 'rgba(220, 53, 69, 1)',
           borderWidth: 1,
-          pointBackgroundColor: '#000000'
+          pointBackgroundColor: 'rgba(220, 53, 69, 1)',
         },
         {
-          label: 'Fake lower bounds',
-          fill: '-2',
+          label: 'TTM 25%ile',
+          fill: '1',
           data: [
           {{ range $incomeExpenseDataset := .DataSets }}
-          "4000",
+          "{{ $incomeExpenseDataset.TTMTwentyFifthPercentile }}",
           {{ end }}
           ],
           lineTension: 0.2,
-          backgroundColor: '#dedede',
-          borderColor: '#000000',
+          //backgroundColor: 'rgba(25, 135, 84, 0.2)',
+          borderColor: 'rgba(25, 135, 84, 1)',
           borderWidth: 1,
-          pointBackgroundColor: '#000000'
+          pointBackgroundColor: 'rgba(25, 135, 84, 1)',
         },
       ]
     },
     options: {
       scales: {
         y: {
-            ticks: {
-                // Include a dollar sign in the ticks
-                callback: function(value, index, ticks) {
-                    return '$' + value;
-                }
+          beginAtZero: true,
+          ticks: {
+            // Include a dollar sign in the ticks
+            callback: function(value, index, ticks) {
+                return '$' + value;
             }
+          }
         }
       },
       legend: {

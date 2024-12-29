@@ -75,7 +75,7 @@ func (s SchwabCheckingCSVParser) Parse(statement string) (transactions []models.
 				Amount:        balance,
 			})
 		}
-		var amount int64
+		var amount int
 		if record[5] != "" {
 			amount = utils.DollarStringToCents(record[5])
 		} else if record[6] != "" {
@@ -114,7 +114,7 @@ func (s SchwabBrokerageCSVParser) Parse(statement string) (transactions []models
 		date := strings.Split(record[0], " ")[0]
 
 		isoDate := utils.ConvertMMDDYYYYtoISO8601(date)
-		var amount int64
+		var amount int
 		amount = utils.DollarStringToCents(record[7])
 		txn := models.Transaction{
 			Date:        isoDate,
@@ -191,7 +191,7 @@ func (FidelityBrokerageCSVParser) Parse(statement string) (transactions []models
 				Amount:        balance,
 			})
 		}
-		var amount int64
+		var amount int
 		amount = utils.DollarStringToCents(record[10])
 		txn := models.Transaction{
 			Date:        isoDate,
@@ -268,7 +268,7 @@ func (s CapitalOneCreditCardCSVParser) Parse(statement string) (transactions []m
 		if idx == 0 {
 			continue
 		}
-		var amount int64
+		var amount int
 		if record[5] != "" {
 			amount = utils.DollarStringToCents(record[5])
 		} else if record[6] != "" {

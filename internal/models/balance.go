@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 type Balance struct {
 	gorm.Model
 	EffectiveDate      string
-	Amount             int64
+	Amount             int
 	AccountID          uint
 	Account            Account
 	ImportSubmissionID *uint

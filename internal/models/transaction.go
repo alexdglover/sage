@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/alexdglover/sage/internal/utils"
@@ -13,7 +14,7 @@ type Transaction struct {
 	gorm.Model
 	Date               string
 	Description        string
-	Amount             int64
+	Amount             int
 	Excluded           bool // Will be stored as 0 or 1 in SQLite
 	Hash               string
 	UseForTraining     bool
@@ -30,9 +31,9 @@ type TransactionsByDate struct {
 	Transactions []Transaction
 }
 
-type TTMRollingAverageByDate struct {
-	Date              time.Time
-	TTMRollingAverage int64
+type TTMAverageByDate struct {
+	Date       time.Time
+	TTMAverage int
 }
 
 type TransactionRepository struct {
@@ -91,6 +92,7 @@ func (tr *TransactionRepository) GetAllExpenseTransactions(ctx context.Context, 
 	return tr.GetAllTransactionsByNetIncomeType(ctx, "expense", startYearMonth, endYearMonth)
 }
 
+// TODO: This needs to reconcile with the amounts returned by GetTTMStatistics, currently getting mismatched results
 func (tr *TransactionRepository) GetAllTransactionsByNetIncomeType(ctx context.Context, incomeOrExpense string, startYearMonth time.Time, endYearMonth time.Time) (txnsByDate []TransactionsByDate, err error) {
 	//create a slice of months in Go instead of relying on SQL
 	months := []time.Time{}
@@ -138,13 +140,13 @@ func (tr *TransactionRepository) GetAllTransactionsByNetIncomeType(ctx context.C
 	return txnsByDate, nil
 }
 
-func (tr *TransactionRepository) GetTTMRollingAverage(ctx context.Context, yearMonth time.Time) (average int64, err error) {
-	var netIncomeAmounts []int64
+func (tr *TransactionRepository) GetTTMStatistics(ctx context.Context, yearMonth time.Time) (average int, twentyFifthPercentile int, seventyFifthPercentile int, err error) {
+	var netIncomeAmounts []int
 
 	twelveMonthsEarlier := yearMonth.AddDate(0, -12, 0)
 
 	for month := yearMonth; month.After(twelveMonthsEarlier); month = month.AddDate(0, -1, 0) {
-		var netIncome int64
+		var netIncome int
 		// Get dates for beginning and end of the month
 		firstDayOfTheMonth := month.AddDate(0, 0, 1-month.Day())
 		lastDayOfTheMonth := firstDayOfTheMonth.AddDate(0, 1, -1)
@@ -179,7 +181,7 @@ func (tr *TransactionRepository) GetTTMRollingAverage(ctx context.Context, yearM
 		`, firstDayOfTheMonthISO, lastDayOfTheMonthISO, firstDayOfTheMonthISO, lastDayOfTheMonthISO).Scan(&netIncome)
 
 		if netIncomeQuery.Error != nil {
-			return 0, netIncomeQuery.Error
+			return 0, 0, 0, netIncomeQuery.Error
 		}
 
 		// a user may not have transactions going back 12 months, so we need to skip months where there is no data
@@ -189,14 +191,22 @@ func (tr *TransactionRepository) GetTTMRollingAverage(ctx context.Context, yearM
 		}
 	}
 
+	fmt.Println("net income amounts are:")
+	fmt.Println(netIncomeAmounts)
+
 	// Calculate the average of the net income amounts
-	total := int64(0)
+	total := 0
 	for _, amount := range netIncomeAmounts {
 		total += amount
 	}
+	// Can't calculate average if there are no net income amounts
 	if len(netIncomeAmounts) == 0 {
-		return 0, nil
+		return 0, 0, 0, nil
 	}
-	average = total / int64(len(netIncomeAmounts))
-	return average, nil
+	average = total / len(netIncomeAmounts)
+
+	twentyFifthPercentile = utils.Percentile(netIncomeAmounts, 0.25)
+	seventyFifthPercentile = utils.Percentile(netIncomeAmounts, 0.75)
+
+	return average, twentyFifthPercentile, seventyFifthPercentile, nil
 }
