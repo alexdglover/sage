@@ -124,15 +124,11 @@ func Percentile(input []int, percentile float64) int {
 	copy(sortedDataSet, input)
 	sort.Ints(sortedDataSet)
 
-	fmt.Println("sorted data set is:")
-	fmt.Println(sortedDataSet)
-
 	for idx, value := range sortedDataSet {
 		// If we're at the index that corresponds to the percentile we're looking for, return the value
 		percentileIndexAsFloat := percentile * float64(len(sortedDataSet))
 		percentileIndex := int(math.Ceil(percentileIndexAsFloat))
 		if (idx + 1) == percentileIndex {
-			fmt.Println("choosing value:", value, " for percentile:", percentile)
 			return value
 		}
 	}

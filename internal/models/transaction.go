@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/alexdglover/sage/internal/utils"
@@ -190,9 +189,6 @@ func (tr *TransactionRepository) GetTTMStatistics(ctx context.Context, yearMonth
 			netIncomeAmounts = append(netIncomeAmounts, netIncome)
 		}
 	}
-
-	fmt.Println("net income amounts are:")
-	fmt.Println(netIncomeAmounts)
 
 	// Calculate the average of the net income amounts
 	total := 0
