@@ -7,7 +7,7 @@ import (
 
 type Budget struct {
 	gorm.Model
-	Amount     int64
+	Amount     int
 	CategoryID uint
 	Category   Category
 }

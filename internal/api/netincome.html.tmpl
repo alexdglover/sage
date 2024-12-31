@@ -1,0 +1,244 @@
+<h2>Net income</h2>
+
+<div style="padding-left: 10%; padding-right: 10%;">
+  <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
+    <button
+      type="button"
+      class="btn {{ if .AllTimeActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+      hx-get="/net-income?relativeWindow=allTime"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      All time
+    </button>
+    <button
+      type="button"
+      class="btn {{ if .Last12MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+      hx-get="/net-income?relativeWindow=12"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 12 months
+    </button>
+    <button
+      type="button"
+      class="btn {{ if .Last6MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+      hx-get="/net-income?relativeWindow=6"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 6 months
+    </button>
+    <button
+      type="button"
+      class="btn {{ if .Last3MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+      hx-get="/net-income?relativeWindow=3"
+      hx-target="#reportContent"
+      hx-swap="innerHTML">
+      Last 3 months
+    </button>
+  </div>
+  <canvas class="my-4 w-100" id="netIncomeChart"></canvas>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th style="text-align: right;" scope="col">Income</th>
+        <th style="text-align: right;" scope="col">Expenses</th>
+        <th style="text-align: right;" scope="col">Net Income</th>
+        <!--<th style="text-align: right;" scope="col">Net Income - TTM average</th>
+        <th style="text-align: right;" scope="col">Upper bound</th>
+        <th style="text-align: right;" scope="col">Lower bound</th>-->
+      </tr>
+    </thead>
+    <tbody>
+      {{ range $incomeExpenseDataset := .DataSets }}
+      <tr>
+        <td>{{ $incomeExpenseDataset.Date }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.IncomeHumanized }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.ExpensesHumanized }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.NetIncomeHumanized }}</td>
+        <!--<td style="text-align: right;">${{ $incomeExpenseDataset.TTMAverage }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.TTMSeventyFifthPercentile }}</td>
+        <td style="text-align: right;">${{ $incomeExpenseDataset.TTMTwentyFifthPercentile }}</td>-->
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+
+<h3>Statistical analysis</h3>
+
+<canvas class="my-4 w-100" id="netIncomeAverageChart"></canvas>
+
+<script>
+  /* globals Chart:false, feather:false */
+
+(function () {
+  'use strict'
+
+  // Graphs
+  var netIncomeChartCanvas = document.getElementById('netIncomeChart')
+  // eslint-disable-next-line no-unused-vars
+  var netIncomeChart = new Chart(netIncomeChartCanvas, {
+    type: 'line',
+    data: {
+      labels: [
+        {{ range $incomeExpenseDataset := .DataSets }}
+        "{{ $incomeExpenseDataset.Date }}",
+        {{ end }}
+      ],
+      datasets: [
+        {
+          label: 'Net Income',
+          fill: false,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.NetIncome }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#000000',
+          borderColor: '#000000',
+          borderWidth: 4,
+          pointBackgroundColor: '#000000'
+        },
+        {
+          label: 'Income',
+          fill: true,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.Income }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#198754',
+          borderColor: '#198754',
+          borderWidth: 4,
+          pointBackgroundColor: '#198754'
+        },
+        {
+          label: 'Expenses',
+          fill: true,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.Expenses }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#dc3545',
+          borderColor: '#dc3545',
+          borderWidth: 4,
+          pointBackgroundColor: '#dc3545'
+        }
+      ]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            // Include a dollar sign in the ticks
+            callback: function(value, index, ticks) {
+                return '$' + value;
+            }
+          }
+        }
+      },
+      legend: {
+        display: true
+      }
+    }
+  })
+
+  var netIncomeAverageChartCanvas = document.getElementById('netIncomeAverageChart')
+  // eslint-disable-next-line no-unused-vars
+  var netIncomeAverageChart = new Chart(netIncomeAverageChartCanvas, {
+    type: 'line',
+    data: {
+      labels: [
+        {{ range $incomeExpenseDataset := .DataSets }}
+        "{{ $incomeExpenseDataset.Date }}",
+        {{ end }}
+      ],
+      datasets: [
+        {
+          label: 'Net Income',
+          fill: false,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.NetIncome }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          lineTension: 0.2,
+          backgroundColor: '#000000',
+          borderColor: '#000000',
+          borderWidth: 4,
+          pointBackgroundColor: '#000000'
+        },
+        {
+          label: 'TTM Average',
+          fill: false,
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.TTMAverage }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#000000',
+          borderColor: '#000000',
+          borderWidth: 3,
+          borderDash: [5, 5],
+          pointBackgroundColor: '#000000'
+        },
+        {
+          label: 'TTM 75%ile',
+          fill: '1',
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.TTMSeventyFifthPercentile }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          borderColor: 'rgba(25, 135, 84, 1)',
+          borderWidth: 1,
+          borderDash: [5, 5],
+          pointBackgroundColor: 'rgba(25, 135, 84, 1)',
+        },
+        {
+          label: 'TTM 25%ile',
+          fill: '1',
+          data: [
+          {{ range $incomeExpenseDataset := .DataSets }}
+          "{{ $incomeExpenseDataset.TTMTwentyFifthPercentile }}",
+          {{ end }}
+          ],
+          lineTension: 0.2,
+          borderColor: 'rgba(220, 53, 69, 1)',
+          borderWidth: 1,
+          borderDash: [5, 5],
+          pointBackgroundColor: 'rgba(220, 53, 69, 1)',
+        },
+      ]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            // Include a dollar sign in the ticks
+            callback: function(value, index, ticks) {
+                return '$' + value;
+            }
+          }
+        }
+      },
+      legend: {
+        display: true
+      }
+    }
+  })
+})()
+
+</script>

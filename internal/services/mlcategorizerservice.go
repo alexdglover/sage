@@ -39,9 +39,15 @@ func (mc *MLCategorizer) BuildModel() error {
 // Should this return just the category name as a string, a category object, both, or something else?
 func (mc *MLCategorizer) CategorizeTransaction(transaction *models.Transaction) (category models.Category, err error) {
 	results := mc.Bag.GetResults(transaction.Description)
+	fmt.Println("categorizing results:", results)
 	categoryName := results.GetHighestProbability()
 	// On the initial run, there will be no training data and therefore categoryName will be the empty string
 	if categoryName == "" {
+		categoryName = "Unknown"
+	}
+	// If the probability of the highest probability result is less than -8, then we're better off
+	// assigning it to "Unknown"
+	if results[categoryName] < -8 {
 		categoryName = "Unknown"
 	}
 	category, err = mc.CategoryRepository.GetCategoryByName(categoryName)

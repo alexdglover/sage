@@ -28,7 +28,7 @@ type BudgetDTO struct {
 	CategoryName string
 	Amount       string
 	Spend        string
-	PercentUsed  int64
+	PercentUsed  int
 }
 
 type BudgetsPageDTO struct {
@@ -75,7 +75,7 @@ func (bc *BudgetController) generateBudgetForm(w http.ResponseWriter, req *http.
 		dto.Updating = true
 		dto.BudgetID = fmt.Sprint(budget.ID)
 		dto.CategoryName = budget.Category.Name
-		dto.Amount = utils.CentsToDollarString(budget.Amount)
+		dto.Amount = utils.CentsToDollarStringHumanized(budget.Amount)
 	} else {
 		dto.Updating = false
 	}
@@ -156,8 +156,8 @@ func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool)
 		budgetsDTO[i] = BudgetDTO{
 			ID:           budget.ID,
 			CategoryName: budget.CategoryName,
-			Amount:       utils.CentsToDollarString(budget.Amount),
-			Spend:        utils.CentsToDollarString(budget.Spend),
+			Amount:       utils.CentsToDollarStringHumanized(budget.Amount),
+			Spend:        utils.CentsToDollarStringHumanized(budget.Spend),
 			PercentUsed:  budget.PercentUsed,
 		}
 	}

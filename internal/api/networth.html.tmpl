@@ -64,7 +64,7 @@
           "{{ index $value "netWorth" }}",
           {{ end }}
           ],
-          lineTension: 0,
+          lineTension: 0.2,
           backgroundColor: '#000000',
           borderColor: '#000000',
           borderWidth: 4,
@@ -79,7 +79,7 @@
           "{{ index $value "assets" }}",
           {{ end }}
           ],
-          lineTension: 0,
+          lineTension: 0.2,
           backgroundColor: '#198754',
           borderColor: '#198754',
           borderWidth: 4,
@@ -93,7 +93,7 @@
           "{{ index $value "liabilities" }}",
           {{ end }}
           ],
-          lineTension: 0,
+          lineTension: 0.2,
           backgroundColor: '#dc3545',
           borderColor: '#dc3545',
           borderWidth: 4,
@@ -126,18 +126,18 @@
     <thead>
       <tr>
         <th scope="col">Date</th>
-        <th scope="col">Assets</th>
-        <th scope="col">Liabilities</th>
-        <th scope="col">Net Worth</th>
+        <th style="text-align: right;" scope="col">Assets</th>
+        <th style="text-align: right;" scope="col">Liabilities</th>
+        <th style="text-align: right;" scope="col">Net Worth</th>
       </tr>
     </thead>
     <tbody>
       {{ range $key, $value := .TotalByMonthAndType }}
       <tr>
         <td>{{ $key }}</td>
-        <td>${{ index $value "assets" }}</td>
-        <td>${{ index $value "liabilities" }}</td>
-        <td>${{ index $value "netWorth" }}</td>
+        <td style="text-align: right;">${{ index $value "assets" }}</td>
+        <td style="text-align: right;">${{ index $value "liabilities" }}</td>
+        <td style="text-align: right;">${{ index $value "netWorth" }}</td>
       </tr>
       {{ end }}
     </tbody>

@@ -1,8 +1,10 @@
 package models
 
 import (
+	"context"
 	"time"
 
+	"github.com/alexdglover/sage/internal/utils"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -11,7 +13,7 @@ type Transaction struct {
 	gorm.Model
 	Date               string
 	Description        string
-	Amount             int64
+	Amount             int
 	Excluded           bool // Will be stored as 0 or 1 in SQLite
 	Hash               string
 	UseForTraining     bool
@@ -21,6 +23,23 @@ type Transaction struct {
 	Category           Category
 	ImportSubmissionID *uint
 	ImportSubmission   *ImportSubmission
+}
+
+type TransactionsByDate struct {
+	Date         time.Time
+	Transactions []Transaction
+}
+
+type NetIncomeDataByDate struct {
+	Date      time.Time `gorm:"type:time"`
+	NetIncome int
+	Income    int
+	Expenses  int
+}
+
+type TTMAverageByDate struct {
+	Date       time.Time
+	TTMAverage int
 }
 
 type TransactionRepository struct {
@@ -34,8 +53,8 @@ func (tr *TransactionRepository) GetAllTransactions() ([]Transaction, error) {
 	return txns, result.Error
 }
 
-func (tr *TransactionRepository) GetSumOfTransactionsByCategoryID(categoryID uint, startDate time.Time, endDate time.Time) (int64, error) {
-	var sum int64
+func (tr *TransactionRepository) GetSumOfTransactionsByCategoryID(categoryID uint, startDate time.Time, endDate time.Time) (int, error) {
+	var sum int
 	queryResult := tr.DB.Raw(`SELECT coalesce(sum(amount), 0)
 		FROM transactions
 		WHERE category_id=?
@@ -79,4 +98,131 @@ func (tr *TransactionRepository) GetTransactionsForTraining() ([]Transaction, er
 	var transactions []Transaction
 	result := tr.DB.Preload(clause.Associations).Where("use_for_training = ?", 1).Find(&transactions)
 	return transactions, result.Error
+}
+
+func (tr *TransactionRepository) GetNetIncomeTotalsByDate(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) (NITByDate []NetIncomeDataByDate, err error) {
+	type netIncomeDataSet struct {
+		Income    int
+		Expenses  int
+		NetIncome int
+	}
+	var netIncomeData netIncomeDataSet
+
+	for month := startYearMonth; month.Before(endYearMonth); month = month.AddDate(0, 1, 0) {
+		// reset netIncomeData for each month
+		netIncomeData = netIncomeDataSet{}
+
+		firstDayOfTheMonth := month.AddDate(0, 0, 1-month.Day())
+		lastDayOfTheMonth := firstDayOfTheMonth.AddDate(0, 1, -1)
+		firstDayOfTheMonthISO := utils.TimeToISO8601DateString(firstDayOfTheMonth)
+		lastDayOfTheMonthISO := utils.TimeToISO8601DateString(lastDayOfTheMonth)
+
+		netIncomeQuery := tr.DB.Raw(`WITH income AS (
+				SELECT sum(t.amount) as amount,
+				STRFTIME('%Y-%m', t.date) as yearmonth
+				FROM transactions AS t
+				JOIN categories AS c
+				ON c.id=t.category_id
+				WHERE c.name="Income"
+				AND date >= (?)
+				AND date <= (?)
+				GROUP BY yearmonth
+			),
+			expenses AS (
+				SELECT sum(t.amount) as amount,
+				STRFTIME('%Y-%m', t.date) as yearmonth
+				FROM transactions AS t
+				JOIN categories AS c
+				ON c.id=t.category_id
+				WHERE c.name not in ("Income", "Transfers")
+				AND date >= (?)
+				AND date <= (?)
+				GROUP BY yearmonth
+			)
+			SELECT income.amount AS income, expenses.amount AS expenses, COALESCE(income.amount, 0) - COALESCE(expenses.amount, 0) as net_income
+			FROM income FULL OUTER JOIN expenses 
+			ON income.yearmonth = expenses.yearmonth`,
+			firstDayOfTheMonthISO, lastDayOfTheMonthISO, firstDayOfTheMonthISO, lastDayOfTheMonthISO).Scan(&netIncomeData)
+
+		if netIncomeQuery.Error != nil {
+			return []NetIncomeDataByDate{}, netIncomeQuery.Error
+		}
+
+		NITByDate = append(NITByDate, NetIncomeDataByDate{
+			Date:      month,
+			Income:    netIncomeData.Income,
+			Expenses:  netIncomeData.Expenses,
+			NetIncome: netIncomeData.NetIncome,
+		})
+	}
+
+	return NITByDate, nil
+}
+
+func (tr *TransactionRepository) GetTTMStatistics(ctx context.Context, yearMonth time.Time) (average int, twentyFifthPercentile int, seventyFifthPercentile int, err error) {
+	var netIncomeAmounts []int
+
+	twelveMonthsEarlier := yearMonth.AddDate(0, -12, 0)
+
+	for month := yearMonth; month.After(twelveMonthsEarlier); month = month.AddDate(0, -1, 0) {
+		var netIncome int
+		// Get dates for beginning and end of the month
+		firstDayOfTheMonth := month.AddDate(0, 0, 1-month.Day())
+		lastDayOfTheMonth := firstDayOfTheMonth.AddDate(0, 1, -1)
+		firstDayOfTheMonthISO := utils.TimeToISO8601DateString(firstDayOfTheMonth)
+		lastDayOfTheMonthISO := utils.TimeToISO8601DateString(lastDayOfTheMonth)
+
+		netIncomeQuery := tr.DB.Raw(`WITH income AS (
+				SELECT sum(t.amount) as amount,
+				STRFTIME('%Y-%m', t.date) as yearmonth
+				FROM transactions AS t
+				JOIN categories AS c
+				ON c.id=t.category_id
+				WHERE c.name="Income"
+				AND date >= (?)
+				AND date <= (?)
+				GROUP BY yearmonth
+			),
+			expenses AS (
+				SELECT sum(t.amount) as amount,
+				STRFTIME('%Y-%m', t.date) as yearmonth
+				FROM transactions AS t
+				JOIN categories AS c
+				ON c.id=t.category_id
+				WHERE c.name not in ("Income", "Transfers")
+				AND date >= (?)
+				AND date <= (?)
+				GROUP BY yearmonth
+			)
+			SELECT COALESCE(income.amount, 0) - COALESCE(expenses.amount, 0) as net_income
+			FROM income FULL OUTER JOIN expenses 
+			ON income.yearmonth = expenses.yearmonth
+		`, firstDayOfTheMonthISO, lastDayOfTheMonthISO, firstDayOfTheMonthISO, lastDayOfTheMonthISO).Scan(&netIncome)
+
+		if netIncomeQuery.Error != nil {
+			return 0, 0, 0, netIncomeQuery.Error
+		}
+
+		// a user may not have transactions going back 12 months, so we need to skip months where there is no data
+		// to avoid adding artificial zeros to the average
+		if netIncome != 0 {
+			netIncomeAmounts = append(netIncomeAmounts, netIncome)
+		}
+	}
+
+	// Calculate the average of the net income amounts
+	total := 0
+	for _, amount := range netIncomeAmounts {
+		total += amount
+	}
+	// Can't calculate average if there are no net income amounts
+	if len(netIncomeAmounts) == 0 {
+		return 0, 0, 0, nil
+	}
+	average = total / len(netIncomeAmounts)
+
+	twentyFifthPercentile = utils.Percentile(netIncomeAmounts, 0.25)
+	seventyFifthPercentile = utils.Percentile(netIncomeAmounts, 0.75)
+
+	return average, twentyFifthPercentile, seventyFifthPercentile, nil
 }

@@ -97,7 +97,7 @@ func (ic *ImportController) importSubmissionHandler(w http.ResponseWriter, req *
 			ID:                 txn.ID,
 			Date:               txn.Date,
 			Description:        txn.Description,
-			Amount:             utils.CentsToDollarString(txn.Amount),
+			Amount:             utils.CentsToDollarStringHumanized(txn.Amount),
 			Excluded:           txn.Excluded,
 			AccountName:        txn.Account.Name,
 			CategoryName:       txn.Category.Name,

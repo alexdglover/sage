@@ -16,9 +16,9 @@ type BudgetService struct {
 type BudgetAndSpend struct {
 	ID           uint
 	CategoryName string
-	Amount       int64
-	Spend        int64
-	PercentUsed  int64
+	Amount       int
+	Spend        int
+	PercentUsed  int
 }
 
 func (bs *BudgetService) GetAllBudgetsAndCurrentSpend() (budgetsAndSpend []BudgetAndSpend, err error) {
@@ -48,7 +48,7 @@ func (bs *BudgetService) GetAllBudgetsAndCurrentSpend() (budgetsAndSpend []Budge
 			CategoryName: budget.Category.Name,
 			Amount:       budget.Amount,
 			Spend:        sum,
-			PercentUsed:  int64(float64(sum) / float64(budget.Amount) * 100),
+			PercentUsed:  int(float64(sum) / float64(budget.Amount) * 100),
 		})
 	}
 	return budgetsAndSpend, nil

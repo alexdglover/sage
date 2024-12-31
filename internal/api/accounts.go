@@ -82,7 +82,7 @@ func (ac *AccountController) generateAccountsView(w http.ResponseWriter, req *ht
 			AccountCategory:    account.AccountType.AccountCategory,
 			AccountType:        account.AccountType.LedgerType,
 			DefaultParser:      account.AccountType.DefaultParser,
-			Balance:            utils.CentsToDollarString(balance.Amount),
+			Balance:            utils.CentsToDollarStringHumanized(balance.Amount),
 			BalanceLastUpdated: balanceLastUpdated,
 		}
 	}
