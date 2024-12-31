@@ -93,7 +93,6 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 
 	for idx, txnsWithDate := range incomeTxns {
 		var runningIncomeTotal, runningExpenseTotal int
-		// Explicitly set these back to zero to avoid accumulating data across months
 		runningIncomeTotal = 0
 		runningExpenseTotal = 0
 

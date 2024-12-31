@@ -102,8 +102,11 @@ func (tr *TransactionRepository) GetAllTransactionsByNetIncomeType(ctx context.C
 	}
 	for _, month := range months {
 		var transactions []Transaction
+
 		// Convert dates to YYYY-MM-DD so date comparisons work consistently with strings in SQLite
-		lastDayOfMonth := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
+		firstDayOfTheMonth := utils.TimeToISO8601DateString(month)
+		lastDayOfTheMonth := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
+
 		if incomeOrExpense == "income" {
 			queryResult := tr.DB.Raw(`SELECT t.*
 			FROM transactions AS t
@@ -111,7 +114,7 @@ func (tr *TransactionRepository) GetAllTransactionsByNetIncomeType(ctx context.C
 			ON c.id=t.category_id
 			WHERE c.name="Income"
 			AND date >= (?)
-			AND date <= (?)`, month, lastDayOfMonth).Scan(&transactions)
+			AND date <= (?)`, firstDayOfTheMonth, lastDayOfTheMonth).Scan(&transactions)
 
 			if queryResult.Error != nil {
 				return []TransactionsByDate{}, queryResult.Error
@@ -123,7 +126,7 @@ func (tr *TransactionRepository) GetAllTransactionsByNetIncomeType(ctx context.C
 			ON c.id=t.category_id
 			WHERE c.name not in ("Income", "Transfers")
 			AND date >= (?)
-			AND date <= (?)`, month, lastDayOfMonth).Scan(&transactions)
+			AND date <= (?)`, firstDayOfTheMonth, lastDayOfTheMonth).Scan(&transactions)
 
 			if queryResult.Error != nil {
 				return []TransactionsByDate{}, queryResult.Error
