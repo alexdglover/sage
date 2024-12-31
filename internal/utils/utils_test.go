@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -28,8 +27,6 @@ func TestPercentile(t *testing.T) {
 
 	for _, test := range tests {
 		result := Percentile(test.input, test.percentile)
-		fmt.Println("expected:", test.expected)
-		fmt.Println("actual:", result)
 		if result != test.expected {
 			t.Errorf("Percentile(%v, %v) = %v; expected %v", test.input, test.percentile, result, test.expected)
 		}

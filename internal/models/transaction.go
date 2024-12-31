@@ -30,6 +30,13 @@ type TransactionsByDate struct {
 	Transactions []Transaction
 }
 
+type NetIncomeDataByDate struct {
+	Date      time.Time `gorm:"type:time"`
+	NetIncome int
+	Income    int
+	Expenses  int
+}
+
 type TTMAverageByDate struct {
 	Date       time.Time
 	TTMAverage int
@@ -83,63 +90,63 @@ func (tr *TransactionRepository) GetTransactionsForTraining() ([]Transaction, er
 	return transactions, result.Error
 }
 
-func (tr *TransactionRepository) GetAllIncomeTransactions(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) (txnsByDate []TransactionsByDate, err error) {
-	return tr.GetAllTransactionsByNetIncomeType(ctx, "income", startYearMonth, endYearMonth)
-}
-
-func (tr *TransactionRepository) GetAllExpenseTransactions(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) (txnsByDate []TransactionsByDate, err error) {
-	return tr.GetAllTransactionsByNetIncomeType(ctx, "expense", startYearMonth, endYearMonth)
-}
-
-// TODO: This needs to reconcile with the amounts returned by GetTTMStatistics, currently getting mismatched results
-func (tr *TransactionRepository) GetAllTransactionsByNetIncomeType(ctx context.Context, incomeOrExpense string, startYearMonth time.Time, endYearMonth time.Time) (txnsByDate []TransactionsByDate, err error) {
-	//create a slice of months in Go instead of relying on SQL
-	months := []time.Time{}
-	for month := startYearMonth; month.Before(endYearMonth); month = month.AddDate(0, 1, 0) {
-		// Set the date to the first of the month
-		month = month.AddDate(0, 0, 1-month.Day())
-		months = append(months, month)
+func (tr *TransactionRepository) GetNetIncomeTotalsByDate(ctx context.Context, startYearMonth time.Time, endYearMonth time.Time) (NITByDate []NetIncomeDataByDate, err error) {
+	type netIncomeDataSet struct {
+		Income    int
+		Expenses  int
+		NetIncome int
 	}
-	for _, month := range months {
-		var transactions []Transaction
+	var netIncomeData netIncomeDataSet
 
-		// Convert dates to YYYY-MM-DD so date comparisons work consistently with strings in SQLite
-		firstDayOfTheMonth := utils.TimeToISO8601DateString(month)
-		lastDayOfTheMonth := utils.TimeToISO8601DateString(month.AddDate(0, 1, -1))
+	for month := startYearMonth; month.Before(endYearMonth); month = month.AddDate(0, 1, 0) {
+		// reset netIncomeData for each month
+		netIncomeData = netIncomeDataSet{}
 
-		if incomeOrExpense == "income" {
-			queryResult := tr.DB.Raw(`SELECT t.*
-			FROM transactions AS t
-			JOIN categories AS c
-			ON c.id=t.category_id
-			WHERE c.name="Income"
-			AND date >= (?)
-			AND date <= (?)`, firstDayOfTheMonth, lastDayOfTheMonth).Scan(&transactions)
+		firstDayOfTheMonth := month.AddDate(0, 0, 1-month.Day())
+		lastDayOfTheMonth := firstDayOfTheMonth.AddDate(0, 1, -1)
+		firstDayOfTheMonthISO := utils.TimeToISO8601DateString(firstDayOfTheMonth)
+		lastDayOfTheMonthISO := utils.TimeToISO8601DateString(lastDayOfTheMonth)
 
-			if queryResult.Error != nil {
-				return []TransactionsByDate{}, queryResult.Error
-			}
-		} else if incomeOrExpense == "expense" {
-			queryResult := tr.DB.Raw(`SELECT t.*
-			FROM transactions AS t
-			JOIN categories AS c
-			ON c.id=t.category_id
-			WHERE c.name not in ("Income", "Transfers")
-			AND date >= (?)
-			AND date <= (?)`, firstDayOfTheMonth, lastDayOfTheMonth).Scan(&transactions)
+		netIncomeQuery := tr.DB.Raw(`WITH income AS (
+				SELECT sum(t.amount) as amount,
+				STRFTIME('%Y-%m', t.date) as yearmonth
+				FROM transactions AS t
+				JOIN categories AS c
+				ON c.id=t.category_id
+				WHERE c.name="Income"
+				AND date >= (?)
+				AND date <= (?)
+				GROUP BY yearmonth
+			),
+			expenses AS (
+				SELECT sum(t.amount) as amount,
+				STRFTIME('%Y-%m', t.date) as yearmonth
+				FROM transactions AS t
+				JOIN categories AS c
+				ON c.id=t.category_id
+				WHERE c.name not in ("Income", "Transfers")
+				AND date >= (?)
+				AND date <= (?)
+				GROUP BY yearmonth
+			)
+			SELECT income.amount AS income, expenses.amount AS expenses, COALESCE(income.amount, 0) - COALESCE(expenses.amount, 0) as net_income
+			FROM income FULL OUTER JOIN expenses 
+			ON income.yearmonth = expenses.yearmonth`,
+			firstDayOfTheMonthISO, lastDayOfTheMonthISO, firstDayOfTheMonthISO, lastDayOfTheMonthISO).Scan(&netIncomeData)
 
-			if queryResult.Error != nil {
-				return []TransactionsByDate{}, queryResult.Error
-			}
+		if netIncomeQuery.Error != nil {
+			return []NetIncomeDataByDate{}, netIncomeQuery.Error
 		}
 
-		txnsByDate = append(txnsByDate, TransactionsByDate{
-			Date:         month,
-			Transactions: transactions,
+		NITByDate = append(NITByDate, NetIncomeDataByDate{
+			Date:      month,
+			Income:    netIncomeData.Income,
+			Expenses:  netIncomeData.Expenses,
+			NetIncome: netIncomeData.NetIncome,
 		})
 	}
 
-	return txnsByDate, nil
+	return NITByDate, nil
 }
 
 func (tr *TransactionRepository) GetTTMStatistics(ctx context.Context, yearMonth time.Time) (average int, twentyFifthPercentile int, seventyFifthPercentile int, err error) {

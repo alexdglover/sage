@@ -43,7 +43,6 @@ var netIncomeTmpl string
 // netIncomeHandler is the HTTP handler for the net income page
 // TODO: Implement logic for relative date controls
 func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http.Request) {
-
 	dto := IncomeAndExpensesDTO{}
 	var relativeWindow int
 
@@ -74,47 +73,26 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 
 	// We always start with today's date and work backwards based on relative window value
 	endDate := time.Now()
-	relativeWindow = relativeWindow - 1
 	// And calculate start date
 	startDate := endDate.AddDate(0, (relativeWindow * -1), 0)
 
-	// Get all income transactions
-	incomeTxns, err := nc.TransactionRepository.GetAllIncomeTransactions(context.TODO(), startDate, endDate)
+	netIncomeDataByDate, err := nc.TransactionRepository.GetNetIncomeTotalsByDate(context.TODO(), startDate, endDate)
 	if err != nil {
-		fmt.Println("error while getting asset transactions:", err)
-		//TODO: add an HTTP return here
-	}
-	// Get all expense transactions
-	expenseTxns, err := nc.TransactionRepository.GetAllExpenseTransactions(context.TODO(), startDate, endDate)
-	if err != nil {
-		fmt.Println("error while getting asset transactions:", err)
-		//TODO: add an HTTP return here
+		// TODO: handle correctly
+		fmt.Println("error while getting net income data:", err)
 	}
 
-	for idx, txnsWithDate := range incomeTxns {
-		var runningIncomeTotal, runningExpenseTotal int
-		runningIncomeTotal = 0
-		runningExpenseTotal = 0
-
-		for _, txn := range txnsWithDate.Transactions {
-			runningIncomeTotal = runningIncomeTotal + txn.Amount
-		}
-
-		for _, txn := range expenseTxns[idx].Transactions {
-			runningExpenseTotal = runningExpenseTotal - txn.Amount
-		}
-		netIncomeTotal := runningIncomeTotal + runningExpenseTotal
-
-		netIncomeTTMAverage, twentyFifthPercentile, seventyFifthPercentile, _ := nc.TransactionRepository.GetTTMStatistics(context.TODO(), txnsWithDate.Date)
+	for _, netIncomeData := range netIncomeDataByDate {
+		netIncomeTTMAverage, twentyFifthPercentile, seventyFifthPercentile, _ := nc.TransactionRepository.GetTTMStatistics(context.TODO(), netIncomeData.Date)
 
 		incomeAndExpenses := IncomeAndExpensesDataSet{
-			Date:                      txnsWithDate.Date.Format("2006-01"),
-			Income:                    utils.CentsToDollarStringMachineSafe(runningIncomeTotal),
-			IncomeHumanized:           utils.CentsToDollarStringHumanized(runningIncomeTotal),
-			Expenses:                  utils.CentsToDollarStringMachineSafe(runningExpenseTotal),
-			ExpensesHumanized:         utils.CentsToDollarStringHumanized(runningExpenseTotal),
-			NetIncome:                 utils.CentsToDollarStringMachineSafe(netIncomeTotal),
-			NetIncomeHumanized:        utils.CentsToDollarStringHumanized(netIncomeTotal),
+			Date:                      netIncomeData.Date.Format("2006-01"),
+			Income:                    utils.CentsToDollarStringMachineSafe(netIncomeData.Income),
+			IncomeHumanized:           utils.CentsToDollarStringHumanized(netIncomeData.Income),
+			Expenses:                  utils.CentsToDollarStringMachineSafe(netIncomeData.Expenses * -1),
+			ExpensesHumanized:         utils.CentsToDollarStringHumanized(netIncomeData.Expenses * -1),
+			NetIncome:                 utils.CentsToDollarStringMachineSafe(netIncomeData.NetIncome),
+			NetIncomeHumanized:        utils.CentsToDollarStringHumanized(netIncomeData.NetIncome),
 			TTMAverage:                utils.CentsToDollarStringMachineSafe(netIncomeTTMAverage),
 			TTMSeventyFifthPercentile: utils.CentsToDollarStringMachineSafe(seventyFifthPercentile),
 			TTMTwentyFifthPercentile:  utils.CentsToDollarStringMachineSafe(twentyFifthPercentile),

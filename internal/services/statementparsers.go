@@ -2,7 +2,6 @@ package services
 
 import (
 	"encoding/csv"
-	"fmt"
 	"strings"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -235,7 +234,6 @@ func (s ChaseCreditCardCSVParser) Parse(statement string) (transactions []models
 		if idx == 0 {
 			continue
 		}
-		fmt.Println("working on record", idx)
 		isoDate := utils.ConvertMMDDYYYYtoISO8601(record[0])
 		amount := utils.DollarStringToCents(record[5])
 		if amount < 0 {
