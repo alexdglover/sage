@@ -228,8 +228,13 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">
-              &#x1F4B8; Spending
+            <a class="nav-link" href="#"
+              hx-get="/spending-by-category"
+              hx-trigger="click"
+              hx-target="#reportContent"
+              hx-swap="innerHTML">
+              &#x1F4B8; Spending by category
+            </a>
             </a>
           </li>
         </ul>

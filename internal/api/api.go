@@ -17,6 +17,7 @@ type ApiServer struct {
 	MainController        *MainController
 	NetIncomeController   *NetIncomeController
 	NetWorthController    *NetWorthController
+	SpendingController    *SpendingController
 	TransactionController *TransactionController
 }
 
@@ -32,6 +33,8 @@ func (as *ApiServer) StartApiServer(ctx context.Context) {
 	http.HandleFunc("GET /net-income", as.NetIncomeController.netIncomeHandler)
 	http.HandleFunc("GET /import-form", as.ImportController.importStatementFormHandler)
 	http.HandleFunc("POST /import-submission", as.ImportController.importSubmissionHandler)
+
+	http.HandleFunc("GET /spending-by-category", as.SpendingController.spendingByCategoryHandler)
 
 	http.HandleFunc("GET /accounts", as.AccountController.generateAccountsView)
 	http.HandleFunc("POST /accounts", as.AccountController.upsertAccount)

@@ -42,6 +42,11 @@ type TTMAverageByDate struct {
 	TTMAverage int
 }
 
+type TotalByCategory struct {
+	Category string
+	Amount   int
+}
+
 type TransactionRepository struct {
 	DB *gorm.DB
 }
@@ -61,6 +66,19 @@ func (tr *TransactionRepository) GetSumOfTransactionsByCategoryID(categoryID uin
 		AND date >= ?
 		AND date <= ?`, categoryID, startDate, endDate).Scan(&sum)
 	return sum, queryResult.Error
+}
+
+func (tr *TransactionRepository) GetSumOfTransactionsByCategory(startDate time.Time, endDate time.Time) (totals []TotalByCategory, err error) {
+	startDateISO := utils.TimeToISO8601DateString(startDate)
+	endDateISO := utils.TimeToISO8601DateString(endDate)
+	queryResult := tr.DB.Raw(`SELECT c.name AS Category, coalesce(sum(t.amount), 0) AS Amount
+		FROM transactions t JOIN categories c ON t.category_id = c.id
+		AND t.date >= ?
+		AND t.date <= ?
+		AND c.name NOT IN ("Income", "Transfers")
+		GROUP BY c.name`, startDateISO, endDateISO).Scan(&totals)
+
+	return totals, queryResult.Error
 }
 
 func (tr *TransactionRepository) GetTransactionsByHash(hash string, submissionID uint) ([]Transaction, error) {
