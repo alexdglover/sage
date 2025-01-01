@@ -245,3 +245,9 @@ func (tr *TransactionRepository) GetTTMStatistics(ctx context.Context, yearMonth
 
 	return average, twentyFifthPercentile, seventyFifthPercentile, nil
 }
+
+// Soft deletes a transaction
+func (tr *TransactionRepository) DeleteTransactionByID(ctx context.Context, id uint) (err error) {
+	result := tr.DB.Delete(&Transaction{}, id)
+	return result.Error
+}

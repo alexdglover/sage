@@ -35,9 +35,9 @@ type AccountDTO struct {
 }
 
 type AccountsPageDTO struct {
-	Accounts            []AccountDTO
-	AccountUpdated      bool
-	AccontUpdateMessage string
+	Accounts              []AccountDTO
+	AccountUpdated        bool
+	AccountUpdatedMessage string
 }
 
 type AccountFormDTO struct {
@@ -55,7 +55,7 @@ func (ac *AccountController) generateAccountsView(w http.ResponseWriter, req *ht
 	ac.generateAccountsViewContent(w, "")
 }
 
-func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, accountUpdateMessage string) {
+func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, AccountUpdatedMessage string) {
 	// Get all accounts
 	accounts, err := ac.AccountRepository.GetAllAccounts()
 	if err != nil {
@@ -92,9 +92,9 @@ func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, 
 	accountsPageDTO := AccountsPageDTO{
 		Accounts: accountsDTO,
 	}
-	if accountUpdateMessage != "" {
+	if AccountUpdatedMessage != "" {
 		accountsPageDTO.AccountUpdated = true
-		accountsPageDTO.AccontUpdateMessage = accountUpdateMessage
+		accountsPageDTO.AccountUpdatedMessage = AccountUpdatedMessage
 	}
 
 	tmpl := template.Must(template.New("accountsPage").Funcs(template.FuncMap{

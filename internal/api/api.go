@@ -55,6 +55,7 @@ func (as *ApiServer) StartApiServer(ctx context.Context) {
 
 	http.HandleFunc("GET /transactions", as.TransactionController.generateTransactionsView)
 	http.HandleFunc("POST /transactions", as.TransactionController.upsertTransaction)
+	http.HandleFunc("DELETE /transactions", as.TransactionController.deleteTransaction)
 	http.HandleFunc("GET /transactionForm", as.TransactionController.generateTransactionForm)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))

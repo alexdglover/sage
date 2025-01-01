@@ -1,9 +1,10 @@
 package api
 
 import (
+	"context"
 	_ "embed"
+	"fmt"
 	"net/http"
-	"net/url"
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -34,9 +35,9 @@ type TransactionDTO struct {
 }
 
 type TransactionsPageDTO struct {
-	Transactions           []TransactionDTO
-	TransactionSaved       bool
-	CreatedTransactionName string
+	Transactions              []TransactionDTO
+	TransactionUpdated        bool
+	TransactionUpdatedMessage string
 }
 
 type TransactionFormDTO struct {
@@ -56,6 +57,10 @@ type TransactionFormDTO struct {
 }
 
 func (tc *TransactionController) generateTransactionsView(w http.ResponseWriter, req *http.Request) {
+	tc.generateTransactionsViewContent(w, "")
+}
+
+func (tc *TransactionController) generateTransactionsViewContent(w http.ResponseWriter, transactionUpdateMessage string) {
 	// Get all Transactions
 	transactions, err := tc.TransactionRepository.GetAllTransactions()
 	if err != nil {
@@ -80,9 +85,9 @@ func (tc *TransactionController) generateTransactionsView(w http.ResponseWriter,
 	TransactionsPageDTO := TransactionsPageDTO{
 		Transactions: transactionsDTO,
 	}
-	if req.URL.Query().Get("TransactionSaved") != "" {
-		TransactionsPageDTO.TransactionSaved = true
-		TransactionsPageDTO.CreatedTransactionName = req.URL.Query().Get("TransactionSaved")
+	if transactionUpdateMessage != "" {
+		TransactionsPageDTO.TransactionUpdated = true
+		TransactionsPageDTO.TransactionUpdatedMessage = transactionUpdateMessage
 	}
 
 	tmpl := template.Must(template.New("TransactionsPage").Funcs(template.FuncMap{
@@ -216,17 +221,23 @@ func (tc *TransactionController) upsertTransaction(w http.ResponseWriter, req *h
 		return
 	}
 
-	queryValues := url.Values{}
-	queryValues.Add("transactionSaved", transactionID)
-	// TODO: Consider moving the TransactionView to a function that accepts an extra argument
-	// instead of invoking the endpoint with a custom request
-	transactionViewReq := http.Request{
-		Method: "GET",
-		URL: &url.URL{
-			RawQuery: queryValues.Encode(),
-		},
-	}
-	transactionViewReq.URL.RawQuery = queryValues.Encode()
+	tc.generateTransactionsViewContent(w, "Transaction saved successfully")
+}
 
-	tc.generateTransactionsView(w, &transactionViewReq)
+func (tc *TransactionController) deleteTransaction(w http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	transactionID, err := utils.StringToUint(req.FormValue("transactionID"))
+	if err != nil {
+		http.Error(w, "Unable to parse transactionID", http.StatusInternalServerError)
+		return
+	}
+
+	err = tc.TransactionRepository.DeleteTransactionByID(context.TODO(), transactionID)
+
+	if err != nil {
+		http.Error(w, "Unable to delete transaction", http.StatusInternalServerError)
+		return
+	}
+
+	tc.generateTransactionsViewContent(w, fmt.Sprintf("Transaction %v deleted successfully", transactionID))
 }

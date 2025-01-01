@@ -63,6 +63,15 @@
     hx-swap="innerHTML">
     Save
   </button>
+  {{ if eq .Editing true }}
+  <button type="submit" class="btn btn-danger"
+    hx-delete="/transactions"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+    Delete
+  </button>
+  {{ end }}
   <button type="button" class="btn btn-light"
     hx-get="/transactions"
     hx-trigger="click"
