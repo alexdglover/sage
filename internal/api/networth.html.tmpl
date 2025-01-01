@@ -135,9 +135,9 @@
       {{ range $key, $value := .TotalByMonthAndType }}
       <tr>
         <td>{{ $key }}</td>
-        <td style="text-align: right;">${{ index $value "assets" }}</td>
-        <td style="text-align: right;">${{ index $value "liabilities" }}</td>
-        <td style="text-align: right;">${{ index $value "netWorth" }}</td>
+        <td style="text-align: right;">${{ index $value "humanizedAssets" }}</td>
+        <td style="text-align: right;">${{ index $value "humanizedLiabilities" }}</td>
+        <td style="text-align: right;">${{ index $value "humanizedNetWorth" }}</td>
       </tr>
       {{ end }}
     </tbody>
