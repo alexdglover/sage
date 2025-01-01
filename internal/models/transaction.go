@@ -76,7 +76,8 @@ func (tr *TransactionRepository) GetSumOfTransactionsByCategory(startDate time.T
 		AND t.date >= ?
 		AND t.date <= ?
 		AND c.name NOT IN ("Income", "Transfers")
-		GROUP BY c.name`, startDateISO, endDateISO).Scan(&totals)
+		GROUP BY c.name
+		ORDER BY Amount desc`, startDateISO, endDateISO).Scan(&totals)
 
 	return totals, queryResult.Error
 }
