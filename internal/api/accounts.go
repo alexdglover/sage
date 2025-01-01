@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"fmt"
 	"net/http"
-	"net/url"
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -36,9 +35,9 @@ type AccountDTO struct {
 }
 
 type AccountsPageDTO struct {
-	Accounts           []AccountDTO
-	AccountSaved       bool
-	CreatedAccountName string
+	Accounts            []AccountDTO
+	AccountUpdated      bool
+	AccontUpdateMessage string
 }
 
 type AccountFormDTO struct {
@@ -53,6 +52,10 @@ type AccountFormDTO struct {
 }
 
 func (ac *AccountController) generateAccountsView(w http.ResponseWriter, req *http.Request) {
+	ac.generateAccountsViewContent(w, "")
+}
+
+func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, accountUpdateMessage string) {
 	// Get all accounts
 	accounts, err := ac.AccountRepository.GetAllAccounts()
 	if err != nil {
@@ -89,9 +92,9 @@ func (ac *AccountController) generateAccountsView(w http.ResponseWriter, req *ht
 	accountsPageDTO := AccountsPageDTO{
 		Accounts: accountsDTO,
 	}
-	if req.URL.Query().Get("accountSaved") != "" {
-		accountsPageDTO.AccountSaved = true
-		accountsPageDTO.CreatedAccountName = req.URL.Query().Get("accountSaved")
+	if accountUpdateMessage != "" {
+		accountsPageDTO.AccountUpdated = true
+		accountsPageDTO.AccontUpdateMessage = accountUpdateMessage
 	}
 
 	tmpl := template.Must(template.New("accountsPage").Funcs(template.FuncMap{
@@ -184,17 +187,28 @@ func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	queryValues := url.Values{}
-	queryValues.Add("accountSaved", accountName)
-	// TODO: Consider moving the accountView to a function that accepts an extra argument
-	// instead of invoking the endpoint with a custom request
-	accountViewReq := http.Request{
-		Method: "GET",
-		URL: &url.URL{
-			RawQuery: queryValues.Encode(),
-		},
-	}
-	accountViewReq.URL.RawQuery = queryValues.Encode()
+	ac.generateAccountsViewContent(w, fmt.Sprintf("'%s' account saved", account.Name))
+}
 
-	ac.generateAccountsView(w, &accountViewReq)
+func (ac *AccountController) deleteAccount(w http.ResponseWriter, req *http.Request) {
+	accountIDInput := req.FormValue("accountID")
+
+	accountID, err := utils.StringToUint(accountIDInput)
+	if err != nil {
+		http.Error(w, "Unable to parse an account ID from input", http.StatusBadRequest)
+		return
+	}
+	account, err := ac.AccountRepository.GetAccountByID(accountID)
+	if err != nil {
+		http.Error(w, "Unable to get account", http.StatusBadRequest)
+		return
+	}
+
+	err = ac.AccountRepository.DeleteAccountByID(accountID)
+	if err != nil {
+		http.Error(w, "Unable to delete account", http.StatusBadRequest)
+		return
+	}
+
+	ac.generateAccountsViewContent(w, fmt.Sprintf("'%s' account deleted", account.Name))
 }

@@ -38,6 +38,7 @@ func (as *ApiServer) StartApiServer(ctx context.Context) {
 
 	http.HandleFunc("GET /accounts", as.AccountController.generateAccountsView)
 	http.HandleFunc("POST /accounts", as.AccountController.upsertAccount)
+	http.HandleFunc("DELETE /accounts", as.AccountController.deleteAccount)
 	http.HandleFunc("GET /accountForm", as.AccountController.generateAccountForm)
 
 	http.HandleFunc("GET /balances", as.BalanceController.generateBalancesView)

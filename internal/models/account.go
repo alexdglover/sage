@@ -25,7 +25,6 @@ func (ar *AccountRepository) GetAllAccounts() ([]Account, error) {
 func (ar *AccountRepository) GetAccountByID(id uint) (Account, error) {
 	var account Account
 	result := ar.DB.Preload(clause.Associations).Where("id = ?", id).Find(&account)
-	// result := ar.DB.Where("id = ?", id).First(&account)
 	return account, result.Error
 }
 
@@ -33,4 +32,12 @@ func (ar *AccountRepository) GetAccountByID(id uint) (Account, error) {
 func (ar *AccountRepository) Save(account Account) (id uint, err error) {
 	result := ar.DB.Save(&account).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
 	return account.ID, result.Error
+}
+
+// Soft deletes an account and all associated transactions and balances
+func (ar *AccountRepository) DeleteAccountByID(accountID uint) (err error) {
+	ar.DB.Where("account_id = ?", accountID).Delete(&Balance{})
+	ar.DB.Where("account_id = ?", accountID).Delete(&Transaction{})
+	result := ar.DB.Delete(&Account{}, accountID)
+	return result.Error
 }
