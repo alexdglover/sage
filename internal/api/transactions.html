@@ -30,7 +30,7 @@
     </thead>
     <tbody>
       {{ range .Transactions }}
-      <tr>
+      <tr class="{{ if eq .CategoryName "Unknown" }}table-warning{{ end }}">
         <td><a href="#"
           hx-get="/transactionForm?id={{ .ID }}"
           hx-trigger="click"
