@@ -42,7 +42,11 @@
         <td>{{ .Description }}</td>
         <td style="text-align: right;">${{ .Amount }}</td>
         <td>{{ .AccountName }}</td>
-        <td>{{ .CategoryName }}</td>
+        <td>{{ .CategoryName }}
+        {{ if eq .CategoryName "Unknown" }}
+          <span class="badge bg-warning text-dark">⚠️ Category needs review</span>
+        {{ end }}
+        </td>
         <td>{{ .Excluded }}</td>
         <td>{{ .ImportSubmissionID }}</td>
       </tr>
