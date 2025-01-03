@@ -63,6 +63,7 @@ func (tr *TransactionRepository) GetSumOfTransactionsByCategoryID(categoryID uin
 	queryResult := tr.DB.Raw(`SELECT coalesce(sum(amount), 0)
 		FROM transactions
 		WHERE category_id=?
+		AND deleted_at IS NULL
 		AND date >= ?
 		AND date <= ?`, categoryID, startDate, endDate).Scan(&sum)
 	return sum, queryResult.Error
@@ -76,6 +77,7 @@ func (tr *TransactionRepository) GetSumOfTransactionsByCategory(startDate time.T
 		AND t.date >= ?
 		AND t.date <= ?
 		AND c.name NOT IN ("Income", "Transfers")
+		AND t.deleted_at IS NULL
 		GROUP BY c.name
 		ORDER BY Amount desc`, startDateISO, endDateISO).Scan(&totals)
 
@@ -143,8 +145,9 @@ func (tr *TransactionRepository) GetNetIncomeTotalsByDate(ctx context.Context, s
 				JOIN categories AS c
 				ON c.id=t.category_id
 				WHERE c.name="Income"
-				AND date >= (?)
-				AND date <= (?)
+				AND t.deleted_at IS NULL
+				AND t.date >= (?)
+				AND t.date <= (?)
 				GROUP BY yearmonth
 			),
 			expenses AS (
@@ -154,8 +157,9 @@ func (tr *TransactionRepository) GetNetIncomeTotalsByDate(ctx context.Context, s
 				JOIN categories AS c
 				ON c.id=t.category_id
 				WHERE c.name not in ("Income", "Transfers")
-				AND date >= (?)
-				AND date <= (?)
+				AND t.deleted_at IS NULL
+				AND t.date >= (?)
+				AND t.date <= (?)
 				GROUP BY yearmonth
 			)
 			SELECT income.amount AS income, expenses.amount AS expenses, COALESCE(income.amount, 0) - COALESCE(expenses.amount, 0) as net_income
@@ -198,8 +202,9 @@ func (tr *TransactionRepository) GetTTMStatistics(ctx context.Context, yearMonth
 				JOIN categories AS c
 				ON c.id=t.category_id
 				WHERE c.name="Income"
-				AND date >= (?)
-				AND date <= (?)
+				AND t.deleted_at IS NULL
+				AND t.date >= (?)
+				AND t.date <= (?)
 				GROUP BY yearmonth
 			),
 			expenses AS (
@@ -209,8 +214,9 @@ func (tr *TransactionRepository) GetTTMStatistics(ctx context.Context, yearMonth
 				JOIN categories AS c
 				ON c.id=t.category_id
 				WHERE c.name not in ("Income", "Transfers")
-				AND date >= (?)
-				AND date <= (?)
+				AND t.deleted_at IS NULL
+				AND t.date >= (?)
+				AND t.date <= (?)
 				GROUP BY yearmonth
 			)
 			SELECT COALESCE(income.amount, 0) - COALESCE(expenses.amount, 0) as net_income

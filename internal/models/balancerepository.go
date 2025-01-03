@@ -52,7 +52,8 @@ func (br *BalanceRepository) GetBalancesByMonth(ctx context.Context, ledgerType 
 		FROM accounts AS a
 		JOIN account_types AS at
 		ON a.account_type_id=at.id
-		WHERE at.ledger_type=?`, ledgerType).Scan(&accountIDs)
+		WHERE at.ledger_type=?
+		AND a.deleted_at IS NULL`, ledgerType).Scan(&accountIDs)
 
 	if queryResult.Error != nil {
 		panic(queryResult.Error)
@@ -67,6 +68,7 @@ func (br *BalanceRepository) GetBalancesByMonth(ctx context.Context, ledgerType 
 		br.DB.Raw(`SELECT *, max(effective_date) from balances
 			WHERE account_id in (?)
 			AND effective_date <= (?)
+			AND deleted_at IS NULL
 			GROUP BY account_id
 			ORDER BY effective_date`, accountIDs, lastDayOfMonth).Scan(&balances)
 
