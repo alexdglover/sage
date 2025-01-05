@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"net/http"
 	"text/template"
+
+	"github.com/alexdglover/sage/internal/utils"
 )
 
 type DashbaordController struct{}
@@ -15,13 +17,14 @@ var dashboardTmpl string
 func dashboardHandler(w http.ResponseWriter, req *http.Request) {
 	type emptyTmplVariables struct{}
 
-	foo := emptyTmplVariables{}
+	dto := emptyTmplVariables{}
 
 	tmpl, err := template.New("dashboard").Parse(dashboardTmpl)
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(w, foo)
+	w.Header().Set("Content-Type", "text/html")
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

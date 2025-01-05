@@ -48,7 +48,7 @@ func (ic *ImportController) importStatementFormHandler(w http.ResponseWriter, re
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(w, formDTO)
+	err = utils.RenderTemplateAsHTML(w, tmpl, formDTO)
 	if err != nil {
 		panic(err)
 	}
@@ -118,7 +118,7 @@ func (ic *ImportController) importStatusHandler(w http.ResponseWriter, dto Impor
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(w, dto)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

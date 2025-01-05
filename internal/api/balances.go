@@ -90,7 +90,7 @@ func (bc *BalanceController) generateBalancesView(w http.ResponseWriter, req *ht
 		return
 	}
 
-	err = tmpl.Execute(w, balancesPageDTO)
+	err = utils.RenderTemplateAsHTML(w, tmpl, balancesPageDTO)
 	if err != nil {
 		http.Error(w, "Unable to render balancesPage template", http.StatusInternalServerError)
 		return
@@ -153,7 +153,7 @@ func (bc *BalanceController) balanceFormContent(w http.ResponseWriter, balanceID
 		return
 	}
 
-	err = tmpl.Execute(w, dto)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		http.Error(w, "Unable to render balanceForm template", http.StatusInternalServerError)
 		return

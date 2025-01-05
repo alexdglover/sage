@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"net/http"
 	"text/template"
+
+	"github.com/alexdglover/sage/internal/utils"
 )
 
 type MainController struct{}
@@ -15,13 +17,13 @@ var mainPageTmpl string
 func (mc *MainController) mainPageHandler(w http.ResponseWriter, req *http.Request) {
 	type emptyTmplVariables struct{}
 
-	foo := emptyTmplVariables{}
+	dto := emptyTmplVariables{}
 
 	tmpl, err := template.New("mainPage").Parse(mainPageTmpl)
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(w, foo)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

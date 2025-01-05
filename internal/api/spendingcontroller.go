@@ -87,7 +87,7 @@ func (sc *SpendingController) spendingByCategoryHandler(w http.ResponseWriter, r
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(w, dto)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

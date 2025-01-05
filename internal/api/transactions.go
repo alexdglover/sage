@@ -34,7 +34,7 @@ type TransactionDTO struct {
 	ImportSubmissionID string
 }
 
-type TransactionsPageDTO struct {
+type dto struct {
 	Transactions              []TransactionDTO
 	TransactionUpdated        bool
 	TransactionUpdatedMessage string
@@ -82,19 +82,19 @@ func (tc *TransactionController) generateTransactionsViewContent(w http.Response
 			ImportSubmissionID: utils.UintPointerToString(txn.ImportSubmissionID),
 		}
 	}
-	TransactionsPageDTO := TransactionsPageDTO{
+	dto := dto{
 		Transactions: transactionsDTO,
 	}
 	if transactionUpdateMessage != "" {
-		TransactionsPageDTO.TransactionUpdated = true
-		TransactionsPageDTO.TransactionUpdatedMessage = transactionUpdateMessage
+		dto.TransactionUpdated = true
+		dto.TransactionUpdatedMessage = transactionUpdateMessage
 	}
 
 	tmpl := template.Must(template.New("TransactionsPage").Funcs(template.FuncMap{
 		"mod": func(i, j int) int { return i % j },
 	}).Parse(transactionsPageTmpl))
 
-	err = tmpl.Execute(w, TransactionsPageDTO)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}
@@ -147,7 +147,7 @@ func (tc *TransactionController) generateTransactionForm(w http.ResponseWriter, 
 		panic(err)
 	}
 
-	err = tmpl.Execute(w, dto)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

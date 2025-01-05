@@ -27,7 +27,7 @@ type totalByType map[string]int
 // expected currency format in the UI
 type totalByTypeDTO map[string]string
 
-type netWorthTmplVariables struct {
+type netWorthdto struct {
 	AllTimeActive       bool
 	Last12MonthsActive  bool
 	Last6MonthsActive   bool
@@ -38,29 +38,29 @@ type netWorthTmplVariables struct {
 // TODO: Consider moving this into a service class that returns just the data needed
 func (nc *NetWorthController) netWorthHandler(w http.ResponseWriter, req *http.Request) {
 	var relativeWindow int
-	tmplVariables := netWorthTmplVariables{}
+	dto := netWorthdto{}
 	if req.FormValue("relativeWindow") == "" {
 		relativeWindow = 6
-		tmplVariables.Last6MonthsActive = true
+		dto.Last6MonthsActive = true
 	} else {
 		switch req.FormValue("relativeWindow") {
 		case "12":
 			relativeWindow = 12
-			tmplVariables.Last12MonthsActive = true
+			dto.Last12MonthsActive = true
 		case "6":
 			relativeWindow = 6
-			tmplVariables.Last6MonthsActive = true
+			dto.Last6MonthsActive = true
 		case "3":
 			relativeWindow = 3
-			tmplVariables.Last3MonthsActive = true
+			dto.Last3MonthsActive = true
 		case "allTime":
 			// 10 years in months, as a useful approximation of all time for now
 			relativeWindow = 120
-			tmplVariables.AllTimeActive = true
+			dto.AllTimeActive = true
 		default:
 			fmt.Println("invalid relative window provided, falling back to 6 months")
 			relativeWindow = 6
-			tmplVariables.Last6MonthsActive = true
+			dto.Last6MonthsActive = true
 		}
 	}
 
@@ -117,12 +117,12 @@ func (nc *NetWorthController) netWorthHandler(w http.ResponseWriter, req *http.R
 
 	}
 
-	tmplVariables.TotalByMonthAndType = totalByMonthAndTypeDTO
+	dto.TotalByMonthAndType = totalByMonthAndTypeDTO
 	tmpl, err := template.New("netWorthDashboard").Parse(netWorthTmpl)
 	if err != nil {
 		panic(err)
 	}
-	err = tmpl.Execute(w, tmplVariables)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

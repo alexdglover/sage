@@ -76,7 +76,7 @@ func (ac *CategoryController) generateCategoriesView(w http.ResponseWriter, req 
 		"mod": func(i, j int) int { return i % j },
 	}).Parse(categoriesPageTmpl))
 
-	err = tmpl.Execute(w, categoriesPageDTO)
+	err = utils.RenderTemplateAsHTML(w, tmpl, categoriesPageDTO)
 	if err != nil {
 		panic(err)
 	}
@@ -110,7 +110,7 @@ func (ac *CategoryController) generateCategoryForm(w http.ResponseWriter, req *h
 		panic(err)
 	}
 
-	err = tmpl.Execute(w, dto)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

@@ -101,7 +101,7 @@ func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, 
 		"mod": func(i, j int) int { return i % j },
 	}).Parse(accountsPageTmpl))
 
-	err = tmpl.Execute(w, accountsPageDTO)
+	err = utils.RenderTemplateAsHTML(w, tmpl, accountsPageDTO)
 	if err != nil {
 		panic(err)
 	}
@@ -143,7 +143,7 @@ func (ac *AccountController) generateAccountForm(w http.ResponseWriter, req *htt
 		panic(err)
 	}
 
-	err = tmpl.Execute(w, dto)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

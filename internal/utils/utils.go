@@ -3,10 +3,12 @@ package utils
 import (
 	"fmt"
 	"math"
+	"net/http"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/dustin/go-humanize"
@@ -134,4 +136,10 @@ func Percentile(input []int, percentile float64) int {
 	}
 	// This shouldn't be reachable, but needed to make compiler happy
 	return 0
+}
+
+func RenderTemplateAsHTML(w http.ResponseWriter, tmpl *template.Template, data any) (err error) {
+	w.Header().Set("Content-Type", "text/html")
+	err = tmpl.Execute(w, data)
+	return err
 }
