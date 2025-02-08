@@ -161,3 +161,21 @@ func (ac *CategoryController) upsertCategory(w http.ResponseWriter, req *http.Re
 
 	ac.generateCategoriesView(w, &categoryViewReq)
 }
+
+func (ac *CategoryController) deleteCategory(w http.ResponseWriter, req *http.Request) {
+	categoryIDInput := req.FormValue("categoryID")
+
+	categoryID, err := utils.StringToUint(categoryIDInput)
+	if err != nil {
+		http.Error(w, "Unable to parse a category ID from input", http.StatusBadRequest)
+		return
+	}
+
+	err = ac.CategoryRepository.DeleteCategoryByID(categoryID)
+	if err != nil {
+		http.Error(w, "Unable to delete category", http.StatusBadRequest)
+		return
+	}
+
+	ac.generateCategoriesView(w, req)
+}

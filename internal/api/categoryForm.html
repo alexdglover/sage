@@ -21,6 +21,16 @@
     hx-swap="innerHTML">
     Save
   </button>
+  {{ if eq .Updating true }}
+  <button type="button" class="btn btn-danger"
+    hx-confirm="Are you sure you want to delete this category? All associated transactions will have their category set to 'Unknown'"
+    hx-delete="/categories"
+    hx-trigger="click"
+    hx-target="#reportContent"
+    hx-swap="innerHTML">
+      Delete
+  </button>
+  {{ end }}
   <button type="button" class="btn btn-light"
     hx-get="/categories"
     hx-trigger="click"

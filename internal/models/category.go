@@ -56,3 +56,11 @@ func (cr *CategoryRepository) Save(category Category) (id uint, err error) {
 	result := cr.DB.Save(&category).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}})
 	return category.ID, result.Error
 }
+
+// Soft deletes a category and sets all associated transactions to Unknown
+func (cr *CategoryRepository) DeleteCategoryByID(categoryID uint) (err error) {
+	// bulk update all transactions to "Unknown" category
+	cr.DB.Model(&Transaction{}).Where("category_id = ?", categoryID).Update("category_id", 1)
+	result := cr.DB.Delete(&Category{}, categoryID)
+	return result.Error
+}

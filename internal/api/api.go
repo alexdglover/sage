@@ -51,6 +51,7 @@ func (as *ApiServer) StartApiServer(ctx context.Context) {
 
 	http.HandleFunc("GET /categories", as.CategoryController.generateCategoriesView)
 	http.HandleFunc("POST /categories", as.CategoryController.upsertCategory)
+	http.HandleFunc("DELETE /categories", as.CategoryController.deleteCategory)
 	http.HandleFunc("GET /categoryForm", as.CategoryController.generateCategoryForm)
 
 	http.HandleFunc("GET /transactions", as.TransactionController.generateTransactionsView)
