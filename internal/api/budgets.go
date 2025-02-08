@@ -145,10 +145,31 @@ func (bc *BudgetController) upsertBudget(w http.ResponseWriter, req *http.Reques
 	bc.sendViewResponse(w, true)
 }
 
+func (bc *BudgetController) deleteBudget(w http.ResponseWriter, req *http.Request) {
+	budgetIDInput := req.FormValue("budgetID")
+
+	budgetID, err := utils.StringToUint(budgetIDInput)
+	if err != nil {
+		http.Error(w, "Unable to parse a budget ID from input", http.StatusBadRequest)
+		return
+	}
+
+	err = bc.BudgetRepository.DeleteByID(budgetID)
+	if err != nil {
+		http.Error(w, "Unable to delete budget", http.StatusBadRequest)
+		return
+	}
+	bc.sendViewResponse(w, true)
+}
+
 // Generic function to send the view response
 func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool) {
 	// Get all budget and associated spend
 	budgetsAndSpend, err := bc.BudgetService.GetAllBudgetsAndCurrentSpend()
+	if err != nil {
+		http.Error(w, "Unable to parse a budgets and spend", http.StatusBadRequest)
+		return
+	}
 
 	// Build budgets DTO
 	budgetsDTO := make([]BudgetDTO, len(budgetsAndSpend))

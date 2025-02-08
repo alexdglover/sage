@@ -35,6 +35,7 @@
   </button>
   {{ if eq .Updating true }}
   <button type="button" class="btn btn-danger"
+    hx-confirm="Are you sure you want to delete this account? All associated balances and transactions will be deleted."
     hx-delete="/accounts"
     hx-trigger="click"
     hx-target="#reportContent"

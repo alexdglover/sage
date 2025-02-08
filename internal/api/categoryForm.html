@@ -23,7 +23,7 @@
   </button>
   {{ if eq .Updating true }}
   <button type="button" class="btn btn-danger"
-    hx-confirm="Are you sure you want to delete this category? All associated transactions will have their category set to 'Unknown'"
+    hx-confirm="Are you sure you want to delete this category? All associated transactions will have their category set to 'Unknown' and any associated budgets will be deleted."
     hx-delete="/categories"
     hx-trigger="click"
     hx-target="#reportContent"

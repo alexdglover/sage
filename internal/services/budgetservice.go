@@ -35,7 +35,7 @@ func (bs *BudgetService) GetAllBudgetsAndCurrentSpend() (budgetsAndSpend []Budge
 	for _, budget := range budgets {
 		category, err := bs.CategoryRepository.GetCategoryByID(budget.CategoryID)
 		if err != nil {
-			fmt.Println("Unable to get category by ID:", err)
+			fmt.Printf("Unable to get category by ID %v: %v\n", budget.CategoryID, err)
 			return budgetsAndSpend, err
 		}
 		sum, err := bs.TransactionRepository.GetSumOfTransactionsByCategoryID(category.ID, firstOfMonth, lastOfMonth)
