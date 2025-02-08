@@ -287,10 +287,15 @@ func (dr *DependencyRegistry) GetAccountController() (*api.AccountController, er
 		if err != nil {
 			return nil, err
 		}
+		transactionRepository, err := dr.GetTransactionRepository()
+		if err != nil {
+			return nil, err
+		}
 		dr.AccountController = &api.AccountController{
 			AccountRepository:     accountRepository,
 			AccountTypeRepository: accountTypeRepository,
 			BalanceRepository:     balanceRepository,
+			TransactionRepository: transactionRepository,
 		}
 	}
 	return dr.AccountController, nil

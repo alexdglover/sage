@@ -16,6 +16,7 @@ type AccountController struct {
 	AccountRepository     *models.AccountRepository
 	AccountTypeRepository *models.AccountTypeRepository
 	BalanceRepository     *models.BalanceRepository
+	TransactionRepository *models.TransactionRepository
 }
 
 //go:embed accounts.html
@@ -32,6 +33,7 @@ type AccountDTO struct {
 	DefaultParser      *string
 	Balance            string
 	BalanceLastUpdated string
+	TxnLastUpdated     string
 }
 
 type AccountsPageDTO struct {
@@ -66,17 +68,34 @@ func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, 
 	// Build accounts DTO
 	accountsDTO := make([]AccountDTO, len(accounts))
 	for i, account := range accounts {
-		balance := ac.BalanceRepository.GetLatestBalanceForAccount(context.TODO(), account.ID)
-
+		latestBalance, err := ac.BalanceRepository.GetLatestBalanceForAccount(context.TODO(), account.ID)
 		// there may not be a balance associated with an account
 		// in those cases, we want to display "Never" as the last updated date
 		var balanceLastUpdated string
-		// A real Balance will never have ID 0, but an unpopulated model.Balance
-		// struct will use the default value for the ID field, which is 0
-		if balance.ID == 0 {
-			balanceLastUpdated = "Never"
+		if err != nil {
+			if err.Error() == "record not found" {
+				balanceLastUpdated = "Never"
+			} else {
+				errorMessage := fmt.Sprintf("Error getting latest balance for account ID %d - %v", account.ID, err)
+				http.Error(w, errorMessage, http.StatusInternalServerError)
+				return
+			}
 		} else {
-			balanceLastUpdated = humanize.Time(balance.UpdatedAt)
+			balanceLastUpdated = humanize.Time(latestBalance.UpdatedAt)
+		}
+
+		latestTransaction, err := ac.TransactionRepository.GetLatestTransactionForAccount(account.ID)
+		var txnLastUpdated string
+		if err != nil {
+			if err.Error() == "record not found" {
+				txnLastUpdated = "Never"
+			} else {
+				errorMessage := fmt.Sprintf("Error getting latest transaction for account ID %d - %v", account.ID, err)
+				http.Error(w, errorMessage, http.StatusInternalServerError)
+				return
+			}
+		} else {
+			txnLastUpdated = humanize.Time(latestTransaction.UpdatedAt)
 		}
 
 		accountsDTO[i] = AccountDTO{
@@ -85,8 +104,9 @@ func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, 
 			AccountCategory:    account.AccountType.AccountCategory,
 			AccountType:        account.AccountType.LedgerType,
 			DefaultParser:      account.AccountType.DefaultParser,
-			Balance:            utils.CentsToDollarStringHumanized(balance.Amount),
+			Balance:            utils.CentsToDollarStringHumanized(latestBalance.Amount),
 			BalanceLastUpdated: balanceLastUpdated,
+			TxnLastUpdated:     txnLastUpdated,
 		}
 	}
 	accountsPageDTO := AccountsPageDTO{

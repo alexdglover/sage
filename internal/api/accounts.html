@@ -40,6 +40,7 @@
         <div class="card-body">
           <h5>Balance: ${{ $account.Balance }}</h5>
           <p>Balance last updated: {{ $account.BalanceLastUpdated }}</p>
+          <p>Transaction last updated: {{ $account.TxnLastUpdated }}</p>
           <a href="#"
             class="btn btn-light"
             hx-get="/transactions?accountID={{ $account.ID }}"
