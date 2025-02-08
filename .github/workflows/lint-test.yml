@@ -1,4 +1,4 @@
-name: golangci-lint
+name: Lint and Test
 
 on:
   pull_request:
@@ -25,6 +25,7 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
+          args: --new-from-rev=$(git merge-base master HEAD)
   test:
     name: test
     runs-on: ubuntu-latest
