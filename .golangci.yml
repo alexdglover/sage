@@ -6,6 +6,7 @@ linters:
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   enable:
     - gofmt
+    - staticcheck
 
 issues:
   # Show only new issues created after git revision `REV`.
