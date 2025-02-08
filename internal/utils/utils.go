@@ -24,16 +24,37 @@ func StringToUint(input string) (uint, error) {
 	return uint(output), nil
 }
 
+// Convert whole cents (as int) to dollars (as float64) and returns a "commaized" string
 func CentsToDollarStringHumanized(input int) string {
-	// Convert whole cents (as int) to dollars (as float64)
 	amount := float64(input) / 100
-	return humanize.CommafWithDigits(amount, 2)
+	return trimTrailingDigits(humanize.Commaf(amount), 2)
 }
 
+// Convert whole cents (as int) to dollars (as float64) and returns a string
 func CentsToDollarStringMachineSafe(input int) string {
-	// Convert whole cents (as int) to dollars (as float64)
 	amount := float64(input) / 100
 	return fmt.Sprintf("%.2f", amount)
+}
+
+// Trims digits following decimal place in "number strings"
+func trimTrailingDigits(s string, digits int) string {
+	if digits <= 0 {
+		return s
+	}
+	if i := strings.Index(s, "."); i >= 0 {
+		if len(s[i+1:]) < digits {
+			return s + strings.Repeat("0", digits-len(s[i+1:]))
+		}
+		if digits <= 0 {
+			return s[:i]
+		}
+		i++
+		if i+digits >= len(s) {
+			return s
+		}
+		return s[:i+digits]
+	}
+	return s + "." + strings.Repeat("0", digits)
 }
 
 func DollarStringToCents(input string) int {
