@@ -2,3 +2,5 @@ sage.db
 sage
 
 /dist/
+/logs/
+/tmp/

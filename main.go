@@ -8,6 +8,7 @@ import (
 	"runtime"
 
 	"github.com/alexdglover/sage/internal/dependencyregistry"
+	"github.com/alexdglover/sage/internal/utils/logger"
 	"gorm.io/gorm"
 )
 
@@ -18,6 +19,8 @@ type Configuration struct {
 var Config Configuration
 
 func main() {
+
+	logger := logger.Get()
 
 	ctx := context.TODO()
 	dependencyRegistry := dependencyregistry.DependencyRegistry{}
@@ -30,11 +33,11 @@ func main() {
 	// start the API server
 	apiServer, err := dependencyRegistry.GetApiServer()
 	if err != nil {
-		fmt.Println("Error starting API server")
+
+		logger.Error("Error starting API server")
 		panic(err)
 	}
 	apiServer.StartApiServer(ctx)
-
 }
 
 func openbrowser(url string) {

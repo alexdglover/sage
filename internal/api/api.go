@@ -6,6 +6,8 @@ import (
 	_ "embed"
 	"log"
 	"net/http"
+
+	"github.com/alexdglover/sage/internal/utils/logger"
 )
 
 type ApiServer struct {
@@ -58,6 +60,9 @@ func (as *ApiServer) StartApiServer(ctx context.Context) {
 	http.HandleFunc("POST /transactions", as.TransactionController.upsertTransaction)
 	http.HandleFunc("DELETE /transactions", as.TransactionController.deleteTransaction)
 	http.HandleFunc("GET /transactionForm", as.TransactionController.generateTransactionForm)
+
+	logger := logger.Get()
+	logger.Info("Starting Server on http://localhost:8080")
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
