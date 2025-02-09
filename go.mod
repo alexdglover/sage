@@ -4,6 +4,7 @@ go 1.22.6
 
 require (
 	github.com/dustin/go-humanize v1.0.1
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.10
 )
