@@ -7,8 +7,6 @@ on:
   push:
     branches:
       - main
-      - master
-      - ci-workflow
 
 env:
   GO_VERSION: stable
