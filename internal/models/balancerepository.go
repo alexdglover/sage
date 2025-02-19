@@ -81,10 +81,9 @@ func (br *BalanceRepository) GetBalancesByMonth(ctx context.Context, ledgerType 
 	return result
 }
 
-func (br *BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) Balance {
-	var balance Balance
-	br.DB.Where("account_id = ?", accountID).Order("effective_date desc").Limit(1).Find(&balance)
-	return balance
+func (br *BalanceRepository) GetLatestBalanceForAccount(ctx context.Context, accountID uint) (balance Balance, err error) {
+	result := br.DB.Where("account_id = ?", accountID).Order("effective_date desc").First(&balance)
+	return balance, result.Error
 }
 
 func (br *BalanceRepository) GetBalancesForAccount(ctx context.Context, accountID uint) []Balance {

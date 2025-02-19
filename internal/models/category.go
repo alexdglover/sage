@@ -59,6 +59,8 @@ func (cr *CategoryRepository) Save(category Category) (id uint, err error) {
 
 // Soft deletes a category and sets all associated transactions to Unknown
 func (cr *CategoryRepository) DeleteCategoryByID(categoryID uint) (err error) {
+	// delete any associated budgets
+	cr.DB.Where("category_id = ?", categoryID).Delete(&Budget{})
 	// bulk update all transactions to "Unknown" category
 	cr.DB.Model(&Transaction{}).Where("category_id = ?", categoryID).Update("category_id", 1)
 	result := cr.DB.Delete(&Category{}, categoryID)

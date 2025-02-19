@@ -58,6 +58,11 @@ func (tr *TransactionRepository) GetAllTransactions() ([]Transaction, error) {
 	return txns, result.Error
 }
 
+func (tr *TransactionRepository) GetLatestTransactionForAccount(accountID uint) (txn Transaction, err error) {
+	result := tr.DB.Preload(clause.Associations).Where("account_id = ?", accountID).Order("date desc").First(&txn)
+	return txn, result.Error
+}
+
 func (tr *TransactionRepository) GetSumOfTransactionsByCategoryID(categoryID uint, startDate time.Time, endDate time.Time) (int, error) {
 	var sum int
 	queryResult := tr.DB.Raw(`SELECT coalesce(sum(amount), 0)
