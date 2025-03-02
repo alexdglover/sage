@@ -34,3 +34,8 @@ func (*BudgetRepository) Save(budget Budget) (id uint, err error) {
 
 	return budget.ID, result.Error
 }
+
+func (br *BudgetRepository) DeleteByID(budgetID uint) (err error) {
+	result := br.DB.Delete(&Budget{}, budgetID)
+	return result.Error
+}
