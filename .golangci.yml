@@ -5,9 +5,13 @@ linters:
   # Enable specific linter
   # https://golangci-lint.run/usage/linters/#enabled-by-default
   enable:
-    - gofmt
+    - errcheck
+    - gosimple
     - govet
+    - ineffassign
     - staticcheck
+    - unused
+    - gofmt
 
   # Enable only fast linters from enabled linters set (first run won't be fast)
   # Default: false
