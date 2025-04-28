@@ -12,9 +12,10 @@ import (
 )
 
 type BudgetController struct {
-	BudgetRepository   *models.BudgetRepository
-	BudgetService      *services.BudgetService
-	CategoryRepository *models.CategoryRepository
+	BudgetRepository      *models.BudgetRepository
+	BudgetService         *services.BudgetService
+	CategoryRepository    *models.CategoryRepository
+	TransactionRepository *models.TransactionRepository
 }
 
 //go:embed budgets.html
@@ -22,6 +23,12 @@ var budgetsPageTmpl string
 
 //go:embed budgetForm.html
 var budgetsFormTmpl string
+
+//go:embed budgetDetail.html
+var budgetDetailTmpl string
+
+const ColorGreen string = "#198754"
+const ColorRed string = "#dc3545"
 
 type BudgetDTO struct {
 	ID           uint
@@ -46,8 +53,22 @@ type BudgetFormDTO struct {
 	Categories   []models.Category
 }
 
-func (bc *BudgetController) generateBudgetsView(w http.ResponseWriter, req *http.Request) {
-	bc.sendViewResponse(w, false)
+type BudgetDataByMonthDTO struct {
+	Amount string
+	Color  string
+	Month  string
+	Spend  string
+}
+
+type BudgetDetailDTO struct {
+	ID                  uint
+	CategoryName        string
+	NumOfMonthsExceeded string
+	ExceededColor       string
+	Average             string
+	StdDev              string
+	Volatility          string
+	BudgetData          []BudgetDataByMonthDTO
 }
 
 func (bc *BudgetController) generateBudgetForm(w http.ResponseWriter, req *http.Request) {
@@ -162,6 +183,10 @@ func (bc *BudgetController) deleteBudget(w http.ResponseWriter, req *http.Reques
 	bc.sendViewResponse(w, true)
 }
 
+func (bc *BudgetController) generateBudgetsView(w http.ResponseWriter, req *http.Request) {
+	bc.sendViewResponse(w, false)
+}
+
 // Generic function to send the view response
 func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool) {
 	// Get all budget and associated spend
@@ -197,4 +222,94 @@ func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool)
 	if err != nil {
 		panic(err)
 	}
+}
+
+// Generate the budget details view, pulling detailed statistics about the budget over the last 6 months
+func (bc *BudgetController) generateBudgetDetailsView(w http.ResponseWriter, req *http.Request) {
+	budgetIDQueryParameter := req.URL.Query().Get("budgetID")
+	budgetID, err := utils.StringToUint(budgetIDQueryParameter)
+	if err != nil {
+		message := fmt.Sprint("Unable to parse budget ID", budgetIDQueryParameter)
+		http.Error(w, message, http.StatusInternalServerError)
+		return
+	}
+
+	budget, err := bc.BudgetRepository.GetBudgetByID(budgetID)
+	if err != nil {
+		message := fmt.Sprint("Unable to get budget", budgetID)
+		http.Error(w, message, http.StatusInternalServerError)
+		return
+	}
+
+	// Get comparison of budget vs spend for the last 6 months
+	spendAndBudgetByMonth, err := bc.BudgetService.GetBudgetAndMonthlySpend(budgetID, 6)
+	if err != nil {
+		message := fmt.Sprintf("Error fetching spend and budget info for budget: %v Reason: %v", budgetID, err)
+		http.Error(w, message, http.StatusInternalServerError)
+		return
+	}
+	timesExceeded := 0
+	budgetData := []BudgetDataByMonthDTO{}
+	for _, spendAndBudget := range spendAndBudgetByMonth {
+		if spendAndBudget.Spend > spendAndBudget.Amount {
+			timesExceeded++
+		}
+		var color string
+		if spendAndBudget.Spend > spendAndBudget.Amount {
+			color = ColorRed
+		} else {
+			color = ColorGreen
+		}
+		budgetData = append(budgetData, BudgetDataByMonthDTO{
+			Amount: utils.CentsToDollarStringMachineSafe(spendAndBudget.Amount),
+			Color:  color,
+			Month:  utils.ConvertTimeToMonString(spendAndBudget.Month),
+			Spend:  utils.CentsToDollarStringMachineSafe(spendAndBudget.Spend),
+		})
+	}
+
+	averageSpend, spendStdDeviation, err := bc.BudgetService.GetMeanAndStandardDeviation(budgetID, 6)
+	if err != nil {
+		message := fmt.Sprintf("Error fetching average spend and standard deviation for budget: %v Reason: %v", budgetID, err)
+		http.Error(w, message, http.StatusInternalServerError)
+		return
+	}
+
+	budgetDetailDTO := BudgetDetailDTO{
+		ID:                  budgetID,
+		CategoryName:        budget.Category.Name,
+		NumOfMonthsExceeded: fmt.Sprint(timesExceeded),
+		Average:             utils.CentsToDollarStringHumanized(averageSpend),
+		StdDev:              utils.CentsToDollarStringHumanized(spendStdDeviation),
+		BudgetData:          budgetData,
+	}
+
+	if timesExceeded >= 3 {
+		budgetDetailDTO.ExceededColor = "danger"
+	} else if timesExceeded >= 1 {
+		budgetDetailDTO.ExceededColor = "warning"
+	} else {
+		budgetDetailDTO.ExceededColor = "success"
+	}
+
+	if float64(spendStdDeviation)/float64(averageSpend) > 0.5 {
+		budgetDetailDTO.Volatility = "Very High"
+	} else if float64(spendStdDeviation)/float64(averageSpend) > 0.25 {
+		budgetDetailDTO.Volatility = "High"
+	} else {
+		budgetDetailDTO.Volatility = "Low"
+	}
+
+	tmpl, err := template.New("budgetDetail").Parse(budgetDetailTmpl)
+	if err != nil {
+		message := fmt.Sprintf("Error building template: %v", err)
+		http.Error(w, message, http.StatusInternalServerError)
+		return
+	}
+
+	err = utils.RenderTemplateAsHTML(w, tmpl, budgetDetailDTO)
+	if err != nil {
+		panic(err)
+	}
+
 }

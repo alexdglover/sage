@@ -117,6 +117,10 @@ func ConvertMMDDYYtoISO8601(input string) string {
 	return TimeToISO8601DateString(t)
 }
 
+func ConvertTimeToMonString(input time.Time) string {
+	return fmt.Sprint(input.Format("Jan"))
+}
+
 func StrPointer(input string) *string {
 	return &input
 }

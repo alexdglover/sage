@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/alexdglover/sage/internal/models"
+	"gonum.org/v1/gonum/stat"
 )
 
 type BudgetService struct {
@@ -19,6 +20,7 @@ type BudgetAndSpend struct {
 	Amount       int
 	Spend        int
 	PercentUsed  int
+	Month        time.Time
 }
 
 func (bs *BudgetService) GetAllBudgetsAndCurrentSpend() (budgetsAndSpend []BudgetAndSpend, err error) {
@@ -52,4 +54,57 @@ func (bs *BudgetService) GetAllBudgetsAndCurrentSpend() (budgetsAndSpend []Budge
 		})
 	}
 	return budgetsAndSpend, nil
+}
+
+func (bs *BudgetService) GetBudgetAndMonthlySpend(budgetID uint, numOfMonths int) (budgetsAndSpend []BudgetAndSpend, err error) {
+	budget, err := bs.BudgetRepository.GetBudgetByID(budgetID)
+	if err != nil {
+		fmt.Println("Unable to get budgets:", err)
+		return budgetsAndSpend, err
+	}
+
+	now := time.Now()
+	firstOfMonth := now.AddDate(0, -int(numOfMonths), 1-now.Day())
+	lastOfMonth := firstOfMonth.AddDate(0, 1, 0-now.Day())
+
+	for i := int(0); i < numOfMonths; i++ {
+		sum, err := bs.TransactionRepository.GetSumOfTransactionsByCategoryID(budget.CategoryID, firstOfMonth, lastOfMonth)
+		if err != nil {
+			fmt.Printf("Unable to get transactions with category ID %v: %v", budget.CategoryID, err)
+			return budgetsAndSpend, err
+		}
+		budgetsAndSpend = append(budgetsAndSpend, BudgetAndSpend{
+			ID:           budget.ID,
+			CategoryName: budget.Category.Name,
+			Amount:       budget.Amount,
+			Spend:        sum,
+			PercentUsed:  int(float64(sum) / float64(budget.Amount) * 100),
+			Month:        firstOfMonth,
+		})
+		firstOfMonth = firstOfMonth.AddDate(0, 1, 0)
+		lastOfMonth = lastOfMonth.AddDate(0, 1, 0)
+	}
+	return budgetsAndSpend, nil
+}
+
+func (bs *BudgetService) GetMeanAndStandardDeviation(budgetID uint, numOfMonths int) (averageSpend int, standardDeviation int, err error) {
+	budget, err := bs.BudgetRepository.GetBudgetByID(budgetID)
+	if err != nil {
+		fmt.Println("Unable to get budgets:", err)
+		return averageSpend, standardDeviation, err
+	}
+
+	now := time.Now()
+	endDate := now.AddDate(0, 1, 0-now.Day())
+	startDate := now.AddDate(0, -int(numOfMonths), 1-now.Day())
+
+	spendByMonth, err := bs.TransactionRepository.GetSumOfTransactionsByCategoryAndMonth(budget.CategoryID, startDate, endDate)
+	var amounts []float64
+	for i := range spendByMonth {
+		amounts = append(amounts, float64(spendByMonth[i].Amount))
+	}
+	averageSpendFloat, standardDeviationFloat := stat.MeanStdDev(amounts, nil)
+	averageSpend = int(averageSpendFloat)
+	standardDeviation = int(standardDeviationFloat)
+	return averageSpend, standardDeviation, err
 }

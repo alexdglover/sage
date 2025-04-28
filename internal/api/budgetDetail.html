@@ -1,0 +1,93 @@
+<div class="row">
+    <div class="col-sm-4">
+      <h2>{{ $.CategoryName }} Budget Details</h2>
+    </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div style="padding-left: 10%; padding-right: 10%;">
+      <canvas class="my-4 w-100" id="spendVSBudgetChart"></canvas>
+    </div>    
+  </div>
+  <div class="col-lg-6">
+    <h4>In the last 6 months:</h4>
+    <ul class="list-group">
+      <li class="list-group-item">Spending exceeded your budget <span class="badge bg-{{ .ExceededColor }}">{{ .NumOfMonthsExceeded }}</span> times</li>
+      <li class="list-group-item">Monthly average for spend in this category is ${{ .Average }}</li>
+      <li class="list-group-item">Standard deviation of spend in this category is ${{ .StdDev }}</li>
+      <li class="list-group-item">Relative to your average, spending volatility is <strong>{{ .Volatility }}</strong></li>
+    </ul>
+  </div>
+</div>
+
+<script>
+/* globals Chart:false, feather:false */
+
+(function () {
+'use strict'
+
+  // Graphs
+  var ctx = document.getElementById('spendVSBudgetChart')
+  // eslint-disable-next-line no-unused-vars
+  var spendVSBudgetChart = new Chart(ctx, {
+    data: {
+      labels: [
+        {{ range $budgetDatum := .BudgetData }}
+        "{{ $budgetDatum.Month }}",
+        {{ end }}
+      ],
+      datasets: [
+        {
+          label: 'Budget',
+          type: 'line',
+          fill: false,
+          data: [
+            {{ range $budgetDatum := .BudgetData }}
+            "{{ $budgetDatum.Amount }}",
+            {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: '#000000',
+          borderColor: '#000000',
+          borderWidth: 4,
+          borderDash: [5, 5],
+          pointBackgroundColor: '#000000'
+        },
+        {
+          label: 'Spend',
+          type: 'bar',
+          fill: false,
+          data: [
+            {{ range $budgetDatum := .BudgetData }}
+              "{{ $budgetDatum.Spend }}",
+            {{ end }}
+          ],
+          lineTension: 0.2,
+          backgroundColor: [
+            {{ range $index, $budgetDatum := .BudgetData }}
+              "{{ $budgetDatum.Color }}",
+            {{ end }}
+          ]
+        }
+      ]
+    },
+    options: {
+      scales: {
+        y: {
+          ticks: {
+            // Include a dollar sign in the ticks
+            callback: function(value, index, ticks) {
+                return '$' + value;
+            }
+          }
+        }
+      },
+      legend: {
+        display: true
+      }
+    }
+  })
+})()
+
+</script>

@@ -43,8 +43,18 @@ type TTMAverageByDate struct {
 }
 
 type TotalByCategory struct {
-	Category string
 	Amount   int
+	Category string
+}
+
+type TotalByMonth struct {
+	Amount int
+	Month  time.Time
+}
+
+type AverageByMonth struct {
+	Average int
+	Month   time.Time
 }
 
 type TransactionRepository struct {
@@ -85,6 +95,21 @@ func (tr *TransactionRepository) GetSumOfTransactionsByCategory(startDate time.T
 		AND t.deleted_at IS NULL
 		GROUP BY c.name
 		ORDER BY Amount desc`, startDateISO, endDateISO).Scan(&totals)
+
+	return totals, queryResult.Error
+}
+
+func (tr *TransactionRepository) GetSumOfTransactionsByCategoryAndMonth(categoryID uint, startDate time.Time, endDate time.Time) (totals []TotalByMonth, err error) {
+	startDateISO := utils.TimeToISO8601DateString(startDate)
+	endDateISO := utils.TimeToISO8601DateString(endDate)
+	queryResult := tr.DB.Raw(`SELECT coalesce(sum(t.amount), 0) as amount,
+		STRFTIME('%Y-%m', t.date) as yearmonth
+		FROM transactions t JOIN categories c ON t.category_id = c.id
+		AND c.id = ?
+		AND t.date >= ?
+		AND t.date <= ?
+		AND t.deleted_at IS NULL
+		GROUP BY yearmonth`, categoryID, startDateISO, endDateISO).Scan(&totals)
 
 	return totals, queryResult.Error
 }

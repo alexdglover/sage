@@ -27,6 +27,14 @@
               <div>
                 <a href="#"
                   class="btn btn-light"
+                  hx-get="/budgetDetails?budgetID={{ $budget.ID }}"
+                  hx-trigger="click"
+                  hx-target="#reportContent"
+                  hx-swap="innerHTML">
+                  &#x1F50D; Details
+                </a>
+                <a href="#"
+                  class="btn btn-light"
                   hx-get="/budgetForm?budgetID={{ $budget.ID }}"
                   hx-trigger="click"
                   hx-target="#reportContent"
