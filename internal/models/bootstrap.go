@@ -64,6 +64,7 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 		"Real Estate":                 {"ledgerType": Asset, "accountCategory": "realEstate"},
 		"Mortgage":                    {"ledgerType": Liability, "accountCategory": "loan"},
 		"Target Credit Card":          {"ledgerType": Liability, "accountCategory": "creditCard", "defaultParser": "targetCreditCard"},
+		"UWCU Mortgage":               {"ledgerType": Liability, "accountCategory": "loan", "defaultParser": "uwcuMortgage"},
 
 		"Misc Asset":     {"ledgerType": Asset, "accountCategory": Asset},
 		"Misc Liability": {"ledgerType": Liability, "accountCategory": Asset},
@@ -71,7 +72,7 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 
 	// Seed data for supported account types, if they don't exist already
 	for name, accountTypeDetails := range accountTypesData {
-		// The Category table has a unique index on the Name column, so we can use the DoNothing option
+		// The account_types table has a unique index on the Name column, so we can use the DoNothing option
 		// to safely attempt to insert a record that may already exist
 		b.db.Clauses(clause.OnConflict{DoNothing: true}).Create(
 			&AccountType{

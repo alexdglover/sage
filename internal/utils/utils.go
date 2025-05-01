@@ -86,6 +86,7 @@ func ISO8601DateStringToTime(input string) time.Time {
 	return t
 }
 
+// Converts a date string in MM/DD/YYYY format to ISO8601 format (YYYY-MM-DD)
 func ConvertMMDDYYYYtoISO8601(input string) string {
 	sanitizedInput := strings.TrimSpace(input)
 	t, err := time.Parse("01/02/2006", sanitizedInput)
@@ -95,6 +96,18 @@ func ConvertMMDDYYYYtoISO8601(input string) string {
 	return TimeToISO8601DateString(t)
 }
 
+// Converts a date string in M/D/YYYY format (meaning single digit
+// months or days do not have a leading zero) to ISO8601 format (YYYY-MM-DD)
+func ConvertMDYYYYtoISO8601(input string) string {
+	sanitizedInput := strings.TrimSpace(input)
+	t, err := time.Parse("1/2/2006", sanitizedInput)
+	if err != nil {
+		panic(err)
+	}
+	return TimeToISO8601DateString(t)
+}
+
+// Converts a date string in MM/DD/YY format to ISO8601 format (YYYY-MM-DD)
 func ConvertMMDDYYtoISO8601(input string) string {
 	sanitizedInput := strings.TrimSpace(input)
 	t, err := time.Parse("01/02/06", sanitizedInput)

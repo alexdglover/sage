@@ -352,6 +352,45 @@ func (s TargetCreditCardCSVParser) Parse(statement string) (transactions []model
 	return transactions, balances, nil
 }
 
+type UWCUMortgageCSVParser struct{}
+
+// Parses CSVs with the header as the 1st row, date in 2nd column, amount in 3rd column,
+// description in 4th column, and balance in the 7th column. Transactions are sorted by newest
+// transaction first, so the balance is the first row after the header
+func (s UWCUMortgageCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	csvReader := csv.NewReader(strings.NewReader(statement))
+	// Statement CSVs include empty fields with double quotes,
+	// which is interpreted as an escaped double quote to the parser.
+	// To disable this behavior, we need to set the LazyQuotes flag to true.
+	csvReader.LazyQuotes = true
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	for idx, record := range records {
+		// Skip the header row
+		if idx == 0 {
+			continue
+		}
+		isoDate := utils.ConvertMDYYYYtoISO8601(record[2])
+		if idx == 1 {
+			balance := utils.DollarStringToCents(record[7])
+			balances = append(balances, models.Balance{
+				EffectiveDate: isoDate,
+				Amount:        balance,
+			})
+		}
+		amount := utils.DollarStringToCents(record[3])
+		txn := models.Transaction{
+			Date:        isoDate,
+			Description: record[4],
+			Amount:      amount,
+		}
+		transactions = append(transactions, txn)
+	}
+	return transactions, balances, nil
+}
+
 var parsersByInstitution map[string]Parser = map[string]Parser{
 	"bankOfAmericaCreditCard": BankOfAmericaCreditCardCSVParser{},
 	"capitalOneCreditCard":    CapitalOneCreditCardCSVParser{},
@@ -363,4 +402,5 @@ var parsersByInstitution map[string]Parser = map[string]Parser{
 	"schwabChecking":          SchwabCheckingCSVParser{},
 	"schwabBrokerage":         SchwabBrokerageCSVParser{},
 	"targetCreditCard":        TargetCreditCardCSVParser{},
+	"uwcuMortgage":            UWCUMortgageCSVParser{},
 }
