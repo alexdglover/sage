@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/alexdglover/sage/internal/utils"
@@ -67,11 +66,6 @@ func (tr *TransactionRepository) GetAllTransactions(accountID uint, categoryID u
 	var txns []Transaction
 
 	gormTxn := tr.DB.Preload(clause.Associations).Order("date desc")
-	// filters := map[string]interface{}{
-	// 	"account_id":  accountID,
-	// 	"category_id": categoryID,
-	// }
-	// gormTxn = gormTxn.Where(filters)
 	if accountID != 0 {
 		gormTxn = gormTxn.Where("account_id = ?", accountID)
 	}
@@ -87,7 +81,6 @@ func (tr *TransactionRepository) GetAllTransactions(accountID uint, categoryID u
 	if endDate != nil {
 		gormTxn = gormTxn.Where("date <= ?", *endDate)
 	}
-	fmt.Println(gormTxn.Statement.SQL.String())
 
 	result := gormTxn.Find(&txns)
 	return txns, result.Error

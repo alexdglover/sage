@@ -43,6 +43,7 @@ type TransactionsPageDto struct {
 	SelectedAccountID         uint
 	Categories                []models.Category
 	SelectedCategoryID        uint
+	Description               string
 	StartDate                 string
 	EndDate                   string
 }
@@ -101,6 +102,8 @@ func (tc *TransactionController) generateTransactionsViewContent(w http.Response
 			}
 			dto.SelectedCategoryID = categoryID
 		}
+
+		dto.Description = descriptionQueryParameter
 
 		if startDateQueryParameter != "" {
 			startDateValue := utils.ISO8601DateStringToTime(startDateQueryParameter)

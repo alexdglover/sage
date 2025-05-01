@@ -52,6 +52,12 @@
             <input type="date" id="filterEndDate" class="form-control" name="endDate" hx-get="/transactions" hx-include="#filterAccount,#filterCategory,#filterStartDate" hx-target="#reportContent" hx-swap="innerHTML" value="{{ .EndDate }}">
           </div>
       </div>
+      <div class="row">
+        <div class="col-sm-8">
+          <label for="filterDescription">Description</label>
+          <input type="text" id="filterDescription" class="form-control" name="description" hx-get="/transactions" hx-include="#filterAccount,#filterCategory,#filterStartDate,#filterEndDate" hx-trigger="input changed delay:500ms, keyup[key=='Enter']" hx-target="#reportContent" hx-swap="innerHTML" value="{{ .Description }}">
+        </div>
+    </div>
     </div>
   </div>
 </div>
