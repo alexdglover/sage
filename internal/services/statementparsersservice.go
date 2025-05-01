@@ -320,14 +320,47 @@ func (s CapitalOneSavingsCSVParser) Parse(statement string) (transactions []mode
 	return transactions, balances, nil
 }
 
+type TargetCreditCardCSVParser struct{}
+
+// Parses CSVs with the header as the 1st row,  date in 0th column, posting date
+// in 1st column, ref# in 2nd column (which we won't use), amount in 3rd column,
+// description in 4th column, last 4 digits of card number in 5th column, and transaction
+// type in 6th column. Transaction typ[e is either `Payment`, `Sale`, or `Refund`.
+func (s TargetCreditCardCSVParser) Parse(statement string) (transactions []models.Transaction, balances []models.Balance, err error) {
+	csvReader := csv.NewReader(strings.NewReader(statement))
+	// Target statement CSVs include empty fields with double quotes,
+	// which is interpreted as an escaped double quote to the parser.
+	// To disable this behavior, we need to set the LazyQuotes flag to true.
+	csvReader.LazyQuotes = true
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, nil, err
+	}
+	for idx, record := range records {
+		// Skip the header row
+		if idx == 0 {
+			continue
+		}
+		amount := utils.DollarStringToCents(record[3])
+		txn := models.Transaction{
+			Date:        record[0],
+			Description: record[4],
+			Amount:      amount,
+		}
+		transactions = append(transactions, txn)
+	}
+	return transactions, balances, nil
+}
+
 var parsersByInstitution map[string]Parser = map[string]Parser{
 	"bankOfAmericaCreditCard": BankOfAmericaCreditCardCSVParser{},
-	"schwabChecking":          SchwabCheckingCSVParser{},
-	"schwabBrokerage":         SchwabBrokerageCSVParser{},
-	"fidelityCreditCard":      FidelityCreditCardCSVParser{},
-	"fidelityBrokerage":       FidelityBrokerageCSVParser{},
-	"chaseCreditCard":         ChaseCreditCardCSVParser{},
-	"chaseChecking":           ChaseCheckingCSVParser{},
 	"capitalOneCreditCard":    CapitalOneCreditCardCSVParser{},
 	"capitalOneSavings":       CapitalOneSavingsCSVParser{},
+	"chaseCreditCard":         ChaseCreditCardCSVParser{},
+	"chaseChecking":           ChaseCheckingCSVParser{},
+	"fidelityBrokerage":       FidelityBrokerageCSVParser{},
+	"fidelityCreditCard":      FidelityCreditCardCSVParser{},
+	"schwabChecking":          SchwabCheckingCSVParser{},
+	"schwabBrokerage":         SchwabBrokerageCSVParser{},
+	"targetCreditCard":        TargetCreditCardCSVParser{},
 }

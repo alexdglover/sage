@@ -16,9 +16,3 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 )
-
-// replace github.com/alexdglover/sage/internal => ./internal
-
-// replace github.com/alexdglover/sage/internal/models => ./internal/models
-
-// replace github.com/alexdglover/sage/internal/utils => ./internal/utils
