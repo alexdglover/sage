@@ -72,42 +72,46 @@ func (tc *TransactionController) generateTransactionsViewContent(w http.Response
 	dto := TransactionsPageDto{}
 
 	// Parse the query parameters
-	query := req.URL.Query()
-	accountIDQueryParameter := query.Get("accountID")
-	categoryIDQueryParameter := query.Get("categoryID")
-	descriptionQueryParameter := query.Get("description")
-	startDateQueryParameter := query.Get("startDate")
-	endDateQueryParameter := query.Get("endDate")
 	var accountID, categoryID uint
+	var descriptionQueryParameter string
 	var startDate, endDate *time.Time
 	var err error
-	if accountIDQueryParameter != "" {
-		accountID, err = utils.StringToUint(accountIDQueryParameter)
-		if err != nil {
-			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
-			return
-		}
-		dto.SelectedAccountID = accountID
-	}
+	if req != nil {
+		query := req.URL.Query()
+		accountIDQueryParameter := query.Get("accountID")
+		categoryIDQueryParameter := query.Get("categoryID")
+		descriptionQueryParameter = query.Get("description")
+		startDateQueryParameter := query.Get("startDate")
+		endDateQueryParameter := query.Get("endDate")
 
-	if categoryIDQueryParameter != "" {
-		categoryID, err = utils.StringToUint(categoryIDQueryParameter)
-		if err != nil {
-			http.Error(w, "Unable to parse category ID", http.StatusInternalServerError)
-			return
+		if accountIDQueryParameter != "" {
+			accountID, err = utils.StringToUint(accountIDQueryParameter)
+			if err != nil {
+				http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
+				return
+			}
+			dto.SelectedAccountID = accountID
 		}
-		dto.SelectedCategoryID = categoryID
-	}
 
-	if startDateQueryParameter != "" {
-		startDateValue := utils.ISO8601DateStringToTime(startDateQueryParameter)
-		startDate = &startDateValue
-		dto.StartDate = startDateQueryParameter
-	}
-	if endDateQueryParameter != "" {
-		endDateValue := utils.ISO8601DateStringToTime(endDateQueryParameter)
-		endDate = &endDateValue
-		dto.EndDate = endDateQueryParameter
+		if categoryIDQueryParameter != "" {
+			categoryID, err = utils.StringToUint(categoryIDQueryParameter)
+			if err != nil {
+				http.Error(w, "Unable to parse category ID", http.StatusInternalServerError)
+				return
+			}
+			dto.SelectedCategoryID = categoryID
+		}
+
+		if startDateQueryParameter != "" {
+			startDateValue := utils.ISO8601DateStringToTime(startDateQueryParameter)
+			startDate = &startDateValue
+			dto.StartDate = startDateQueryParameter
+		}
+		if endDateQueryParameter != "" {
+			endDateValue := utils.ISO8601DateStringToTime(endDateQueryParameter)
+			endDate = &endDateValue
+			dto.EndDate = endDateQueryParameter
+		}
 	}
 
 	// Get all Transactions with filters
