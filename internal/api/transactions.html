@@ -13,6 +13,49 @@
   </div>
 </div>
 
+<div class="accordion" id="filters-accordion">
+  <div class="filters-section">
+    <h2 class="accordion-header" id="filters-heading">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsible-filters-div" aria-expanded="true" aria-controls="collapsible-filters-div">
+        Filters
+      </button>
+    </h2>
+    <div id="collapsible-filters-div" class="accordion-collapse collapse show" aria-labelledby="collapsible-filters-div" data-bs-parent="#filters-accordion">
+      <div class="accordion-body">
+        <div class="row">
+          <div class="col-sm-4">
+            <label for="filterAccount">Account</label>
+            <select id="filterAccount" class="form-select" name="accountID" hx-get="/transactions" hx-include="#filterCategory,#filterStartDate,#filterEndDate" hx-target="#reportContent" hx-swap="innerHTML">
+              <option value="">All accounts</option>
+              {{ range .Accounts }}
+                <option {{ if eq $.SelectedAccountID .ID }}selected{{ end }} value="{{ .ID }}">{{ .Name }}</option>
+              {{ end }}
+            </select>
+          </div>
+          <div class="col-sm-4">
+            <label for="filterCategory">Category</label>
+            <select id="filterCategory" class="form-select" name="categoryID" hx-get="/transactions" hx-include="#filterAccount,#filterStartDate,#filterEndDate" hx-target="#reportContent" hx-swap="innerHTML">
+              <option value="">All categories</option>
+              {{ range .Categories }}
+                <option {{ if eq $.SelectedCategoryID .ID }}selected{{ end }} value="{{ .ID }}">{{ .Name }}</option>
+              {{ end }}
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-sm-4">
+            <label for="filterStartDate">From</label>
+            <input type="date" id="filterStartDate" class="form-control" name="startDate" hx-get="/transactions" hx-include="#filterAccount,#filterCategory,#filterEndDate" hx-target="#reportContent" hx-swap="innerHTML" value="{{ .StartDate }}">
+          </div>
+          <div class="col-sm-4">
+            <label for="filterEndDate">To</label>
+            <input type="date" id="filterEndDate" class="form-control" name="endDate" hx-get="/transactions" hx-include="#filterAccount,#filterCategory,#filterStartDate" hx-target="#reportContent" hx-swap="innerHTML" value="{{ .EndDate }}">
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <div class="table-responsive">
   <table class="table table-striped">

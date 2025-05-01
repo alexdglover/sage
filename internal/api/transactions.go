@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"text/template"
+	"time"
 
 	"github.com/alexdglover/sage/internal/models"
 	"github.com/alexdglover/sage/internal/utils"
@@ -34,10 +35,16 @@ type TransactionDTO struct {
 	ImportSubmissionID string
 }
 
-type dto struct {
+type TransactionsPageDto struct {
 	Transactions              []TransactionDTO
 	TransactionUpdated        bool
 	TransactionUpdatedMessage string
+	Accounts                  []models.Account
+	SelectedAccountID         uint
+	Categories                []models.Category
+	SelectedCategoryID        uint
+	StartDate                 string
+	EndDate                   string
 }
 
 type TransactionFormDTO struct {
@@ -57,21 +64,62 @@ type TransactionFormDTO struct {
 }
 
 func (tc *TransactionController) generateTransactionsView(w http.ResponseWriter, req *http.Request) {
-	tc.generateTransactionsViewContent(w, "")
+	tc.generateTransactionsViewContent(w, req, "")
 }
 
-func (tc *TransactionController) generateTransactionsViewContent(w http.ResponseWriter, transactionUpdateMessage string) {
-	// Get all Transactions
-	transactions, err := tc.TransactionRepository.GetAllTransactions()
+func (tc *TransactionController) generateTransactionsViewContent(w http.ResponseWriter, req *http.Request, transactionUpdateMessage string) {
+	transactionsDTO := []TransactionDTO{}
+	dto := TransactionsPageDto{}
+
+	// Parse the query parameters
+	query := req.URL.Query()
+	accountIDQueryParameter := query.Get("accountID")
+	categoryIDQueryParameter := query.Get("categoryID")
+	descriptionQueryParameter := query.Get("description")
+	startDateQueryParameter := query.Get("startDate")
+	endDateQueryParameter := query.Get("endDate")
+	var accountID, categoryID uint
+	var startDate, endDate *time.Time
+	var err error
+	if accountIDQueryParameter != "" {
+		accountID, err = utils.StringToUint(accountIDQueryParameter)
+		if err != nil {
+			http.Error(w, "Unable to parse account ID", http.StatusInternalServerError)
+			return
+		}
+		dto.SelectedAccountID = accountID
+	}
+
+	if categoryIDQueryParameter != "" {
+		categoryID, err = utils.StringToUint(categoryIDQueryParameter)
+		if err != nil {
+			http.Error(w, "Unable to parse category ID", http.StatusInternalServerError)
+			return
+		}
+		dto.SelectedCategoryID = categoryID
+	}
+
+	if startDateQueryParameter != "" {
+		startDateValue := utils.ISO8601DateStringToTime(startDateQueryParameter)
+		startDate = &startDateValue
+		dto.StartDate = startDateQueryParameter
+	}
+	if endDateQueryParameter != "" {
+		endDateValue := utils.ISO8601DateStringToTime(endDateQueryParameter)
+		endDate = &endDateValue
+		dto.EndDate = endDateQueryParameter
+	}
+
+	// Get all Transactions with filters
+	transactions, err := tc.TransactionRepository.GetAllTransactions(accountID, categoryID, descriptionQueryParameter, startDate, endDate)
 	if err != nil {
 		http.Error(w, "Unable to get transactions", http.StatusInternalServerError)
 		return
 	}
 
 	// Build Transactions DTO
-	transactionsDTO := make([]TransactionDTO, len(transactions))
-	for i, txn := range transactions {
-		transactionsDTO[i] = TransactionDTO{
+	for _, txn := range transactions {
+		transactionsDTO = append(transactionsDTO, TransactionDTO{
 			ID:                 txn.ID,
 			Date:               txn.Date,
 			Description:        txn.Description,
@@ -80,15 +128,29 @@ func (tc *TransactionController) generateTransactionsViewContent(w http.Response
 			AccountName:        txn.Account.Name,
 			CategoryName:       txn.Category.Name,
 			ImportSubmissionID: utils.UintPointerToString(txn.ImportSubmissionID),
-		}
+		})
 	}
-	dto := dto{
-		Transactions: transactionsDTO,
-	}
+	dto.Transactions = transactionsDTO
+
 	if transactionUpdateMessage != "" {
 		dto.TransactionUpdated = true
 		dto.TransactionUpdatedMessage = transactionUpdateMessage
 	}
+
+	// Get all accounts
+	accounts, err := tc.AccountRepository.GetAllAccounts()
+	if err != nil {
+		http.Error(w, "Unable to get accounts", http.StatusInternalServerError)
+		return
+	}
+	dto.Accounts = accounts
+	// Get all categories
+	categories, err := tc.CategoryRepository.GetAllCategories()
+	if err != nil {
+		http.Error(w, "Unable to get categories", http.StatusInternalServerError)
+		return
+	}
+	dto.Categories = categories
 
 	tmpl := template.Must(template.New("TransactionsPage").Funcs(template.FuncMap{
 		"mod": func(i, j int) int { return i % j },
@@ -221,7 +283,7 @@ func (tc *TransactionController) upsertTransaction(w http.ResponseWriter, req *h
 		return
 	}
 
-	tc.generateTransactionsViewContent(w, "Transaction saved successfully")
+	tc.generateTransactionsViewContent(w, nil, "Transaction saved successfully")
 }
 
 func (tc *TransactionController) deleteTransaction(w http.ResponseWriter, req *http.Request) {
@@ -239,5 +301,5 @@ func (tc *TransactionController) deleteTransaction(w http.ResponseWriter, req *h
 		return
 	}
 
-	tc.generateTransactionsViewContent(w, fmt.Sprintf("Transaction %v deleted successfully", transactionID))
+	tc.generateTransactionsViewContent(w, nil, fmt.Sprintf("Transaction %v deleted successfully", transactionID))
 }

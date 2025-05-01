@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/alexdglover/sage/internal/utils"
@@ -61,10 +62,34 @@ type TransactionRepository struct {
 	DB *gorm.DB
 }
 
-func (tr *TransactionRepository) GetAllTransactions() ([]Transaction, error) {
+func (tr *TransactionRepository) GetAllTransactions(accountID uint, categoryID uint, description string, startDate *time.Time, endDate *time.Time) ([]Transaction, error) {
 	// TODO: Need to implement pagination
 	var txns []Transaction
-	result := tr.DB.Preload(clause.Associations).Order("date desc").Find(&txns)
+
+	gormTxn := tr.DB.Preload(clause.Associations).Order("date desc")
+	// filters := map[string]interface{}{
+	// 	"account_id":  accountID,
+	// 	"category_id": categoryID,
+	// }
+	// gormTxn = gormTxn.Where(filters)
+	if accountID != 0 {
+		gormTxn = gormTxn.Where("account_id = ?", accountID)
+	}
+	if categoryID != 0 {
+		gormTxn = gormTxn.Where("category_id = ?", categoryID)
+	}
+	if description != "" {
+		gormTxn = gormTxn.Where("description LIKE ?", "%"+description+"%")
+	}
+	if startDate != nil {
+		gormTxn = gormTxn.Where("date >= ?", *startDate)
+	}
+	if endDate != nil {
+		gormTxn = gormTxn.Where("date <= ?", *endDate)
+	}
+	fmt.Println(gormTxn.Statement.SQL.String())
+
+	result := gormTxn.Find(&txns)
 	return txns, result.Error
 }
 
