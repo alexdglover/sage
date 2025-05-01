@@ -114,6 +114,13 @@ func (tc *TransactionController) generateTransactionsViewContent(w http.Response
 		}
 	}
 
+	// If startDate wasn't explicitly set, we will set it to 3 months ago to limit the number of transactions returned
+	if startDate == nil {
+		startDateValue := time.Now().AddDate(0, -3, 0)
+		startDate = &startDateValue
+		dto.StartDate = startDate.Format("2006-01-02")
+	}
+
 	// Get all Transactions with filters
 	transactions, err := tc.TransactionRepository.GetAllTransactions(accountID, categoryID, descriptionQueryParameter, startDate, endDate)
 	if err != nil {
