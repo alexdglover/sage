@@ -4,12 +4,11 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"net/http"
-	"text/template"
-
 	"github.com/alexdglover/sage/internal/models"
 	"github.com/alexdglover/sage/internal/utils"
 	humanize "github.com/dustin/go-humanize"
+	"net/http"
+	"text/template"
 )
 
 type AccountController struct {
@@ -170,12 +169,14 @@ func (ac *AccountController) generateAccountForm(w http.ResponseWriter, req *htt
 }
 
 func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Request) {
-	req.ParseForm()
+	if err := req.ParseForm(); err != nil {
+		http.Error(w, "Unable to Parse Form ", http.StatusBadRequest)
+		return
+	}
 
 	accountID := req.FormValue("accountID")
 	accountName := req.FormValue("accountName")
 	accountTypeIDFormValue := req.FormValue("accountTypeID")
-
 	var account models.Account
 
 	if accountID != "" {
@@ -200,6 +201,14 @@ func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Requ
 		return
 	}
 	account.AccountTypeID = accountTypeID
+
+	// Fetch AccountType to align with AccountTypeID
+	var accountType models.AccountType
+	if err := ac.AccountRepository.DB.Where("id = ?", accountTypeID).First(&accountType).Error; err != nil {
+		http.Error(w, fmt.Sprintf("Invalid account type ID %d: %v", accountTypeID, err), http.StatusBadRequest)
+		return
+	}
+	account.AccountType = accountType
 
 	_, err = ac.AccountRepository.Save(account)
 	if err != nil {
