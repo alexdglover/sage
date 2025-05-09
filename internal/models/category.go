@@ -34,7 +34,7 @@ func (cr *CategoryRepository) GetAllCategoriesAndBudgetStatus() (categories []Ca
 			ELSE false
 		END AS has_budget
 		FROM categories c
-		LEFT JOIN budgets b ON c.ID = b.category_id
+		LEFT JOIN budgets b ON c.ID = b.category_id and b.deleted_at IS NULL
 		WHERE c.deleted_at IS NULL;`).Scan(&categories)
 	return categories, nil
 }
