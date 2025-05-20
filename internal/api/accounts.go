@@ -4,18 +4,21 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/alexdglover/sage/internal/models"
-	"github.com/alexdglover/sage/internal/utils"
-	humanize "github.com/dustin/go-humanize"
 	"net/http"
 	"text/template"
+
+	"github.com/alexdglover/sage/internal/models"
+	"github.com/alexdglover/sage/internal/services"
+	"github.com/alexdglover/sage/internal/utils"
+	humanize "github.com/dustin/go-humanize"
 )
 
 type AccountController struct {
-	AccountRepository     *models.AccountRepository
-	AccountTypeRepository *models.AccountTypeRepository
-	BalanceRepository     *models.BalanceRepository
-	TransactionRepository *models.TransactionRepository
+	AccountManager      	*services.AccountManager
+	AccountRepository   	*models.AccountRepository
+	AccountTypeRepository 	*models.AccountTypeRepository
+	BalanceRepository     	*models.BalanceRepository
+	TransactionRepository 	*models.TransactionRepository
 }
 
 //go:embed accounts.html
@@ -202,9 +205,9 @@ func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Requ
 	}
 	account.AccountTypeID = accountTypeID
 
-	// Fetch AccountType to align with AccountTypeID
-	var accountType models.AccountType
-	if err := ac.AccountRepository.DB.Where("id = ?", accountTypeID).First(&accountType).Error; err != nil {
+	// Fetch AccountType to align with AccountTypeID using AccountManager
+	accountType, err := ac.AccountManager.GetAccountTypeByID(accountTypeID)
+	if err != nil {
 		http.Error(w, fmt.Sprintf("Invalid account type ID %d: %v", accountTypeID, err), http.StatusBadRequest)
 		return
 	}

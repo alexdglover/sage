@@ -275,6 +275,10 @@ func (dr *DependencyRegistry) GetImportService() (*services.ImportService, error
 
 func (dr *DependencyRegistry) GetAccountController() (*api.AccountController, error) {
 	if dr.AccountController == nil {
+		accountManager, err := dr.GetAccountManager()
+		if err != nil {
+			return nil, err
+		}
 		accountRepository, err := dr.GetAccountRepository()
 		if err != nil {
 			return nil, err
@@ -292,6 +296,7 @@ func (dr *DependencyRegistry) GetAccountController() (*api.AccountController, er
 			return nil, err
 		}
 		dr.AccountController = &api.AccountController{
+			AccountManager:        accountManager,
 			AccountRepository:     accountRepository,
 			AccountTypeRepository: accountTypeRepository,
 			BalanceRepository:     balanceRepository,
