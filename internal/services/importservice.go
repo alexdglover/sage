@@ -83,13 +83,22 @@ func (is *ImportService) ImportStatement(filename string, statement string, acco
 			submission.Status = models.Processing
 			is.ImportSubmissionRepository.Save(submission)
 		}
+		transaction.AccountID = account.ID
+
 		// Create a hash of all the relevant fields - date, amount, description
 		builder := strings.Builder{}
 		builder.WriteString(fmt.Sprint(transaction.AccountID))
+		builder.WriteString(" ")
 		builder.WriteString(fmt.Sprint(transaction.Amount))
+		builder.WriteString(" ")
 		builder.WriteString(transaction.Date)
+		builder.WriteString(" ")
 		builder.WriteString(transaction.Description)
-		hasher.Write([]byte(builder.String()))
+		identifyingContent := builder.String()
+
+		// Reset the hasher before generating a new hash
+		hasher.Reset()
+		hasher.Write([]byte(identifyingContent))
 		hash := hasher.Sum(nil)
 		hashHex := hex.EncodeToString(hash)
 
@@ -110,7 +119,6 @@ func (is *ImportService) ImportStatement(filename string, statement string, acco
 
 		// Set the fields not directly sourced from the statement
 		transaction.Hash = hashHex
-		transaction.AccountID = accountID
 		transaction.ImportSubmissionID = &submission.ID
 
 		// TODO: Add a check for the category and set it to the default category if it is not set
