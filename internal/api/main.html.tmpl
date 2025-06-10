@@ -4,8 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
-    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
-    <meta name="generator" content="Hugo 0.84.0">
+    <meta name="author" content="Alex Glover and Sage Contributors">
     <title>Sage Personal Finance</title>
 
     <script src="http://localhost:8080/assets/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -14,8 +13,6 @@
     <script src="http://localhost:8080/assets/npm/chart.js@4.4.3/dist/chart.umd.js"></script>
     <script src="http://localhost:8080/assets/htmx.org@2.0.0.js"></script>
     
-
-    <link rel="canonical" href="https://getbootstrap.com/docs/5.0/examples/dashboard/">
     <link href="http://localhost:8080/assets//npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
@@ -168,15 +165,6 @@
       <div class="position-sticky pt-3">
         <ul class="nav flex-column">
           <li class="nav-item">
-            <a class="nav-link active" href="#"
-              hx-post="/dashboard"
-              hx-trigger="click"
-              hx-target="#reportContent"
-              hx-swap="innerHTML">
-              &#x1F3E0; Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
             <a class="nav-link" href="#"
               hx-get="/accounts"
               hx-trigger="click"
@@ -282,13 +270,11 @@
         </div>-->
       </div>
       <div id="reportContent"
-        hx-post="/dashboard"
+        hx-get="/accounts"
         hx-trigger="load"
         hx-target="#reportContent"
         hx-swap="innerHTML">
-        <h2>Dashboard</h2>
-        <p>This section will have alerts/notifications that should be prominent for the user.</p>
-        <p>Click on the "Net worth" link on the left to see a report</p>
+        <p></p>
       </div>
     </main>
   </div>
