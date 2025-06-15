@@ -29,7 +29,11 @@ var assets embed.FS
 var pageComponents string
 
 func (as *ApiServer) StartApiServer(ctx context.Context) {
-	http.Handle("/assets/", http.FileServer(http.FS(assets)))
+
+	http.Handle("/assets/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "max-age=86400, public")
+		http.FileServer(http.FS(assets)).ServeHTTP(w, r)
+	}))
 
 	http.HandleFunc("/", as.AccountController.generateAccountsView)
 	http.HandleFunc("/dashboard", dashboardHandler)
