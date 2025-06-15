@@ -166,7 +166,8 @@ func (tc *TransactionController) generateTransactionsViewContent(w http.Response
 	}
 	dto.Categories = categories
 
-	tmpl := template.Must(template.New("TransactionsPage").Funcs(template.FuncMap{
+	tmpl := template.Must(template.New("TransactionsPage").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Funcs(template.FuncMap{
 		"mod": func(i, j int) int { return i % j },
 	}).Parse(transactionsPageTmpl))
 

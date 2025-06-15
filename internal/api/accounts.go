@@ -14,11 +14,11 @@ import (
 )
 
 type AccountController struct {
-	AccountManager      	*services.AccountManager
-	AccountRepository   	*models.AccountRepository
-	AccountTypeRepository 	*models.AccountTypeRepository
-	BalanceRepository     	*models.BalanceRepository
-	TransactionRepository 	*models.TransactionRepository
+	AccountManager        *services.AccountManager
+	AccountRepository     *models.AccountRepository
+	AccountTypeRepository *models.AccountTypeRepository
+	BalanceRepository     *models.BalanceRepository
+	TransactionRepository *models.TransactionRepository
 }
 
 //go:embed accounts.html
@@ -119,7 +119,8 @@ func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, 
 		accountsPageDTO.AccountUpdatedMessage = AccountUpdatedMessage
 	}
 
-	tmpl := template.Must(template.New("accountsPage").Funcs(template.FuncMap{
+	tmpl := template.Must(template.New("accountsPage").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Funcs(template.FuncMap{
 		"mod": func(i, j int) int { return i % j },
 	}).Parse(accountsPageTmpl))
 

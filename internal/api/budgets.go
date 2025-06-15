@@ -214,7 +214,8 @@ func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool)
 		budgetsPageDTO.BudgetSaved = true
 	}
 
-	tmpl := template.Must(template.New("budgetsPage").Funcs(template.FuncMap{
+	tmpl := template.Must(template.New("budgetsPage").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Funcs(template.FuncMap{
 		"mod": func(i, j int) int { return i % j },
 	}).Parse(budgetsPageTmpl))
 

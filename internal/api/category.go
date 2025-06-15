@@ -72,7 +72,8 @@ func (ac *CategoryController) generateCategoriesView(w http.ResponseWriter, req 
 		categoriesPageDTO.CreatedCategoryName = req.URL.Query().Get("categorySaved")
 	}
 
-	tmpl := template.Must(template.New("categoriesPage").Funcs(template.FuncMap{
+	tmpl := template.Must(template.New("categoriesPage").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Funcs(template.FuncMap{
 		"mod": func(i, j int) int { return i % j },
 	}).Parse(categoriesPageTmpl))
 

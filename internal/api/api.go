@@ -16,7 +16,6 @@ type ApiServer struct {
 	BudgetController      *BudgetController
 	CategoryController    *CategoryController
 	ImportController      *ImportController
-	MainController        *MainController
 	NetIncomeController   *NetIncomeController
 	NetWorthController    *NetWorthController
 	SpendingController    *SpendingController
@@ -26,10 +25,13 @@ type ApiServer struct {
 //go:embed assets
 var assets embed.FS
 
+//go:embed pageComponents.html
+var pageComponents string
+
 func (as *ApiServer) StartApiServer(ctx context.Context) {
 	http.Handle("/assets/", http.FileServer(http.FS(assets)))
 
-	http.HandleFunc("/", as.MainController.mainPageHandler)
+	http.HandleFunc("/", as.AccountController.generateAccountsView)
 	http.HandleFunc("/dashboard", dashboardHandler)
 	http.HandleFunc("GET /net-worth", as.NetWorthController.netWorthHandler)
 	http.HandleFunc("GET /net-income", as.NetIncomeController.netIncomeHandler)
