@@ -45,7 +45,7 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 	b.db.AutoMigrate(&ImportSubmission{})
 
 	// Seed data for common categories, if they don't exist already
-	for _, name := range []string{"Unknown", "Home", "Income", "Auto", "Food", "Dining"} {
+	for _, name := range []string{"Unknown", "Transfers", "Home", "Income", "Auto", "Food", "Dining"} {
 		// The Category table has a unique index on the Name column, so we can use the DoNothing option
 		// to safely attempt to insert a record that may already exist
 		b.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&Category{Name: name})

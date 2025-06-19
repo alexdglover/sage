@@ -19,23 +19,27 @@ type ImportController struct {
 	TransactionRepository *models.TransactionRepository
 }
 
-//go:embed importStatementForm.html.tmpl
+//go:embed importStatementForm.html
 var importStatementFormTmpl string
 
-//go:embed importStatusPage.html.tmpl
+//go:embed importStatusPage.html
 var importStatusPageTmpl string
 
 type ImportStatementFormDTO struct {
+	ActivePage         string
 	AccountNamesAndIDs []services.AccountNameAndID
 }
 
 type ImportStatusPageDTO struct {
+	ActivePage   string
 	Submission   *models.ImportSubmission
 	Transactions []TransactionDTO
 }
 
 func (ic *ImportController) importStatementFormHandler(w http.ResponseWriter, req *http.Request) {
-	formDTO := ImportStatementFormDTO{}
+	formDTO := ImportStatementFormDTO{
+		ActivePage: "importStatementForm",
+	}
 	data, err := ic.AccountManager.GetAccountNamesAndIDs()
 	if err != nil {
 		http.Error(w, "Unable to get account names and IDs", http.StatusInternalServerError)
@@ -43,11 +47,8 @@ func (ic *ImportController) importStatementFormHandler(w http.ResponseWriter, re
 	formDTO.AccountNamesAndIDs = data
 
 	// TODO: Get list of parsers to populate drop down
-
-	tmpl, err := template.New("importStatementForm").Parse(importStatementFormTmpl)
-	if err != nil {
-		panic(err)
-	}
+	tmpl := template.Must(template.New("importStatementForm").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(importStatementFormTmpl))
 	err = utils.RenderTemplateAsHTML(w, tmpl, formDTO)
 	if err != nil {
 		panic(err)
@@ -105,6 +106,7 @@ func (ic *ImportController) importSubmissionHandler(w http.ResponseWriter, req *
 		})
 	}
 	dto := ImportStatusPageDTO{
+		ActivePage:   "importStatus",
 		Submission:   importSubmission,
 		Transactions: transactionDTOs,
 	}
@@ -114,11 +116,9 @@ func (ic *ImportController) importSubmissionHandler(w http.ResponseWriter, req *
 
 // Handler to return HTML for the status of a single import submission
 func (ic *ImportController) importStatusHandler(w http.ResponseWriter, dto ImportStatusPageDTO) {
-	tmpl, err := template.New("importStatusPage").Parse(importStatusPageTmpl)
-	if err != nil {
-		panic(err)
-	}
-	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
+	tmpl := template.Must(template.New("importStatusPage").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(importStatusPageTmpl))
+	err := utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

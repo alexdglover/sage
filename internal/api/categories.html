@@ -1,4 +1,4 @@
-{{ template "header"}}
+{{ template "header" .}}
 <div class="row">
   <div class="col-sm-4">
     <h2>Categories</h2>
@@ -7,7 +7,7 @@
     <button class="btn btn-success" style="float: right;"
       hx-get="/categoryForm"
       hx-trigger="click"
-      hx-target="#reportContent"
+      hx-target="body"
       hx-swap="innerHTML">
         &#x2B; Add category
     </button>
@@ -29,7 +29,7 @@
                   class="btn btn-light"
                   hx-get="/categoryForm?categoryID={{ $category.ID }}"
                   hx-trigger="click"
-                  hx-target="#reportContent"
+                  hx-target="body"
                   hx-swap="innerHTML">
                   &#x1F58B; Edit
                 </a>
@@ -41,7 +41,7 @@
                   class="btn btn-light"
                   hx-get="/budgetForm?categoryName={{ $category.Name }}"
                   hx-trigger="click"
-                  hx-target="#reportContent"
+                  hx-target="body"
                   hx-swap="innerHTML">
                   &#x1F3AF; Create budget
                 </a>

@@ -15,7 +15,7 @@ type SpendingController struct {
 	TransactionRepository *models.TransactionRepository
 }
 
-//go:embed spendingbycategory.html.tmpl
+//go:embed spendingbycategory.html
 var spendingByCategoryTmpl string
 
 type spendingByCategory struct {
@@ -25,6 +25,7 @@ type spendingByCategory struct {
 }
 
 type SpendingByCategoryDTO struct {
+	ActivePage           string
 	AllTimeActive        bool
 	Last12MonthsActive   bool
 	Last6MonthsActive    bool
@@ -35,7 +36,9 @@ type SpendingByCategoryDTO struct {
 func (sc *SpendingController) spendingByCategoryHandler(w http.ResponseWriter, req *http.Request) {
 	// Get time frame
 	var relativeWindow int
-	dto := SpendingByCategoryDTO{}
+	dto := SpendingByCategoryDTO{
+		ActivePage: "spendingByCategory",
+	}
 	if req.FormValue("relativeWindow") == "" {
 		relativeWindow = 6
 		dto.Last6MonthsActive = true
@@ -83,10 +86,8 @@ func (sc *SpendingController) spendingByCategoryHandler(w http.ResponseWriter, r
 	}
 
 	// Render template
-	tmpl, err := template.New("spendingByCategory").Parse(spendingByCategoryTmpl)
-	if err != nil {
-		panic(err)
-	}
+	tmpl := template.Must(template.New("spendingByCategory").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(spendingByCategoryTmpl))
 	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)

@@ -30,6 +30,7 @@ type IncomeAndExpensesDataSet struct {
 }
 
 type IncomeAndExpensesDTO struct {
+	ActivePage         string
 	AllTimeActive      bool
 	Last12MonthsActive bool
 	Last6MonthsActive  bool
@@ -37,13 +38,15 @@ type IncomeAndExpensesDTO struct {
 	DataSets           []IncomeAndExpensesDataSet
 }
 
-//go:embed netincome.html.tmpl
+//go:embed netincome.html
 var netIncomeTmpl string
 
 // netIncomeHandler is the HTTP handler for the net income page
 // TODO: Implement logic for relative date controls
 func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http.Request) {
-	dto := IncomeAndExpensesDTO{}
+	dto := IncomeAndExpensesDTO{
+		ActivePage: "netIncome",
+	}
 	var relativeWindow int
 
 	if req.FormValue("relativeWindow") == "" {
@@ -100,10 +103,8 @@ func (nc *NetIncomeController) netIncomeHandler(w http.ResponseWriter, req *http
 		dto.DataSets = append(dto.DataSets, incomeAndExpenses)
 	}
 
-	tmpl, err := template.New("netIncome").Parse(netIncomeTmpl)
-	if err != nil {
-		panic(err)
-	}
+	tmpl := template.Must(template.New("netIncome").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(netIncomeTmpl))
 	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)

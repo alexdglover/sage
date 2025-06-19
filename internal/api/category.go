@@ -30,12 +30,14 @@ type CategoryDTO struct {
 }
 
 type CategoriesPageDTO struct {
+	ActivePage          string
 	Categories          []CategoryDTO
 	CategorySaved       bool
 	CreatedCategoryName string
 }
 
 type CategoryFormDTO struct {
+	ActivePage string // This is used to highlight the active page in the navigation
 	// If we're updating an existing category in the form, Updating will be true
 	// If we're creating a new category, Updating will be false
 	Updating     bool
@@ -65,6 +67,7 @@ func (ac *CategoryController) generateCategoriesView(w http.ResponseWriter, req 
 		})
 	}
 	categoriesPageDTO := CategoriesPageDTO{
+		ActivePage: "categories",
 		Categories: categoriesDTO,
 	}
 	if req.URL.Query().Get("categorySaved") != "" {
@@ -100,18 +103,17 @@ func (ac *CategoryController) generateCategoryForm(w http.ResponseWriter, req *h
 		}
 
 		dto = CategoryFormDTO{
+			ActivePage:   "categories",
 			Updating:     true,
 			CategoryID:   fmt.Sprint(category.ID),
 			CategoryName: category.Name,
 		}
 	}
 
-	tmpl, err := template.New("categoryForm").Parse(categoryFormTmpl)
-	if err != nil {
-		panic(err)
-	}
+	tmpl := template.Must(template.New("categoryForm").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(categoryFormTmpl))
 
-	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
+	err := utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

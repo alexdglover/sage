@@ -39,12 +39,15 @@ type AccountDTO struct {
 }
 
 type AccountsPageDTO struct {
+	ActivePage            string
 	Accounts              []AccountDTO
 	AccountUpdated        bool
 	AccountUpdatedMessage string
 }
 
 type AccountFormDTO struct {
+	ActivePage string // This is used to highlight the active page in the navigation
+
 	// If we're updating an existing account in the form, Updating will be true
 	// If we're creating a new account, Updating will be false
 	Updating        bool
@@ -112,7 +115,8 @@ func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, 
 		}
 	}
 	accountsPageDTO := AccountsPageDTO{
-		Accounts: accountsDTO,
+		ActivePage: "accounts",
+		Accounts:   accountsDTO,
 	}
 	if AccountUpdatedMessage != "" {
 		accountsPageDTO.AccountUpdated = true
@@ -147,6 +151,7 @@ func (ac *AccountController) generateAccountForm(w http.ResponseWriter, req *htt
 		}
 
 		dto = AccountFormDTO{
+			ActivePage:      "accounts",
 			Updating:        true,
 			AccountID:       fmt.Sprint(account.ID),
 			AccountName:     account.Name,
@@ -161,10 +166,8 @@ func (ac *AccountController) generateAccountForm(w http.ResponseWriter, req *htt
 	}
 	dto.AccountTypes = accountTypes
 
-	tmpl, err := template.New("accountForm").Parse(accountFormTmpl)
-	if err != nil {
-		panic(err)
-	}
+	tmpl := template.Must(template.New("accountsForm").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(accountFormTmpl))
 
 	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {

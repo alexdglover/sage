@@ -39,11 +39,13 @@ type BudgetDTO struct {
 }
 
 type BudgetsPageDTO struct {
+	ActivePage  string
 	Budgets     []BudgetDTO
 	BudgetSaved bool
 }
 
 type BudgetFormDTO struct {
+	ActivePage string // This is used to highlight the active page in the navigation
 	// If we're updating an existing budget in the form, Updating will be true
 	// If we're creating a new budget, Updating will be false
 	Updating     bool
@@ -61,6 +63,7 @@ type BudgetDataByMonthDTO struct {
 }
 
 type BudgetDetailDTO struct {
+	ActivePage          string // This is used to highlight the active page in the navigation
 	ID                  uint
 	CategoryName        string
 	NumOfMonthsExceeded string
@@ -73,6 +76,7 @@ type BudgetDetailDTO struct {
 
 func (bc *BudgetController) generateBudgetForm(w http.ResponseWriter, req *http.Request) {
 	var dto BudgetFormDTO
+	dto.ActivePage = "budgets"
 
 	categories, err := bc.CategoryRepository.GetAllCategories()
 	if err != nil {
@@ -108,10 +112,8 @@ func (bc *BudgetController) generateBudgetForm(w http.ResponseWriter, req *http.
 		dto.CategoryName = categoryNameQueryParameter
 	}
 
-	tmpl, err := template.New("budgetForm").Parse(budgetsFormTmpl)
-	if err != nil {
-		panic(err)
-	}
+	tmpl := template.Must(template.New("budgetForm").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(budgetsFormTmpl))
 
 	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
@@ -208,7 +210,8 @@ func (bc *BudgetController) sendViewResponse(w http.ResponseWriter, update bool)
 		}
 	}
 	budgetsPageDTO := BudgetsPageDTO{
-		Budgets: budgetsDTO,
+		ActivePage: "budgets",
+		Budgets:    budgetsDTO,
 	}
 	if update {
 		budgetsPageDTO.BudgetSaved = true
@@ -277,6 +280,7 @@ func (bc *BudgetController) generateBudgetDetailsView(w http.ResponseWriter, req
 	}
 
 	budgetDetailDTO := BudgetDetailDTO{
+		ActivePage:          "budgets",
 		ID:                  budgetID,
 		CategoryName:        budget.Category.Name,
 		NumOfMonthsExceeded: fmt.Sprint(timesExceeded),
@@ -301,12 +305,8 @@ func (bc *BudgetController) generateBudgetDetailsView(w http.ResponseWriter, req
 		budgetDetailDTO.Volatility = "Low"
 	}
 
-	tmpl, err := template.New("budgetDetail").Parse(budgetDetailTmpl)
-	if err != nil {
-		message := fmt.Sprintf("Error building template: %v", err)
-		http.Error(w, message, http.StatusInternalServerError)
-		return
-	}
+	tmpl := template.Must(template.New("budgetDetail").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(budgetDetailTmpl))
 
 	err = utils.RenderTemplateAsHTML(w, tmpl, budgetDetailDTO)
 	if err != nil {

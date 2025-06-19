@@ -1,41 +1,37 @@
+{{ template "header" .}}
 <h2>Net worth</h2>
-
-<div style="padding-left: 10%; padding-right: 10%;">
-  <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
-    <button
-      type="button"
-      class="btn {{ if .AllTimeActive }}btn-dark{{else}}btn-outline-dark{{end}}"
-      hx-get="/net-worth?relativeWindow=allTime"
-      hx-target="#reportContent"
-      hx-swap="innerHTML">
-      All time
-    </button>
-    <button
-      type="button"
-      class="btn {{ if .Last12MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
-      hx-get="/net-worth?relativeWindow=12"
-      hx-target="#reportContent"
-      hx-swap="innerHTML">
-      Last 12 months
-    </button>
-    <button
-      type="button"
-      class="btn {{ if .Last6MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
-      hx-get="/net-worth?relativeWindow=6"
-      hx-target="#reportContent"
-      hx-swap="innerHTML">
-      Last 6 months
-    </button>
-    <button
-      type="button"
-      class="btn {{ if .Last3MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
-      hx-get="/net-worth?relativeWindow=3"
-      hx-target="#reportContent"
-      hx-swap="innerHTML">
-      Last 3 months
-    </button>
+<div class="row">
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
+    <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
+      <a
+        type="button"
+        class="btn {{ if .AllTimeActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+        href="/net-worth?relativeWindow=allTime">
+        All time
+      </a>
+      <a
+        type="button"
+        class="btn {{ if .Last12MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+        href="/net-worth?relativeWindow=12">
+        Last 12 months
+      </a>
+      <a
+        type="button"
+        class="btn {{ if .Last6MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+        href="/net-worth?relativeWindow=6"">
+        Last 6 months
+      </a>
+      <a
+        type="button"
+        class="btn {{ if .Last3MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}"
+        href="/net-worth?relativeWindow=3">
+        Last 3 months
+      </a>
+    </div>
+    <canvas class="my-4" id="myChart"></canvas>
   </div>
-  <canvas class="my-4 w-100" id="myChart"></canvas>
+  <div class="col-md-2"></div>
 </div>
 
 <script>
@@ -143,3 +139,4 @@
     </tbody>
   </table>
 </div>
+{{ template "footer"}}

@@ -1,3 +1,4 @@
+{{ template "header" .}}
 <div class="row">
   <div class="col-sm-4">
     <h2>{{ if eq .Editing true }}Update{{ else }}Add{{ end }} Balance</h2>
@@ -10,7 +11,7 @@
 </div>
 {{ end }}
 
-<form hx-post="/balances" hx-target="#reportContent" enctype="multipart/form-data">
+<form hx-post="/balances" hx-target="body" enctype="multipart/form-data">
   <div class="row">
     <div class="col-sm-3">
       <div class="mb-3">
@@ -39,15 +40,16 @@
   <button type="submit" class="btn btn-success"
     hx-post="/balances"
     hx-trigger="click"
-    hx-target="#reportContent"
+    hx-target="body"
     hx-swap="innerHTML">
     Save
   </button>
   <button type="button" class="btn btn-light"
     hx-get="/balances?accountID={{ .AccountID }}"
     hx-trigger="click"
-    hx-target="#reportContent"
+    hx-target="body"
     hx-swap="innerHTML">
       Cancel
   </button>
 </form>
+{{ template "footer"}}

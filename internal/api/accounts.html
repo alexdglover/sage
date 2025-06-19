@@ -1,4 +1,4 @@
-{{ template "header"}}
+{{ template "header" .}}
 <div class="row">
   <div class="col-sm-4">
     <h2>Accounts</h2>
@@ -7,7 +7,7 @@
     <button class="btn btn-success" style="float: right;"
       hx-get="/accountForm"
       hx-trigger="click"
-      hx-target="#reportContent"
+      hx-target="body"
       hx-swap="innerHTML">
         &#x2B; Add account
     </button>
@@ -30,7 +30,7 @@
                   class="btn btn-light"
                   hx-get="/accountForm?accountID={{ $account.ID }}"
                   hx-trigger="click"
-                  hx-target="#reportContent"
+                  hx-target="body"
                   hx-swap="innerHTML">
                   &#x1F58B; Edit
                 </a>
@@ -46,7 +46,7 @@
             class="btn btn-light"
             hx-get="/transactions?accountID={{ $account.ID }}"
             hx-trigger="click"
-            hx-target="#reportContent"
+            hx-target="body"
             hx-swap="innerHTML">
             Transactions
           </a>
@@ -54,7 +54,7 @@
             class="btn btn-light"
             hx-get="/balances?accountID={{ $account.ID }}"
             hx-trigger="click"
-            hx-target="#reportContent"
+            hx-target="body"
             hx-swap="innerHTML">
             Balances  
           </a>

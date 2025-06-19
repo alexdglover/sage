@@ -16,7 +16,7 @@ type NetWorthController struct {
 	BalanceRepository *models.BalanceRepository
 }
 
-//go:embed networth.html.tmpl
+//go:embed networth.html
 var netWorthTmpl string
 
 // A totalByType entry will be either 'asset': <some int> or 'liablities': <some int>
@@ -28,6 +28,7 @@ type totalByType map[string]int
 type totalByTypeDTO map[string]string
 
 type netWorthdto struct {
+	ActivePage          string
 	AllTimeActive       bool
 	Last12MonthsActive  bool
 	Last6MonthsActive   bool
@@ -38,7 +39,9 @@ type netWorthdto struct {
 // TODO: Consider moving this into a service class that returns just the data needed
 func (nc *NetWorthController) netWorthHandler(w http.ResponseWriter, req *http.Request) {
 	var relativeWindow int
-	dto := netWorthdto{}
+	dto := netWorthdto{
+		ActivePage: "netWorth",
+	}
 	if req.FormValue("relativeWindow") == "" {
 		relativeWindow = 6
 		dto.Last6MonthsActive = true
@@ -118,11 +121,9 @@ func (nc *NetWorthController) netWorthHandler(w http.ResponseWriter, req *http.R
 	}
 
 	dto.TotalByMonthAndType = totalByMonthAndTypeDTO
-	tmpl, err := template.New("netWorthDashboard").Parse(netWorthTmpl)
-	if err != nil {
-		panic(err)
-	}
-	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
+	tmpl := template.Must(template.New("netWorthDashboard").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(netWorthTmpl))
+	err := utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

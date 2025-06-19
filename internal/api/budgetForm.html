@@ -1,10 +1,11 @@
+{{ template "header" .}}
 <div class="row">
   <div class="col-sm-4">
     <h2>{{ if eq .Updating true }}Update{{ else }}Add{{ end }} Budget</h2>
   </div>
 </div>
 
-<form hx-post="/budget" hx-target="#reportContent" enctype="multipart/form-data">
+<form hx-post="/budget" hx-target="body" enctype="multipart/form-data">
   <div class="row">
     <div class="col-lg-4">
       <div class="form-floating mb-3">
@@ -25,7 +26,7 @@
   <button type="submit" class="btn btn-success"
     hx-post="/budgets"
     hx-trigger="click"
-    hx-target="#reportContent"
+    hx-target="body"
     hx-swap="innerHTML">
     Save
   </button>
@@ -34,7 +35,7 @@
     hx-confirm="Are you sure you want to delete this budget?"
     hx-delete="/budgets"
     hx-trigger="click"
-    hx-target="#reportContent"
+    hx-target="body"
     hx-swap="innerHTML">
       Delete
   </button>
@@ -42,8 +43,9 @@
   <button type="button" class="btn btn-light"
     hx-get="/budgets"
     hx-trigger="click"
-    hx-target="#reportContent"
+    hx-target="body"
     hx-swap="innerHTML">
       Cancel
   </button>
 </form>
+{{ template "footer"}}

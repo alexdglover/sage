@@ -1,10 +1,11 @@
+{{ template "header" .}}
 <div class="row">
   <div class="col-sm-4">
     <h2>{{ if eq .Updating true }}Update{{ else }}Add{{ end }} Account</h2>
   </div>
 </div>
 
-<form hx-post="/account" hx-target="#reportContent" enctype="multipart/form-data">
+<form hx-post="/account" hx-target="body" enctype="multipart/form-data">
   <div class="row">
     <div class="col-sm-6">
       <div class="form-floating mb-3">
@@ -29,7 +30,7 @@
   <button type="submit" class="btn btn-success"
     hx-post="/accounts"
     hx-trigger="click"
-    hx-target="#reportContent"
+    hx-target="body"
     hx-swap="innerHTML">
     Save
   </button>
@@ -38,16 +39,11 @@
     hx-confirm="Are you sure you want to delete this account? All associated balances and transactions will be deleted."
     hx-delete="/accounts"
     hx-trigger="click"
-    hx-target="#reportContent"
+    hx-target="body"
     hx-swap="innerHTML">
       Delete
   </button>
   {{ end }}
-  <button type="button" class="btn btn-light"
-    hx-get="/accounts"
-    hx-trigger="click"
-    hx-target="#reportContent"
-    hx-swap="innerHTML">
-      Cancel
-  </button>
+  <a type="button" class="btn btn-light" href="/accounts">Cancel</a>
 </form>
+{{ template "footer"}}

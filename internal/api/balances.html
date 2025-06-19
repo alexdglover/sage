@@ -1,3 +1,4 @@
+{{ template "header" .}}
 <div class="row">
   <div class="col-sm-4">
     <h2>Balances</h2>
@@ -6,7 +7,7 @@
     <button class="btn btn-success" style="float: right;"
     hx-get="/balanceForm?accountID={{ .AccountID }}"
     hx-trigger="click"
-    hx-target="#reportContent"
+    hx-target="body"
     hx-swap="innerHTML">
       Add balance
     </button>
@@ -32,7 +33,7 @@
         <td><a href="#"
           hx-get="/balanceForm?balanceID={{ .ID }}&accountID={{ .AccountID }}"
           hx-trigger="click"
-          hx-target="#reportContent"
+          hx-target="body"
           hx-swap="innerHTML">
           &#x1F58B;
         </a></td>
@@ -64,3 +65,4 @@
   toast.show()
 </script>
 {{ end }}
+{{ template "footer"}}

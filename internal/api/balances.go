@@ -35,6 +35,7 @@ type BalanceDTO struct {
 }
 
 type BalancesPageDTO struct {
+	ActivePage          string // This is used to highlight the active page in the navigation
 	AccountID           uint
 	Balances            []BalanceDTO
 	BalanceSaved        bool
@@ -42,6 +43,7 @@ type BalancesPageDTO struct {
 }
 
 type BalanceFormDTO struct {
+	ActivePage string // This is used to highlight the active page in the navigation
 	// If we're editing an existing account, Editing will be true
 	// If we're creating a new account, Editing will be false
 	Editing bool
@@ -76,19 +78,17 @@ func (bc *BalanceController) generateBalancesView(w http.ResponseWriter, req *ht
 		}
 	}
 	balancesPageDTO := BalancesPageDTO{
-		AccountID: accountID,
-		Balances:  balancesDTO,
+		ActivePage: "balances",
+		AccountID:  accountID,
+		Balances:   balancesDTO,
 	}
 	if req.URL.Query().Get("balanceSaved") != "" {
 		balancesPageDTO.BalanceSaved = true
 		balancesPageDTO.BalanceSavedMessage = req.URL.Query().Get("balanceSaved")
 	}
 
-	tmpl, err := template.New("balancesPage").Parse(balancesPageTmpl)
-	if err != nil {
-		http.Error(w, "Unable to parse balancesPage template", http.StatusInternalServerError)
-		return
-	}
+	tmpl := template.Must(template.New("balancesPage").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(balancesPageTmpl))
 
 	err = utils.RenderTemplateAsHTML(w, tmpl, balancesPageDTO)
 	if err != nil {
@@ -128,8 +128,9 @@ func (bc *BalanceController) balanceFormContent(w http.ResponseWriter, balanceID
 		balance := bc.BalanceRepository.GetBalanceByID(context.TODO(), balanceID)
 
 		dto = BalanceFormDTO{
-			Editing:   true,
-			AccountID: accountID,
+			ActivePage: "balances",
+			Editing:    true,
+			AccountID:  accountID,
 			BalanceDTO: BalanceDTO{
 				ID:            balance.ID,
 				UpdatedAt:     balance.UpdatedAt.String(),
@@ -147,13 +148,10 @@ func (bc *BalanceController) balanceFormContent(w http.ResponseWriter, balanceID
 		dto.ErrorMessage = errorMessage
 	}
 
-	tmpl, err := template.New("balanceForm").Parse(balanceFormTmpl)
-	if err != nil {
-		http.Error(w, "Unable to parse balanceForm template", http.StatusInternalServerError)
-		return
-	}
+	tmpl := template.Must(template.New("balanceForm").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(balanceFormTmpl))
 
-	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
+	err := utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		http.Error(w, "Unable to render balanceForm template", http.StatusInternalServerError)
 		return

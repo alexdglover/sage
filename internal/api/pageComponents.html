@@ -1,4 +1,4 @@
-{{define "header" }}
+{{ define "header" }}
 <!doctype html>
 <html lang="en">
   <head>
@@ -138,11 +138,16 @@
       }
 
       .accordion-button:not(.collapsed) {
-        color: #ffffff;
-        background-color: #198754;
-        box-shadow:inset 0 calc(-1 * var(--bs-accordion-border-width)) 0 #198754;
+        color: #000;
+        background-color: #fff;
+        border: 1px solid #198754;
       }
 
+      .accordion-button.collapsed {
+        color: #ffffff;
+        background-color: #198754;
+        border: 1px solid #198754;
+      }
     </style>
   </head>
   <body>
@@ -152,12 +157,6 @@
   <button class="navbar-toggler d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-  <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search">
-  <div class="navbar-nav">
-    <div class="nav-item text-nowrap">
-      <a class="nav-link px-3" href="#">Sign out</a>
-    </div>
-  </div> -->
 </header>
 
 <div class="container-fluid" style="margin-top: 10px">
@@ -166,22 +165,22 @@
       <div class="position-sticky pt-3">
         <ul class="nav flex-column">
           <li class="nav-item">
-            <a class="nav-link" href="/accounts">
+            <a class="nav-link{{ if eq .ActivePage "accounts" }} active {{end}}" href="/accounts">
               &#x1F5C4; Accounts
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/categories">
+            <a class="nav-link{{ if eq .ActivePage "categories" }} active {{end}}" href="/categories">
               &#x1F4D2; Categories
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/transactions">
+            <a class="nav-link{{ if eq .ActivePage "transactions" }} active {{end}}" href="/transactions">
               &#x1F4DD; Transactions
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/budgets">
+            <a class="nav-link{{ if eq .ActivePage "budgets" }} active {{end}}" href="/budgets">
               &#x1F3AF; Budgets
             </a>
           </li>
@@ -189,29 +188,17 @@
             <span>Reporting</span>
           </h6>
           <li class="nav-item">
-            <a class="nav-link" href="#"
-              hx-get="/net-worth"
-              hx-trigger="click"
-              hx-target="#reportContent"
-              hx-swap="innerHTML">
+            <a class="nav-link{{ if eq .ActivePage "netWorth" }} active {{end}}" href="/net-worth">
               &#x1F4B0; Net worth
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"
-              hx-get="/net-income"
-              hx-trigger="click"
-              hx-target="#reportContent"
-              hx-swap="innerHTML">
+            <a class="nav-link{{ if eq .ActivePage "netIncome" }} active {{end}}" href="/net-income">
               &#x1F4C8; Net income
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#"
-              hx-get="/spending-by-category"
-              hx-trigger="click"
-              hx-target="#reportContent"
-              hx-swap="innerHTML">
+            <a class="nav-link{{ if eq .ActivePage "spendingByCategory" }} active {{end}}" href="/spending-by-category">
               &#x1F4B8; Spending by category
             </a>
             </a>
@@ -223,18 +210,8 @@
         </h6>
         <ul class="nav flex-column mb-2">
           <li class="nav-item">
-            <a class="nav-link" href="#"
-              hx-get="/import-form"
-              hx-trigger="click"
-              hx-target="#reportContent"
-              hx-swap="innerHTML">
+            <a class="nav-link{{ if eq .ActivePage "importStatementForm" }} active {{end}}" href="/import-form">
               &#x1F4C4; Import statement
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <span data-feather="settings"></span>
-              Settings
             </a>
           </li>
         </ul>

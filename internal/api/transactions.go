@@ -36,6 +36,7 @@ type TransactionDTO struct {
 }
 
 type TransactionsPageDto struct {
+	ActivePage                string
 	Transactions              []TransactionDTO
 	TransactionUpdated        bool
 	TransactionUpdatedMessage string
@@ -49,6 +50,7 @@ type TransactionsPageDto struct {
 }
 
 type TransactionFormDTO struct {
+	ActivePage string // This is used to highlight the active page in the navigation
 	// If we're editing an existing transaction, Editing will be true
 	// If we're creating a new transaction, Editing will be false
 	Editing            bool
@@ -70,7 +72,9 @@ func (tc *TransactionController) generateTransactionsView(w http.ResponseWriter,
 
 func (tc *TransactionController) generateTransactionsViewContent(w http.ResponseWriter, req *http.Request, transactionUpdateMessage string) {
 	transactionsDTO := []TransactionDTO{}
-	dto := TransactionsPageDto{}
+	dto := TransactionsPageDto{
+		ActivePage: "transactions",
+	}
 
 	// Parse the query parameters
 	var accountID, categoryID uint
@@ -195,6 +199,7 @@ func (tc *TransactionController) generateTransactionForm(w http.ResponseWriter, 
 		}
 
 		dto = TransactionFormDTO{
+			ActivePage:         "transactions",
 			Editing:            true,
 			TransactionID:      txn.ID,
 			Date:               txn.Date,
@@ -219,10 +224,8 @@ func (tc *TransactionController) generateTransactionForm(w http.ResponseWriter, 
 	}
 	dto.Categories = categories
 
-	tmpl, err := template.New("transactionForm").Parse(transactionFormTmpl)
-	if err != nil {
-		panic(err)
-	}
+	tmpl := template.Must(template.New("transactionForm").Parse(pageComponents))
+	tmpl = template.Must(tmpl.Parse(transactionFormTmpl))
 
 	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
