@@ -8,10 +8,20 @@ import (
 	"gonum.org/v1/gonum/stat"
 )
 
+type BudgetRepositoryInterface interface {
+	GetBudgetByID(id uint) (models.Budget, error)
+	GetAllBudgets() ([]models.Budget, error)
+}
+
+type TransactionRepositoryInterface interface {
+	GetSumOfTransactionsByCategoryAndMonth(categoryID uint, startDate time.Time, endDate time.Time) ([]models.TotalByMonth, error)
+	GetSumOfTransactionsByCategoryID(categoryID uint, startDate time.Time, endDate time.Time) (int, error)
+}
+
 type BudgetService struct {
-	BudgetRepository      *models.BudgetRepository
-	CategoryRepository    *models.CategoryRepository
-	TransactionRepository *models.TransactionRepository
+	BudgetRepository      BudgetRepositoryInterface
+	CategoryRepository    *models.CategoryRepository // unchanged for now
+	TransactionRepository TransactionRepositoryInterface
 }
 
 type BudgetAndSpend struct {

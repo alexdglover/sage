@@ -224,8 +224,13 @@ func (dr *DependencyRegistry) GetBudgetService() (*services.BudgetService, error
 		if err != nil {
 			return nil, err
 		}
+		budgetRepository, err := dr.GetBudgetRepository()
+		if err != nil {
+			return nil, err
+		}
 
 		dr.BudgetService = &services.BudgetService{
+			BudgetRepository:      budgetRepository,
 			CategoryRepository:    categoryRepository,
 			TransactionRepository: transactionRepository,
 		}
