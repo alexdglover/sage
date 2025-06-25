@@ -74,8 +74,8 @@ func (bs *BudgetService) GetBudgetAndMonthlySpend(budgetID uint, numOfMonths int
 	}
 
 	now := time.Now()
-	firstOfMonth := now.AddDate(0, -int(numOfMonths), 1-now.Day())
-	lastOfMonth := firstOfMonth.AddDate(0, 1, 0-now.Day())
+	firstOfMonth := now.AddDate(0, -int(numOfMonths-1), 1-now.Day())
+	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
 
 	for i := int(0); i < numOfMonths; i++ {
 		sum, err := bs.TransactionRepository.GetSumOfTransactionsByCategoryID(budget.CategoryID, firstOfMonth, lastOfMonth)
