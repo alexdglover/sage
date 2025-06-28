@@ -10,15 +10,36 @@ import (
 	"github.com/alexdglover/sage/internal/models"
 )
 
-type ImportService struct {
-	AccountRepository          *models.AccountRepository
-	BalanceRepository          *models.BalanceRepository
-	ImportSubmissionRepository *models.ImportSubmissionRepository
-	TransactionRepository      *models.TransactionRepository
+type BalanceRepositoryInterface interface {
+	Save(balance models.Balance) (uint, error)
+}
 
-	// For now this is statically defined as a pointer to a single instance of the MLCategorizer,
-	// but in the future this should be an interface that can be swapped out for different categorization methods
-	Categorizer *MLCategorizer
+type ImportSubmissionRepositoryInterface interface {
+	Save(sub models.ImportSubmission) (uint, error)
+}
+
+type CategorizerInterface interface {
+	BuildModel() error
+	CategorizeTransaction(txn *models.Transaction) (models.Category, error)
+}
+
+// AccountRepositoryInterface specifically for ImportService
+type ImportAccountRepositoryInterface interface {
+	GetAccountByID(id uint) (models.Account, error)
+}
+
+// TransactionRepositoryInterface specifically for ImportService
+type ImportTransactionRepositoryInterface interface {
+	GetTransactionsByHash(hash string, submissionID uint) ([]models.Transaction, error)
+	Save(txn models.Transaction) (uint, error)
+}
+
+type ImportService struct {
+	AccountRepository          ImportAccountRepositoryInterface
+	BalanceRepository          BalanceRepositoryInterface
+	Categorizer                CategorizerInterface
+	ImportSubmissionRepository ImportSubmissionRepositoryInterface
+	TransactionRepository      ImportTransactionRepositoryInterface
 }
 
 type NoParserError struct{}

@@ -9,8 +9,17 @@ type AccountNameAndID struct {
 	AccountID   uint
 }
 
+type AccountRepositoryInterface interface {
+	GetAllAccounts() ([]models.Account, error)
+}
+
+type AccountTypeRepositoryInterface interface {
+	GetAccountTypeByID(id uint) (models.AccountType, error)
+}
+
 type AccountManager struct {
-	AccountRepository *models.AccountRepository
+	AccountRepository     AccountRepositoryInterface
+	AccountTypeRepository AccountTypeRepositoryInterface
 }
 
 func (am *AccountManager) GetAccountNamesAndIDs() (result []AccountNameAndID, err error) {
@@ -26,7 +35,7 @@ func (am *AccountManager) GetAccountNamesAndIDs() (result []AccountNameAndID, er
 
 // GetAccountTypeByID returns the account type for a given account ID
 // If the account type is not found, it returns an error
-// 
+//
 // Arguments:
 // id - The ID of the account type to retrieve
 //
@@ -34,9 +43,10 @@ func (am *AccountManager) GetAccountNamesAndIDs() (result []AccountNameAndID, er
 // - The account type object
 // - An error if the account type is not found or if there was an error retrieving it
 func (am *AccountManager) GetAccountTypeByID(id uint) (models.AccountType, error) {
-    var accountType models.AccountType
-    if err := am.AccountRepository.DB.Where("id = ?", id).First(&accountType).Error; err != nil {
-        return models.AccountType{}, err
-    }
-    return accountType, nil
+	var accountType models.AccountType
+	accountType, err := am.AccountTypeRepository.GetAccountTypeByID(id)
+	if err != nil {
+		return accountType, err
+	}
+	return accountType, nil
 }

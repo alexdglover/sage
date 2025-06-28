@@ -18,9 +18,13 @@ type TransactionRepositoryInterface interface {
 	GetSumOfTransactionsByCategoryID(categoryID uint, startDate time.Time, endDate time.Time) (int, error)
 }
 
+type CategoryRepositoryInterface interface {
+	GetCategoryByID(id uint) (models.Category, error)
+}
+
 type BudgetService struct {
 	BudgetRepository      BudgetRepositoryInterface
-	CategoryRepository    *models.CategoryRepository // unchanged for now
+	CategoryRepository    CategoryRepositoryInterface
 	TransactionRepository TransactionRepositoryInterface
 }
 
