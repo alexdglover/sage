@@ -1,7 +1,6 @@
 package logger_test
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"log"
@@ -33,36 +32,43 @@ type logMesaage struct {
 }
 
 func TestErrorLog(t *testing.T) {
-	buf := &bytes.Buffer{}
+	// Save original stdout
+	origStdout := os.Stdout
 
+	// Create pipe
 	r, w, err := os.Pipe()
 	if err != nil {
-		t.Errorf("Failed to redirect STDOUT")
+		t.Fatalf("Failed to create pipe: %v", err)
 	}
 
+	// Redirect stdout before logger is initialized
 	os.Stdout = w
-
-	go func() {
-		scanner := bufio.NewScanner(r)
-		for scanner.Scan() {
-			buf.WriteString(scanner.Text())
-		}
-	}()
 
 	logger := logger.Get()
 	logger.Error("Error log")
 
-	// Test output
-	t.Log(buf)
-	if buf.Len() == 0 {
+	// Close writer to allow reading all output
+	w.Close()
+	os.Stdout = origStdout
+
+	// Read output
+	var buf bytes.Buffer
+	_, err = buf.ReadFrom(r)
+	if err != nil {
+		t.Fatalf("Failed to read from pipe: %v", err)
+	}
+
+	output := buf.String()
+	t.Log(output)
+	if len(output) == 0 {
 		t.Error("No information logged to STDOUT")
 	}
-	if strings.Count(buf.String(), "\n") > 1 {
+	if strings.Count(output, "\n") > 1 {
 		t.Error("Expected only a single line of log output")
 	}
 
 	var logMessage logMesaage
-	err = json.Unmarshal(buf.Bytes(), &logMessage)
+	err = json.Unmarshal([]byte(output), &logMessage)
 	if err != nil {
 		t.Error("Error while decoding the log message", err.Error())
 	}
@@ -81,6 +87,5 @@ func TestErrorLog(t *testing.T) {
 		if err := os.RemoveAll(path.Join(cwd, "/logs")); err != nil {
 			log.Printf("ERROR: Removing test log folder: %v %s", err, cwd)
 		}
-		w.Close()
 	})
 }
