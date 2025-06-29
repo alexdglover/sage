@@ -49,4 +49,4 @@ jobs:
           go mod tidy
           git diff --exit-code -- .
       - name: Test with the Go CLI
-        run: go test
+        run: go test ./... -v

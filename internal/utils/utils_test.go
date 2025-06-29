@@ -50,7 +50,7 @@ func TestCentsToDollarStringHumanized(t *testing.T) {
 		{"90", 90, "0.90"},
 		{"115", 115, "1.15"},
 		{"107", 107, "1.07"},
-		{"14.5", 145, "14.5"},
+		{"14.5", 145, "1.45"},
 	}
 
 	for _, test := range tests {
