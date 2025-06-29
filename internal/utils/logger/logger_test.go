@@ -35,9 +35,6 @@ type logMesaage struct {
 func TestErrorLog(t *testing.T) {
 	buf := &bytes.Buffer{}
 
-	// Redirect STDOUT to a buffer
-	stdout := os.Stdout
-
 	r, w, err := os.Pipe()
 	if err != nil {
 		t.Errorf("Failed to redirect STDOUT")
@@ -54,10 +51,6 @@ func TestErrorLog(t *testing.T) {
 
 	logger := logger.Get()
 	logger.Error("Error log")
-
-	// Reset output
-	w.Close()
-	os.Stdout = stdout
 
 	// Test output
 	t.Log(buf)
@@ -88,5 +81,6 @@ func TestErrorLog(t *testing.T) {
 		if err := os.RemoveAll(path.Join(cwd, "/logs")); err != nil {
 			log.Printf("ERROR: Removing test log folder: %v %s", err, cwd)
 		}
+		w.Close()
 	})
 }
