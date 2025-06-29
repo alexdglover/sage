@@ -1,21 +1,16 @@
 # sage
 An alternative to Intuit's recently retired Mint application for tracking personal finances.
 
+Visit https://www.alexdglover.com/sage/ for full user guides and guides for contributing.
+
 ## Quickstart
 
-1. Clone the repo locally
-2. Run
+1. Clone the repo
+2. Build the application locally and launch
    ```sh
-   DROP_TABLES=true ADD_SAMPLE_DATA=true go run main.go
+   go run main.go
    ```
-
-## Documentation
-
-See [./docs](./docs) for full design documentation and user documentation.
-
-## Caveats
-
-Sage is designed to run locally on your machine. Data is provided in the format of CSV exports
-from your financial institutions, so Sage doesn't need access to your bank accounts or
-credentials. Data never leaves your machine, but this also means it is your responsibility
-to store or backup the data used by Sage.
+   Alternatively, to seed the application with sample data:
+   ```sh
+   ADD_SAMPLE_DATA=true go run main.go
+   ```
