@@ -1,0 +1,35 @@
+# To build or serve documentation, run these commands from the root of the repo:
+#
+#   mkdocs build
+#   mkdocs serve
+#
+# The documentation source files are in the `docs/` directory.
+#
+# For more information, see https://squidfunk.github.io/mkdocs-material/
+
+site_name: Sage Documentation
+site_description: Documentation for Sage, a personal finance app
+site_author: Sage Contributors
+site_url: 'https://alexdglover.github.io/sage/'
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: green
+  icon:
+    logo: material/chart-line
+nav:
+  - Welcome: index.md
+  - User Guide:
+      - Introduction: user-guide/introduction.md
+      - Getting Started: user-guide/getting-started.md
+      - Importing Statements: user-guide/importing-statements.md
+      - Reports & Insights: user-guide/reports.md
+      - Security & Privacy: user-guide/security.md
+  - Contributing:
+      - Overview: contributing/overview.md
+      - Development Setup: contributing/dev-setup.md
+      - Guidelines: contributing/guidelines.md
+extra:
+  version:
+    provider: mike
