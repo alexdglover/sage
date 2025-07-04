@@ -56,8 +56,16 @@ func (sc *SettingsController) upsertSettings(w http.ResponseWriter, req *http.Re
 
 	// Extract the settings from the form
 	launchBrowserOnStartupInput, err := strconv.ParseBool(req.FormValue("launchBrowserOnStartup"))
+	if err != nil {
+		http.Error(w, "Invalid value for launchBrowserOnStartup", http.StatusBadRequest)
+		return
+	}
 	settings.LaunchBrowserOnStartup = launchBrowserOnStartupInput
-	sc.SettingsRepository.Save(settings)
+	err = sc.SettingsRepository.Save(settings)
+	if err != nil {
+		http.Error(w, "Error occurred while savings settings", http.StatusInternalServerError)
+		return
+	}
 
 	dto := SettingsPageDTO{
 		ActivePage:             "settings",

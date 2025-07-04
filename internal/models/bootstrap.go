@@ -26,26 +26,74 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 
 	// Conditionally drop all tables to start from scratch
 	if os.Getenv("DROP_TABLES") != "" {
-		b.db.Migrator().DropTable(&Account{})
-		b.db.Migrator().DropTable(&AccountType{})
-		b.db.Migrator().DropTable(&Balance{})
-		b.db.Migrator().DropTable(&Budget{})
-		b.db.Migrator().DropTable(&Category{})
-		b.db.Migrator().DropTable(&ImportSubmission{})
-		b.db.Migrator().DropTable(&Settings{})
-		b.db.Migrator().DropTable(&Transaction{})
+		err := b.db.Migrator().DropTable(&Account{})
+		if err != nil {
+			panic("Error dropping Account table: " + err.Error())
+		}
+		err = b.db.Migrator().DropTable(&AccountType{})
+		if err != nil {
+			panic("Error dropping AccountType table: " + err.Error())
+		}
+		err = b.db.Migrator().DropTable(&Balance{})
+		if err != nil {
+			panic("Error dropping Balance table: " + err.Error())
+		}
+		err = b.db.Migrator().DropTable(&Budget{})
+		if err != nil {
+			panic("Error dropping Budget table: " + err.Error())
+		}
+		err = b.db.Migrator().DropTable(&Category{})
+		if err != nil {
+			panic("Error dropping Category table: " + err.Error())
+		}
+		err = b.db.Migrator().DropTable(&ImportSubmission{})
+		if err != nil {
+			panic("Error dropping ImportSubmission table: " + err.Error())
+		}
+		err = b.db.Migrator().DropTable(&Settings{})
+		if err != nil {
+			panic("Error dropping Settings table: " + err.Error())
+		}
+		err = b.db.Migrator().DropTable(&Transaction{})
+		if err != nil {
+			panic("Error dropping Transaction table: " + err.Error())
+		}
 
 	}
 
 	// Migrate the schema
-	b.db.AutoMigrate(&Account{})
-	b.db.AutoMigrate(&AccountType{})
-	b.db.AutoMigrate(&Balance{})
-	b.db.AutoMigrate(&Budget{})
-	b.db.AutoMigrate(&Category{})
-	b.db.AutoMigrate(&ImportSubmission{})
-	b.db.AutoMigrate(&Settings{})
-	b.db.AutoMigrate(&Transaction{})
+	err := b.db.AutoMigrate(&Account{})
+	if err != nil {
+		panic("Error dropping migrationg Account table: " + err.Error())
+	}
+	err = b.db.AutoMigrate(&AccountType{})
+	if err != nil {
+		panic("Error dropping migrationg Account table: " + err.Error())
+	}
+	err = b.db.AutoMigrate(&Balance{})
+	if err != nil {
+		panic("Error dropping migrationg Account table: " + err.Error())
+	}
+	err = b.db.AutoMigrate(&Budget{})
+	if err != nil {
+		panic("Error dropping migrationg Account table: " + err.Error())
+	}
+	err = b.db.AutoMigrate(&Category{})
+	if err != nil {
+		panic("Error dropping migrationg Account table: " + err.Error())
+	}
+	err = b.db.AutoMigrate(&ImportSubmission{})
+	if err != nil {
+		panic("Error dropping migrationg Account table: " + err.Error())
+	}
+	err = b.db.AutoMigrate(&Settings{})
+	if err != nil {
+		panic("Error dropping migrationg Account table: " + err.Error())
+	}
+	err = b.db.AutoMigrate(&Transaction{})
+	if err != nil {
+		panic("Error dropping migrationg Account table: " + err.Error())
+	}
 
 	// Seed data for common categories, if they don't exist already
 	for _, name := range []string{"Unknown", "Transfers", "Home", "Income", "Auto", "Food", "Dining"} {
