@@ -11,6 +11,7 @@ on:
 env:
   GO_VERSION: stable
   GOLANGCI_LINT_VERSION: v1.64
+  CGO_ENABLED: 1
 
 permissions:
   contents: read
