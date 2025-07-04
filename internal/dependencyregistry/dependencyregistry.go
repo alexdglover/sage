@@ -8,7 +8,8 @@ import (
 	"github.com/alexdglover/sage/internal/api"
 	"github.com/alexdglover/sage/internal/models"
 	"github.com/alexdglover/sage/internal/services"
-	"gorm.io/driver/sqlite"
+
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
