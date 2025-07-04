@@ -20,6 +20,7 @@ type ApiServer struct {
 	NetWorthController    *NetWorthController
 	SpendingController    *SpendingController
 	TransactionController *TransactionController
+	SettingsController    *SettingsController
 }
 
 //go:embed assets
@@ -68,6 +69,9 @@ func (as *ApiServer) StartApiServer(ctx context.Context) {
 	http.HandleFunc("POST /transactions", as.TransactionController.upsertTransaction)
 	http.HandleFunc("DELETE /transactions", as.TransactionController.deleteTransaction)
 	http.HandleFunc("GET /transactionForm", as.TransactionController.generateTransactionForm)
+
+	http.HandleFunc("GET /settings", as.SettingsController.generateSettingsView)
+	http.HandleFunc("POST /settings", as.SettingsController.upsertSettings)
 
 	logger := logger.Get()
 	logger.Info("Starting Server on http://localhost:8080")

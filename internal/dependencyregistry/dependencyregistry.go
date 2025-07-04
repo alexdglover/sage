@@ -21,6 +21,7 @@ type DependencyRegistry struct {
 	BalanceRepository          *models.BalanceRepository
 	BudgetRepository           *models.BudgetRepository
 	CategoryRepository         *models.CategoryRepository
+	SettingsRepository         *models.SettingsRepository
 	ImportSubmissionRepository *models.ImportSubmissionRepository
 	TransactionRepository      *models.TransactionRepository
 
@@ -39,6 +40,7 @@ type DependencyRegistry struct {
 	SpendingController    *api.SpendingController
 	TransactionController *api.TransactionController
 	ApiServer             *api.ApiServer
+	SettingsController    *api.SettingsController
 }
 
 func (dr *DependencyRegistry) GetBootstrapper() *models.Bootstrapper {
@@ -154,6 +156,19 @@ func (dr *DependencyRegistry) GetCategoryRepository() (*models.CategoryRepositor
 		}
 	}
 	return dr.CategoryRepository, nil
+}
+
+func (dr *DependencyRegistry) GetSettingsRepository() (*models.SettingsRepository, error) {
+	if dr.SettingsRepository == nil {
+		dbConnection, err := dr.GetDbConnection()
+		if err != nil {
+			return nil, err
+		}
+		dr.SettingsRepository = &models.SettingsRepository{
+			DB: dbConnection,
+		}
+	}
+	return dr.SettingsRepository, nil
 }
 
 func (dr *DependencyRegistry) GetTransactionRepository() (*models.TransactionRepository, error) {
@@ -487,6 +502,10 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 		if err != nil {
 			return nil, err
 		}
+		settingsController, err := dr.GetSettingsController()
+		if err != nil {
+			return nil, err
+		}
 		dr.ApiServer = &api.ApiServer{
 			AccountController:     accountController,
 			BalanceController:     balanceController,
@@ -497,7 +516,21 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 			NetWorthController:    netWorthController,
 			SpendingController:    spendingByCategoryController,
 			TransactionController: transactionController,
+			SettingsController:    settingsController,
 		}
 	}
 	return dr.ApiServer, nil
+}
+
+func (dr *DependencyRegistry) GetSettingsController() (*api.SettingsController, error) {
+	if dr.SettingsController == nil {
+		settingsRepository, err := dr.GetSettingsRepository()
+		if err != nil {
+			return nil, err
+		}
+		dr.SettingsController = &api.SettingsController{
+			SettingsRepository: settingsRepository,
+		}
+	}
+	return dr.SettingsController, nil
 }

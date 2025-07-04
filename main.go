@@ -9,14 +9,7 @@ import (
 
 	"github.com/alexdglover/sage/internal/dependencyregistry"
 	"github.com/alexdglover/sage/internal/utils/logger"
-	"gorm.io/gorm"
 )
-
-type Configuration struct {
-	DbConnection *gorm.DB
-}
-
-var Config Configuration
 
 func main() {
 
@@ -27,8 +20,20 @@ func main() {
 	bootstrapper := dependencyRegistry.GetBootstrapper()
 	bootstrapper.BootstrapDatabase(ctx)
 
-	// open local browser to localhost:8080
-	// openbrowser("http://localhost:8080")
+	// open local browser to localhost:8080 if the config is set to true
+	settingsRepository, err := dependencyRegistry.GetSettingsRepository()
+	if err != nil {
+		logger.Error("Error while getting configRepository")
+		panic(err)
+	}
+	settings, err := settingsRepository.GetSettings()
+	if err != nil {
+		logger.Error("Error while getting settings")
+		panic(err)
+	}
+	if (*settings).LaunchBrowserOnStartup {
+		openbrowser("http://localhost:8080")
+	}
 
 	// start the API server
 	apiServer, err := dependencyRegistry.GetApiServer()

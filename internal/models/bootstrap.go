@@ -31,8 +31,10 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 		b.db.Migrator().DropTable(&Balance{})
 		b.db.Migrator().DropTable(&Budget{})
 		b.db.Migrator().DropTable(&Category{})
-		b.db.Migrator().DropTable(&Transaction{})
 		b.db.Migrator().DropTable(&ImportSubmission{})
+		b.db.Migrator().DropTable(&Settings{})
+		b.db.Migrator().DropTable(&Transaction{})
+
 	}
 
 	// Migrate the schema
@@ -41,8 +43,9 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 	b.db.AutoMigrate(&Balance{})
 	b.db.AutoMigrate(&Budget{})
 	b.db.AutoMigrate(&Category{})
-	b.db.AutoMigrate(&Transaction{})
 	b.db.AutoMigrate(&ImportSubmission{})
+	b.db.AutoMigrate(&Settings{})
+	b.db.AutoMigrate(&Transaction{})
 
 	// Seed data for common categories, if they don't exist already
 	for _, name := range []string{"Unknown", "Transfers", "Home", "Income", "Auto", "Food", "Dining"} {
@@ -112,5 +115,10 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 		b.db.Create(&Balance{EffectiveDate: "2024-07-01", Amount: 13255, AccountID: 2})
 
 	}
+
+	// Seed default settings data
+	// The Settings table has a unique index on the Name column, so we can use the DoNothing option
+	// to safely attempt to insert a record that may already exist
+	b.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&Settings{Model: gorm.Model{ID: 1}, LaunchBrowserOnStartup: true})
 
 }
