@@ -1,0 +1,58 @@
+{{ template "header" .}}
+<div class="row">
+  <div class="col-sm-12">
+    <h2>Settings</h2>
+  </div>
+</div>
+
+<form hx-post="/settings" hx-target="body" enctype="multipart/form-data">
+  <fieldset class="mb-3">
+    <legend>Launch browser on startup</legend>
+    <div class="form-check">
+      <input class="form-check-input" type="radio"
+        name="launchBrowserOnStartup"
+        id="launchBrowserOnStartup"
+        value="true" {{if eq .LaunchBrowserOnStartup true }}checked{{end}}>
+      <label class="form-check-label" for="launchBrowserOnStartup">
+          Enable
+      </label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" 
+        name="launchBrowserOnStartup" 
+        id="launchBrowserOnStartup" 
+        value="false" {{if eq .LaunchBrowserOnStartup false }}checked{{end}}>
+      <label class="form-check-label" for="launchBrowserOnStartup">
+          Disable
+      </label>
+    </div>
+  </fieldset>
+  <button type="submit" class="btn btn-success"
+    hx-post="/settings"
+    hx-trigger="click"
+    hx-target="body"
+    hx-swap="innerHTML">
+    Save
+  </button>
+</form>
+
+{{ if .SettingsUpdated }}
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="settingsUpdatedToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">Settings updated</strong>
+      <small>Just now</small>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      {{ .SettingsUpdatedMessage }}
+    </div>
+  </div>
+</div>
+<script>
+  toastLiveExample = document.getElementById('settingsUpdatedToast')
+  toast = new bootstrap.Toast(toastLiveExample)
+  toast.show()
+</script>
+{{ end }}
+{{ template "footer"}}
