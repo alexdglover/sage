@@ -146,10 +146,21 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 
 		// Create one normal asset account, one normal liability account, and one infrequently updated account
 		// of each type
-		b.db.Create(&Account{Name: "Schwab", AccountTypeID: 1})
-		b.db.Create(&Account{Name: "Fidelity Visa", AccountTypeID: 2})
-		b.db.Create(&Account{Name: "My House", AccountTypeID: 3})
-		b.db.Create(&Account{Name: "Mortgage", AccountTypeID: 4})
+		accountsToCreate := []struct {
+			name            string
+			accountTypeName string
+		}{
+			{"Schwab", "Schwab Brokerage"},
+			{"Fidelity Visa", "Fidelity Credit Card"},
+			{"My House", "Real Estate"},
+			{"Mortgage", "Mortgage"},
+		}
+
+		for _, account := range accountsToCreate {
+			var accountType AccountType
+			b.db.Model(&AccountType{}).Where("name = ?", account.accountTypeName).First(&accountType)
+			b.db.Create(&Account{Name: account.name, AccountTypeID: accountType.ID})
+		}
 
 		// Create monthly balances for normal accounts
 		b.db.Create(&Balance{EffectiveDate: monthStartDate(-5), Amount: 21013, AccountID: 1})
