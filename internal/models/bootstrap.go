@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/alexdglover/sage/internal/utils"
 	"gorm.io/gorm"
@@ -136,6 +137,13 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 
 	// Conditionally insert sample date for testing purposes
 	if os.Getenv("ADD_SAMPLE_DATA") != "" {
+		now := time.Now()
+		currentMonthStart := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+
+		monthStartDate := func(offset int) string {
+			return utils.TimeToISO8601DateString(currentMonthStart.AddDate(0, offset, 0))
+		}
+
 		// Create one normal asset account, one normal liability account, and one infrequently updated account
 		// of each type
 		b.db.Create(&Account{Name: "Schwab", AccountTypeID: 1})
@@ -143,25 +151,24 @@ func (b *Bootstrapper) BootstrapDatabase(ctx context.Context) {
 		b.db.Create(&Account{Name: "My House", AccountTypeID: 3})
 		b.db.Create(&Account{Name: "Mortgage", AccountTypeID: 4})
 
+		// Create monthly balances for normal accounts
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-5), Amount: 21013, AccountID: 1})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-4), Amount: 41062, AccountID: 1})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-3), Amount: 42032, AccountID: 1})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-2), Amount: 49032, AccountID: 1})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-1), Amount: 64097, AccountID: 1})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(0), Amount: 63201, AccountID: 1})
+
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-5), Amount: 10111, AccountID: 2})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-4), Amount: 17387, AccountID: 2})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-3), Amount: 10387, AccountID: 2})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-2), Amount: 13312, AccountID: 2})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(-1), Amount: 14044, AccountID: 2})
+		b.db.Create(&Balance{EffectiveDate: monthStartDate(0), Amount: 13255, AccountID: 2})
+
 		// Create open-ended balances for infrequently updated accounts
 		// b.db.Create(&Balance{EffectiveDate: "2024-01-17", Amount: 2500, AccountID: 3})
 		// b.db.Create(&Balance{EffectiveDate: "2024-01-17", Amount: 1250, AccountID: 4})
-
-		// Create monthly balances for normal accounts
-		b.db.Create(&Balance{EffectiveDate: "2024-02-01", Amount: 21013, AccountID: 1})
-		b.db.Create(&Balance{EffectiveDate: "2024-03-01", Amount: 41062, AccountID: 1})
-		b.db.Create(&Balance{EffectiveDate: "2024-04-01", Amount: 42032, AccountID: 1})
-		b.db.Create(&Balance{EffectiveDate: "2024-05-01", Amount: 49032, AccountID: 1})
-		b.db.Create(&Balance{EffectiveDate: "2024-06-01", Amount: 64097, AccountID: 1})
-		b.db.Create(&Balance{EffectiveDate: "2024-07-01", Amount: 63201, AccountID: 1})
-
-		b.db.Create(&Balance{EffectiveDate: "2024-02-01", Amount: 10111, AccountID: 2})
-		b.db.Create(&Balance{EffectiveDate: "2024-03-01", Amount: 17387, AccountID: 2})
-		b.db.Create(&Balance{EffectiveDate: "2024-04-01", Amount: 10387, AccountID: 2})
-		b.db.Create(&Balance{EffectiveDate: "2024-05-01", Amount: 13312, AccountID: 2})
-		b.db.Create(&Balance{EffectiveDate: "2024-06-01", Amount: 14044, AccountID: 2})
-		b.db.Create(&Balance{EffectiveDate: "2024-07-01", Amount: 13255, AccountID: 2})
-
 	}
 
 	// Seed default settings data
