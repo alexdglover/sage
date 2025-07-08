@@ -208,8 +208,13 @@ func (dr *DependencyRegistry) GetAccountManager() (*services.AccountManager, err
 		if err != nil {
 			return nil, err
 		}
+		accountTypeRepository, err := dr.GetAccountTypeRepository()
+		if err != nil {
+			return nil, err
+		}
 		dr.AccountManager = &services.AccountManager{
-			AccountRepository: accountRepository,
+			AccountRepository:     accountRepository,
+			AccountTypeRepository: accountTypeRepository,
 		}
 	}
 	return dr.AccountManager, nil
