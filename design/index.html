@@ -1,0 +1,870 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Sage, a personal finance app">
+      
+      
+        <meta name="author" content="Sage Contributors">
+      
+      
+        <link rel="canonical" href="https://alexdglover.github.io/sage/design/">
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Architecture - Sage Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.342714a4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="green" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Sage Documentation" class="md-header__button md-logo" aria-label="Sage Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m16 11.78 4.24-7.33 1.73 1-5.23 9.05-6.51-3.75L5.46 19H22v2H2V3h2v14.54L9.5 8z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Sage Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Sage Documentation" class="md-nav__button md-logo" aria-label="Sage Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m16 11.78 4.24-7.33 1.73 1-5.23 9.05-6.51-3.75L5.46 19H22v2H2V3h2v14.54L9.5 8z"/></svg>
+
+    </a>
+    Sage Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Welcome
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/introduction/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/importing-statements/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Importing Statements
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/reports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reports & Insights
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Security & Privacy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Contributing
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Contributing
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/dev-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Development Setup
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/guidelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#basic-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic concepts
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-note-on-balances" class="md-nav__link">
+    <span class="md-ellipsis">
+      A note on balances
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#entities-and-relationships" class="md-nav__link">
+    <span class="md-ellipsis">
+      Entities and Relationships
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sql-queries-for-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQL queries for use cases
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#importing-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Importing data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#budgets" class="md-nav__link">
+    <span class="md-ellipsis">
+      Budgets
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#categorization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Categorization
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#semver" class="md-nav__link">
+    <span class="md-ellipsis">
+      SEMVER
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="architecture">Architecture</h1>
+<h2 id="basic-concepts">Basic concepts</h2>
+<p>Intuit's Mint offered reporting on several personal finance aspects:
+* List of all transactions across all accounts and financial institutions
+* Assets, liabilities, and net worth over time
+* Monthly spending by category, or by other dimensions
+* Monthly spending over time
+* Income over time
+* Net income over time</p>
+<p>While Mint was extremely useful, you only need two types of data to achieve
+all of the reporting listed above. Namely, you need
+* Every individual transaction. This provides the data needed for a searchable
+list of transcations, reporting on income/spending by category or other
+dimensions, and spending/income over time
+* Balances for each account. This provides the data needed for tracking assets,
+liabilities, and net worth over time</p>
+<p>By using these two data sets, Sage is much simpler than a true accounting 
+application. We don't need to worry about double entry accounting, or keeping
+a perfect ledger to calculate the current balance for an account. Instead,
+balances are treated as a separate data set that won't <em>necessarily</em> reconcile
+with transactions. As a reporting tool, this is a reasonable tradeoff.
+While this simplifies the application logic, it puts the burden of recording
+the balances on the end user.</p>
+<h2 id="a-note-on-balances">A note on balances</h2>
+<p>Statements from financial institutions don't perfectly align with the first and
+last day of the month. For example, a statement may be for the period of March
+15 to April 14. However, a balance is a snapshot in time - it is not a window
+of time. A statement ending on April 14 shows the balance as of April 14.
+Even though the balance is for a specific date, Sage (and humans in general)
+consider this the balance for the month of April.</p>
+<p>Sage treats balances as sparse data so that accounts don't need to be constantly
+updated, especially accounts that don't change frequently (like your car or
+house for example). To accomplish this, Sage will use the most recent balance
+within a given timeframe. For example, if an account had a balance defined
+for October 2 and October 17, the balance for October 17 would be displayed
+when viewing the balance for October. If there is no balance newer than October
+17, then Sage will show this same balance for November, December, and so on
+until a newer balance is added.</p>
+<p>Sage reports on balances by month and year ("year-months"), such as January
+2024. To do this, Sage uses the following logic to group balances by month and
+year:</p>
+<ol>
+<li>Define all year-months requested in a report</li>
+<li>Query the balances table for each year-month. The balance for a given
+year-month is the balance with the most recent date that is before the end date
+of the given month.</li>
+</ol>
+<p>This captures all balances while handling discrepancies in when a balance
+starts or ends.</p>
+<h2 id="entities-and-relationships">Entities and Relationships</h2>
+<p>Note: the ER diagram and SQL scripts are for illustrative purposes. Mermaid
+doesn't support the same types as sqlite or Go, and the SQL scripts below
+will be replaced by GORM.</p>
+<pre><code class="language-mermaid">erDiagram
+    ACCOUNT {
+        int    id
+        string name
+        string account_type 
+        string charge_type
+    }
+    CATEGORY {
+        int    id
+        string name
+    }
+    TRANSACTION {
+        int id
+        int date
+        string description
+        float amount
+        string excluded
+        int account_fk
+        int category_fk
+    }
+    BALANCE {
+        int id
+        string date
+        string effective_start_date
+        string effective_end_date
+        float balance
+        int account_fk
+    }
+    BUDGET {
+        int id
+        string name
+        float amount
+        int category_fk
+    }
+
+    ACCOUNT ||--o{ TRANSACTION : contains
+    ACCOUNT ||--o{ BALANCE : has
+    TRANSACTION }o--|| CATEGORY : belongs_to
+    BUDGET |o--||CATEGORY : applies_to
+</code></pre>
+<h2 id="sql-queries-for-use-cases">SQL queries for use cases</h2>
+<pre><code class="language-sql">-- for the current month, show net income
+WITH assest_increases as(
+    SELECT sum(amount) as amount from transactions 
+    where date &gt;= '2024-06-01' and date &lt; '2024-06-30'
+    and account_id in (select id from accounts where charge_type='asset')
+    and amount &gt;= 0
+),
+assest_decreases as(
+    SELECT sum(amount) as amount from transactions 
+    where date &gt;= '2024-06-01' and date &lt; '2024-06-30'
+    and account_id in (select id from accounts where charge_type='asset')
+    and amount &lt; 0
+),
+liability_increases as(
+    SELECT sum(amount) as amount from transactions 
+    where date &gt;= '2024-06-01' and date &lt; '2024-06-30'
+    and account_id in (select id from accounts where charge_type='liability')
+    and amount &gt;= 0
+),
+liability_decreases as(
+    SELECT sum(amount) as amount from transactions 
+    where date &gt;= '2024-06-01' and date &lt; '2024-06-30'
+    and account_id in (select id from accounts where charge_type='liability')
+    and amount &lt; 0
+)
+
+select COALESCE(ai.amount, 0) + COALESCE(ld.amount, 0) AS income, COALESCE(ad.amount, 0) + COALESCE(li.amount, 0) AS expenses
+from assest_increases ai join assest_decreases ad join liability_increases li join liability_decreases ld;
+
+-- show net income by month
+-- using same `WITH` common table expressions as prevous example...
+select COALESCE(ai.amount, 0) + COALESCE(ld.amount, 0) AS income, COALESCE(ad.amount, 0) + COALESCE(li.amount, 0) AS expenses, strftime('%Y-%m') as yearmonth
+from assest_increases ai join assest_decreases ad join liability_increases li join liability_decreases ld
+GROUP BY yearmonth;
+
+
+-- get balances (as a SCD) that have already started
+SELECT id, effective_start_date , (effective_start_date &lt; date('now')) AS balance_started from balances WHERE balance_started=1;
+
+
+-- get balances (as a SCD) that have not yet expired
+SELECT id, effective_end_date, ((effective_end_date &gt; date('now')) or (effective_end_date is null)) AS balance_not_ended from balances WHERE balance_not_ended=1;
+
+-- combine the two to get active balances
+WITH started AS (
+    SELECT * , (effective_start_date &lt; date('now')) AS balance_started from balances WHERE balance_started=1
+),
+not_ended AS (
+    SELECT *, ((effective_end_date &gt; date('now')) or (effective_end_date is null)) AS balance_not_ended from balances WHERE balance_not_ended=1   
+)
+SELECT s.id, s.amount FROM started s JOIN not_ended n ON s.id=n.id;
+
+</code></pre>
+<h2 id="importing-data">Importing data</h2>
+<ol>
+<li>User clicks on "Import statement" in the UI. An import form is presented,
+with a file picker and a submit button.</li>
+<li>On submit, the file is POSTed to an endpoint. This endpoint calls a service
+class.</li>
+<li>The service class hashes the file. It then checks if the hash already exists
+in the <code>statementSubmissions</code> table. If it finds a matching hash, it rejects
+the statement because it has already been processed</li>
+<li>Service class invokes a parser function, getting a list of transactions and
+balances in return. For each transaction, compute a hash of the account ID,
+amount, date, and description. </li>
+</ol>
+<h2 id="budgets">Budgets</h2>
+<p>A budget can be defined for any particular category or for all categories. By
+defining a budget on all categories, this provides a total spending budget.</p>
+<p>A budget has a per-month limit.</p>
+<pre><code class="language-mermaid">erDiagram
+    CATEGORY {
+        int    id
+        string name
+    }
+    BUDGET {
+        int id
+        id category_id
+        float amount
+    }
+</code></pre>
+<p>This model will allow us to handle the following use cases:</p>
+<pre><code class="language-sql">-- Get all budgets
+SELECT * FROM BUDGET;
+
+-- Get any budget that has been exceeded
+SELECT SUM(AMOUNT) as total_spend
+FROM transactions
+WHERE category_id = 1
+AND total_spend &gt; (
+    SElECT amount 
+    FROM budgets
+    WHERE category_id = 1
+)
+</code></pre>
+<h2 id="categorization">Categorization</h2>
+<p>To show spending by categories, every transaction needs to be assigned to a category. Sage achieves
+this in two ways. First, users can manually edit any transaction and set the category. Second, Sage
+uses the <a href="https://github.com/gopherml/bag">gopherml/bag</a> module to automatically categorize
+transactions using a Naive Bayes classifier machine learning model, which is trained on the
+transactions that have been previously categorized manually by the user. This approach gives the
+user full control while also limiting the toil and burden associated with categorizing
+transactions.</p>
+<p>There is an open question about whether some initial rules should be seeded into the model (to
+give some automatic classification on day 1) and whether they should be editable.</p>
+<h2 id="semver">SEMVER</h2>
+<p>Once a stable version is released, the project will treat any breaking change to any public interface (either JSON APIs or database schema) as a breaking change.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+    
+  </body>
+</html>
