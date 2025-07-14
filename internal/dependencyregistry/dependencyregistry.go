@@ -26,10 +26,11 @@ type DependencyRegistry struct {
 	ImportSubmissionRepository *models.ImportSubmissionRepository
 	TransactionRepository      *models.TransactionRepository
 
-	AccountManager *services.AccountManager
-	BudgetService  *services.BudgetService
-	ImportService  *services.ImportService
-	MLCategorizer  *services.MLCategorizer
+	AccountManager  *services.AccountManager
+	BudgetService   *services.BudgetService
+	ImportService   *services.ImportService
+	MLCategorizer   *services.MLCategorizer
+	CashFlowService *services.CashFlowService
 
 	AccountController     *api.AccountController
 	BalanceController     *api.BalanceController
@@ -40,8 +41,9 @@ type DependencyRegistry struct {
 	NetWorthController    *api.NetWorthController
 	SpendingController    *api.SpendingController
 	TransactionController *api.TransactionController
-	ApiServer             *api.ApiServer
 	SettingsController    *api.SettingsController
+	CashFlowController    *api.CashFlowReportHandler
+	ApiServer             *api.ApiServer
 }
 
 func (dr *DependencyRegistry) GetBootstrapper() *models.Bootstrapper {
@@ -294,6 +296,28 @@ func (dr *DependencyRegistry) GetImportService() (*services.ImportService, error
 	return dr.ImportService, nil
 }
 
+func (dr *DependencyRegistry) GetCashFlowService() (*services.CashFlowService, error) {
+	if dr.CashFlowService == nil {
+		transactionRepository, err := dr.GetTransactionRepository()
+		if err != nil {
+			return nil, err
+		}
+		dr.CashFlowService = services.NewCashFlowService(transactionRepository)
+	}
+	return dr.CashFlowService, nil
+}
+
+func (dr *DependencyRegistry) GetCashFlowController() (*api.CashFlowReportHandler, error) {
+	if dr.CashFlowController == nil {
+		cashFlowService, err := dr.GetCashFlowService()
+		if err != nil {
+			return nil, err
+		}
+		dr.CashFlowController = api.NewCashFlowReportHandler(cashFlowService)
+	}
+	return dr.CashFlowController, nil
+}
+
 //
 // APIs
 //
@@ -512,6 +536,10 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 		if err != nil {
 			return nil, err
 		}
+		cashFlowController, err := dr.GetCashFlowController()
+		if err != nil {
+			return nil, err
+		}
 		dr.ApiServer = &api.ApiServer{
 			AccountController:     accountController,
 			BalanceController:     balanceController,
@@ -523,6 +551,7 @@ func (dr *DependencyRegistry) GetApiServer() (*api.ApiServer, error) {
 			SpendingController:    spendingByCategoryController,
 			TransactionController: transactionController,
 			SettingsController:    settingsController,
+			CashFlowController:    cashFlowController,
 		}
 	}
 	return dr.ApiServer, nil
