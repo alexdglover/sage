@@ -1,15 +1,14 @@
 {{ template "header" .}}
 <h2>Cash Flow Report</h2>
-<h3>{{ .IncomeJSON }}</h3>
-<h3>{{ .ExpensesJSON }}</h3>
+<h3>{{ . }}</h3>
 <div class="row">
   <div class="col-md-2"></div>
   <div class="col-md-8" style="max-height: 600px;">
     <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
-      <a type="button" class="btn {{ if .AllTimeActive }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=allTime">All time</a>
-      <a type="button" class="btn {{ if .Last12MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=12">Last 12 months</a>
-      <a type="button" class="btn {{ if .Last6MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=6">Last 6 months</a>
-      <a type="button" class="btn {{ if .Last3MonthsActive }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=3">Last 3 months</a>
+      <a type="button" class="btn {{ if eq .RelativeWindow "allTime" }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=allTime">All time</a>
+      <a type="button" class="btn {{ if eq .RelativeWindow "12" }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=12">Last 12 months</a>
+      <a type="button" class="btn {{ if eq .RelativeWindow "6" }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=6">Last 6 months</a>
+      <a type="button" class="btn {{ if eq .RelativeWindow "3" }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=3">Last 3 months</a>
     </div>
     <canvas id="sankeyChart" style="width: 100%;"></canvas>
   </div>
@@ -21,51 +20,32 @@
 <script>
 (function () {
   'use strict'
-
-//   const income = JSON.parse('{{ .IncomeJSON }}');
-//   const expenses = JSON.parse('{{ .ExpensesJSON }}');
-
-  // Calculate totals
-//   const totalIncome = income.reduce((sum, i) => sum + i.Amount, 0) / 100000;
-//   const totalExpenses = expenses.reduce((sum, e) => sum + e.Amount, 0) / -100000;
-//   const savings = totalIncome - totalExpenses;
-
-//   // Node order: ["Total Income", "Total Expenses", "Savings", ...expense categories...]
-//   const nodeLabels = ["Total Income", "Total Expenses", "Savings"];
-//   expenses.forEach(e => nodeLabels.push(e.Category));
-
-//   // Links:
-//   // 1. Total Income -> Total Expenses (totalExpenses)
-//   // 2. Total Income -> Savings (savings)
-//   // 3. Total Expenses -> each expense category (by category amount)
-//   const links = [];
-//   // 1. Total Income -> Total Expenses
-//   links.push({ from: nodeLabels[0], to: nodeLabels[1], flow: totalExpenses });
-//   // 2. Total Income -> Savings
-//   if (savings > 0.01) {
-//     links.push({ from: nodeLabels[0], to: nodeLabels[2], flow: savings });
-//   }
-//   // 3. Total Expenses -> each expense category
-//   expenses.forEach((e, idx) => {
-//     console.log(`Expense ${idx}: ${e.Category} - Amount: ${e.Amount}`);
-//     links.push({
-//       from: nodeLabels[1],
-//       to: nodeLabels[3 + idx],
-//       flow: e.Amount / -100000
-//     });
-//   });
-
+  var colors = {
+    Income: "green",
+    Savings: "green",
+    Expenses: "red"
+  };
+  function getColor(txnType) {
+    return colors[txnType] || 'black'; // Default color if not found
+  }
   const data = {
     // labels: nodeLabels,
     datasets: [{
       label: 'Cash Flow',
       data: [
-        { from: "Brazil", to: "Portugal", flow: 5 },
-        { from: "Brazil", to: "France", flow: 1 },
-        { from: "Brazil", to: "Spain", flow: 1 },
+        { from: "Income", to: "Expenses", flow: {{ .TotalExpenses }} },
+        {{ if .ShowSavings}}
+        { from: "Income", to: "Savings", flow: {{ .Savings }} },
+        {{ end}}
+        {{ range $index, $expenseDatum := .Expenses }}
+        { from: "Expenses", to: "{{ $expenseDatum.Name }}", flow: {{ $expenseDatum.Amount }} },
+        {{ end }}
       ],
-      colorFrom: 'green',
-      colorTo: 'red',
+      colorFrom: (c) => getColor(c.dataset.data[c.dataIndex].from),
+      colorTo: (c) => getColor(c.dataset.data[c.dataIndex].to),
+      column: {
+        "Savings": 1,
+      },
       colorMode: 'gradient',
       borderWidth: 0
     }]

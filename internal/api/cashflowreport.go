@@ -2,7 +2,6 @@ package api
 
 import (
 	_ "embed"
-	"encoding/json"
 	"net/http"
 	"text/template"
 	"time"
@@ -16,6 +15,21 @@ var cashFlowTmpl string
 
 type CashFlowReportHandler struct {
 	cashFlowService *services.CashFlowService
+}
+
+type ExpenseData struct {
+	Name   string
+	Amount string
+}
+
+type CashFlowDto struct {
+	ActivePage     string
+	RelativeWindow string
+	TotalIncome    string
+	TotalExpenses  string
+	Savings        string
+	ShowSavings    bool
+	Expenses       []ExpenseData
 }
 
 func NewCashFlowReportHandler(cfs *services.CashFlowService) *CashFlowReportHandler {
@@ -48,23 +62,28 @@ func (h *CashFlowReportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	incomeJSON, _ := json.Marshal(cashFlowData.Income)
-	expensesJSON, _ := json.Marshal(cashFlowData.Expenses)
-
-	data := map[string]interface{}{
-		"ActivePage":         "cashFlow",
-		"Last3MonthsActive":  relativeWindow == "3",
-		"Last6MonthsActive":  relativeWindow == "6",
-		"Last12MonthsActive": relativeWindow == "12",
-		"AllTimeActive":      relativeWindow == "allTime",
-		"IncomeJSON":         string(incomeJSON),
-		"ExpensesJSON":       string(expensesJSON),
+	savings := cashFlowData.TotalIncome - cashFlowData.TotalExpenses
+	if savings < 0 {
+		savings = 0 // Ensure savings is not negative
+	}
+	dto := CashFlowDto{
+		ActivePage:     "cashflow",
+		RelativeWindow: relativeWindow,
+		TotalIncome:    utils.CentsToDollarStringMachineSafe(cashFlowData.TotalIncome),
+		TotalExpenses:  utils.CentsToDollarStringMachineSafe(cashFlowData.TotalExpenses),
+		Savings:        utils.CentsToDollarStringMachineSafe(savings),
+		ShowSavings:    savings > 0,
+	}
+	for _, expense := range cashFlowData.Expenses {
+		dto.Expenses = append(dto.Expenses, ExpenseData{
+			Name:   expense.Name,
+			Amount: utils.CentsToDollarStringMachineSafe(expense.Amount),
+		})
 	}
 
 	tmpl := template.Must(template.New("cashFlow").Parse(pageComponents))
 	tmpl = template.Must(tmpl.Parse(cashFlowTmpl))
-	err = utils.RenderTemplateAsHTML(w, tmpl, data)
+	err = utils.RenderTemplateAsHTML(w, tmpl, dto)
 	if err != nil {
 		panic(err)
 	}

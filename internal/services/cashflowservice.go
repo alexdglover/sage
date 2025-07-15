@@ -8,19 +8,19 @@ import (
 )
 
 type CashFlowData struct {
-	StartDate time.Time
-	EndDate   time.Time
-	Income    []CategoryFlow
-	Expenses  []CategoryFlow
+	TotalIncome   int
+	TotalExpenses int
+	Expenses      []ExpenseByCategory
 }
 
-type CategoryFlow struct {
-	Category string
-	Amount   int
+type ExpenseByCategory struct {
+	Name   string
+	Amount int
 }
 
 type CashFlowService struct {
 	transactionRepo *models.TransactionRepository
+	categoryRepo    *models.CategoryRepository
 }
 
 func NewCashFlowService(tr *models.TransactionRepository) *CashFlowService {
@@ -29,35 +29,30 @@ func NewCashFlowService(tr *models.TransactionRepository) *CashFlowService {
 	}
 }
 
-func (s *CashFlowService) GetCashFlowData(ctx context.Context, startDate time.Time, endDate time.Time) (*CashFlowData, error) {
-	// Get income transactions
-	incomeData, err := s.transactionRepo.GetSumOfTransactionsByCategory(startDate, endDate)
+func (s *CashFlowService) GetCashFlowData(ctx context.Context, startDate time.Time, endDate time.Time) (cashFlowData *CashFlowData, err error) {
+	cashFlowData = &CashFlowData{} // Initialize the struct
+
+	incomeCategory, err := s.categoryRepo.GetCategoryByName("Income")
 	if err != nil {
 		return nil, err
 	}
-
-	// Split into income and expenses
-	cashFlowData := &CashFlowData{
-		StartDate: startDate,
-		EndDate:   endDate,
-		Income:    make([]CategoryFlow, 0),
-		Expenses:  make([]CategoryFlow, 0),
+	cashFlowData.TotalIncome, err = s.transactionRepo.GetSumOfTransactionsByCategoryID(incomeCategory.ID, startDate, endDate)
+	if err != nil {
+		return nil, err
 	}
-
-	for _, total := range incomeData {
-		flow := CategoryFlow{
-			Category: total.Category,
-			Amount:   total.Amount,
-		}
-
-		if total.Category == "Income" {
-			cashFlowData.Income = append(cashFlowData.Income, flow)
-		} else if total.Category != "Transfers" {
-			// Convert expense amounts to positive for visualization
-			flow.Amount = -flow.Amount
-			cashFlowData.Expenses = append(cashFlowData.Expenses, flow)
-		}
+	expensesByCategory, err := s.transactionRepo.GetSumOfTransactionsByCategory(startDate, endDate)
+	if err != nil {
+		return nil, err
 	}
+	totalExpenses := 0
+	for _, expense := range expensesByCategory {
+		totalExpenses += expense.Amount
+		cashFlowData.Expenses = append(cashFlowData.Expenses, ExpenseByCategory{
+			Name:   expense.Category,
+			Amount: expense.Amount,
+		})
+	}
+	cashFlowData.TotalExpenses = totalExpenses
 
 	return cashFlowData, nil
 }
