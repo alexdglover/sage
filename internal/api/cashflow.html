@@ -1,6 +1,5 @@
 {{ template "header" .}}
 <h2>Cash Flow Report</h2>
-<h3>{{ . }}</h3>
 <div class="row">
   <div class="col-md-2"></div>
   <div class="col-md-8" style="max-height: 600px;">
@@ -26,26 +25,40 @@
     Expenses: "red"
   };
   function getColor(txnType) {
-    return colors[txnType] || 'black'; // Default color if not found
+    switch (true) {
+      case txnType.toLowerCase().includes("income"):
+      return 'green';
+      case txnType.toLowerCase().includes("expenses"):
+      return 'red';
+      case txnType.toLowerCase().includes("net loss"):
+      return 'red';
+      case txnType.toLowerCase().includes("savings"):
+      return 'green';
+      default:
+      return 'black'; // Default color if not found
+    }
   }
+  const totalIncomeLabel = "Total Income - ${{ .TotalIncomeHumanReadable }}";
+  const totalExpenseLabel = "Expenses - ${{ .TotalExpensesHumanReadable }}";
+  const netIncomeLabel = "{{ .NetIncomeLabel }} - ${{ .NetIncomeHumanReadable }}";
   const data = {
-    // labels: nodeLabels,
     datasets: [{
       label: 'Cash Flow',
       data: [
-        { from: "Income", to: "Expenses", flow: {{ .TotalExpenses }} },
-        {{ if .ShowSavings}}
-        { from: "Income", to: "Savings", flow: {{ .Savings }} },
-        {{ end}}
+        { from: totalIncomeLabel, to: totalExpenseLabel, flow: {{ .TotalExpenses }} },
+        {{ if eq .NetIncomeLabel "Net Income" }}
+        { from: totalIncomeLabel, to: netIncomeLabel, flow: {{ .NetIncome }} },
+        {{ else if eq .NetIncomeLabel "Net Loss" }}
+        { from: totalExpenseLabel, to: netIncomeLabel, flow: {{ .NetIncome }} },
+        {{ end }}
         {{ range $index, $expenseDatum := .Expenses }}
-        { from: "Expenses", to: "{{ $expenseDatum.Name }}", flow: {{ $expenseDatum.Amount }} },
+        { from: totalExpenseLabel, to: "{{ $expenseDatum.Name }} - ${{ $expenseDatum.Amount }}", flow: {{ $expenseDatum.Amount }} },
         {{ end }}
       ],
       colorFrom: (c) => getColor(c.dataset.data[c.dataIndex].from),
       colorTo: (c) => getColor(c.dataset.data[c.dataIndex].to),
-      column: {
-        "Savings": 1,
-      },
+      hoverColorFrom: (c) => getColor(c.dataset.data[c.dataIndex].from),
+      hoverColorTo: (c) => getColor(c.dataset.data[c.dataIndex].to),
       colorMode: 'gradient',
       borderWidth: 0
     }]

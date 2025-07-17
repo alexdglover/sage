@@ -23,13 +23,18 @@ type ExpenseData struct {
 }
 
 type CashFlowDto struct {
-	ActivePage     string
-	RelativeWindow string
-	TotalIncome    string
-	TotalExpenses  string
-	Savings        string
-	ShowSavings    bool
-	Expenses       []ExpenseData
+	ActivePage                 string
+	NetIncome                  string
+	NetIncomeHumanReadable     string
+	NetIncomeLabel             string
+	RelativeWindow             string
+	TotalIncome                string
+	TotalIncomeHumanReadable   string
+	TotalExpenses              string
+	TotalExpensesHumanReadable string
+	Savings                    string
+	ShowSavings                bool
+	Expenses                   []ExpenseData
 }
 
 func NewCashFlowReportHandler(cfs *services.CashFlowService) *CashFlowReportHandler {
@@ -62,17 +67,25 @@ func (h *CashFlowReportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	savings := cashFlowData.TotalIncome - cashFlowData.TotalExpenses
-	if savings < 0 {
-		savings = 0 // Ensure savings is not negative
+	netIncome := cashFlowData.TotalIncome - cashFlowData.TotalExpenses
+	var netIncomeLabel string
+	if netIncome < 0 {
+		netIncome = -netIncome // Make it positive for display
+		netIncomeLabel = "Net Loss"
+	} else {
+		netIncomeLabel = "Net Income"
 	}
+
 	dto := CashFlowDto{
-		ActivePage:     "cashflow",
-		RelativeWindow: relativeWindow,
-		TotalIncome:    utils.CentsToDollarStringMachineSafe(cashFlowData.TotalIncome),
-		TotalExpenses:  utils.CentsToDollarStringMachineSafe(cashFlowData.TotalExpenses),
-		Savings:        utils.CentsToDollarStringMachineSafe(savings),
-		ShowSavings:    savings > 0,
+		ActivePage:                 "cashflow",
+		RelativeWindow:             relativeWindow,
+		NetIncome:                  utils.CentsToDollarStringMachineSafe(netIncome),
+		NetIncomeHumanReadable:     utils.CentsToDollarStringHumanized(netIncome),
+		NetIncomeLabel:             netIncomeLabel,
+		TotalIncome:                utils.CentsToDollarStringMachineSafe(cashFlowData.TotalIncome),
+		TotalIncomeHumanReadable:   utils.CentsToDollarStringHumanized(cashFlowData.TotalIncome),
+		TotalExpenses:              utils.CentsToDollarStringMachineSafe(cashFlowData.TotalExpenses),
+		TotalExpensesHumanReadable: utils.CentsToDollarStringHumanized(cashFlowData.TotalExpenses),
 	}
 	for _, expense := range cashFlowData.Expenses {
 		dto.Expenses = append(dto.Expenses, ExpenseData{
