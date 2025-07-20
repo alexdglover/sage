@@ -1,0 +1,93 @@
+{{ template "header" .}}
+<h2>Cash Flow Report</h2>
+<div class="row">
+  <div class="col-md-2"></div>
+  <div class="col-md-8" style="max-height: 600px;">
+    <div class="row g-2 align-items-end" style="padding-left: 10%;">
+      <div class="col-sm-6">
+        <label for="startDate" class="form-label mb-0">From</label>
+        <input type="date" class="form-control" id="startDate" name="startDate" hx-get="/cash-flow" hx-include="#endDate" hx-trigger="input changed delay:1500ms, keyup[key=='Enter']" hx-target="body" hx-swap="innerHTML" value="{{ .StartDate }}">
+      </div>
+      <div class="col-sm-6">
+        <label for="endDate" class="form-label mb-0">To</label>
+        <input type="date" class="form-control" id="endDate" name="endDate" hx-get="/cash-flow" hx-include="#endDate" hx-trigger="input changed delay:1500ms, keyup[key=='Enter']" hx-target="body" hx-swap="innerHTML" value="{{ .EndDate }}">
+      </div>
+    </div>
+    <canvas id="sankeyChart" style="width: 100%;"></canvas>
+  </div>
+  <div class="col-md-2"></div>
+</div>
+
+<script src="/assets/npm/chart.js@4.4.3/dist/chart.umd.js"></script>
+<script src="/assets/npm/chartjs-chart-sankey@0.14.0/chartjs-chart-sankey.min.js"></script>
+<script>
+(function () {
+  'use strict'
+  var colors = {
+    Income: "green",
+    Savings: "green",
+    Expenses: "red"
+  };
+  function getColor(txnType) {
+    switch (true) {
+      case txnType.toLowerCase().includes("income"):
+      return 'green';
+      case txnType.toLowerCase().includes("expenses"):
+      return 'red';
+      case txnType.toLowerCase().includes("taken from savings"):
+      return 'red';
+      case txnType.toLowerCase().includes("savings"):
+      return 'green';
+      default:
+      return 'black'; // Default color if not found
+    }
+  }
+  const totalIncomeLabel = "Total Income - ${{ .TotalIncomeHumanReadable }}";
+  const totalExpenseLabel = "Expenses - ${{ .TotalExpensesHumanReadable }}";
+  const netIncomeLabel = "{{ .NetIncomeLabel }} - ${{ .NetIncomeHumanReadable }}";
+  const data = {
+    datasets: [{
+      label: 'Cash Flow',
+      data: [
+        { from: totalIncomeLabel, to: totalExpenseLabel, flow: {{ .TotalExpenses }} },
+        {{ if eq .NetIncomeLabel "Taken From Savings" }}
+        { from: netIncomeLabel, to: totalExpenseLabel, flow: {{ .NetIncome }} },
+        {{ else if eq .NetIncomeLabel "Net Income" }}
+        { from: totalIncomeLabel, to: netIncomeLabel, flow: {{ .NetIncome }} },
+        {{ end }}
+        {{ range $index, $expenseDatum := .Expenses }}
+        { from: totalExpenseLabel, to: "{{ $expenseDatum.Name }} - ${{ $expenseDatum.AmountHumanReadable }}", flow: {{ $expenseDatum.Amount }} },
+        {{ end }}
+      ],
+      colorFrom: (c) => getColor(c.dataset.data[c.dataIndex].from),
+      colorTo: (c) => getColor(c.dataset.data[c.dataIndex].to),
+      hoverColorFrom: (c) => getColor(c.dataset.data[c.dataIndex].from),
+      hoverColorTo: (c) => getColor(c.dataset.data[c.dataIndex].to),
+      colorMode: 'gradient',
+      borderWidth: 0
+    }]
+  };
+
+  const ctx = document.getElementById('sankeyChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'sankey',
+    data: data,
+    options: {
+      plugins: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: 'Cash Flow Sankey Diagram'
+        }
+      },
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: 20
+      },
+      animation: false
+    }
+  });
+})();
+</script>
+{{ template "footer"}}
