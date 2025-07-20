@@ -3,12 +3,21 @@
 <div class="row">
   <div class="col-md-2"></div>
   <div class="col-md-8" style="max-height: 600px;">
-    <div class="btn-group" style="width: 100%; padding-left: 10%; padding-right: 10%;" role="group" aria-label="date range buttons">
-      <a type="button" class="btn {{ if eq .RelativeWindow "allTime" }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=allTime">All time</a>
-      <a type="button" class="btn {{ if eq .RelativeWindow "12" }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=12">Last 12 months</a>
-      <a type="button" class="btn {{ if eq .RelativeWindow "6" }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=6">Last 6 months</a>
-      <a type="button" class="btn {{ if eq .RelativeWindow "3" }}btn-dark{{else}}btn-outline-dark{{end}}" href="/cash-flow?relativeWindow=3">Last 3 months</a>
-    </div>
+    <form method="get" action="/cash-flow" class="mb-3 mx-auto d-flex justify-content-center" style="width: 100%;"></form>
+      <div class="row g-2 align-items-end" style="padding-left: 10%;">
+        <div class="col-sm-4">
+          <label for="startDate" class="form-label mb-0">From</label>
+          <input type="date" class="form-control" id="startDate" name="startDate" value="{{ .StartDate }}">
+        </div>
+        <div class="col-sm-4">
+          <label for="endDate" class="form-label mb-0">To</label>
+          <input type="date" class="form-control" id="endDate" name="endDate" value="{{ .EndDate }}">
+        </div>
+        <div class="col-sm-4" styele="text-align: center;">
+          <button type="submit" class="btn btn-dark">Apply</button>
+        </div>
+      </div>
+    </form>
     <canvas id="sankeyChart" style="width: 100%;"></canvas>
   </div>
   <div class="col-md-2"></div>
@@ -30,7 +39,7 @@
       return 'green';
       case txnType.toLowerCase().includes("expenses"):
       return 'red';
-      case txnType.toLowerCase().includes("net loss"):
+      case txnType.toLowerCase().includes("taken from savings"):
       return 'red';
       case txnType.toLowerCase().includes("savings"):
       return 'green';
@@ -46,13 +55,13 @@
       label: 'Cash Flow',
       data: [
         { from: totalIncomeLabel, to: totalExpenseLabel, flow: {{ .TotalExpenses }} },
-        {{ if eq .NetIncomeLabel "Net Income" }}
+        {{ if eq .NetIncomeLabel "Taken From Savings" }}
+        { from: netIncomeLabel, to: totalExpenseLabel, flow: {{ .NetIncome }} },
+        {{ else if eq .NetIncomeLabel "Net Income" }}
         { from: totalIncomeLabel, to: netIncomeLabel, flow: {{ .NetIncome }} },
-        {{ else if eq .NetIncomeLabel "Net Loss" }}
-        { from: totalExpenseLabel, to: netIncomeLabel, flow: {{ .NetIncome }} },
         {{ end }}
         {{ range $index, $expenseDatum := .Expenses }}
-        { from: totalExpenseLabel, to: "{{ $expenseDatum.Name }} - ${{ $expenseDatum.Amount }}", flow: {{ $expenseDatum.Amount }} },
+        { from: totalExpenseLabel, to: "{{ $expenseDatum.Name }} - ${{ $expenseDatum.AmountHumanReadable }}", flow: {{ $expenseDatum.Amount }} },
         {{ end }}
       ],
       colorFrom: (c) => getColor(c.dataset.data[c.dataIndex].from),

@@ -18,8 +18,9 @@ type CashFlowReportHandler struct {
 }
 
 type ExpenseData struct {
-	Name   string
-	Amount string
+	Name                string
+	Amount              string
+	AmountHumanReadable string
 }
 
 type CashFlowDto struct {
@@ -27,7 +28,6 @@ type CashFlowDto struct {
 	NetIncome                  string
 	NetIncomeHumanReadable     string
 	NetIncomeLabel             string
-	RelativeWindow             string
 	TotalIncome                string
 	TotalIncomeHumanReadable   string
 	TotalExpenses              string
@@ -35,6 +35,8 @@ type CashFlowDto struct {
 	Savings                    string
 	ShowSavings                bool
 	Expenses                   []ExpenseData
+	StartDate                  string // YYYY-MM-DD for date input
+	EndDate                    string // YYYY-MM-DD for date input
 }
 
 func NewCashFlowReportHandler(cfs *services.CashFlowService) *CashFlowReportHandler {
@@ -44,22 +46,26 @@ func NewCashFlowReportHandler(cfs *services.CashFlowService) *CashFlowReportHand
 }
 
 func (h *CashFlowReportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	relativeWindow := r.URL.Query().Get("relativeWindow")
+	// Parse startDate and endDate from query params
+	query := r.URL.Query()
+	startDateStr := query.Get("startDate")
+	endDateStr := query.Get("endDate")
 
 	var startDate, endDate time.Time
-	endDate = time.Now()
+	var err error
 
-	switch relativeWindow {
-	case "3":
+	if endDateStr != "" {
+		endDate = utils.ISO8601DateStringToTime(endDateStr)
+	} else {
+		endDate = time.Now()
+		endDateStr = utils.TimeToISO8601DateString(endDate)
+	}
+
+	if startDateStr != "" {
+		startDate = utils.ISO8601DateStringToTime(startDateStr)
+	} else {
 		startDate = endDate.AddDate(0, -3, 0)
-	case "6":
-		startDate = endDate.AddDate(0, -6, 0)
-	case "12":
-		startDate = endDate.AddDate(0, -12, 0)
-	default:
-		// Default to all time
-		startDate = time.Date(2000, 1, 1, 0, 0, 0, 0, time.UTC)
-		relativeWindow = "allTime"
+		startDateStr = utils.TimeToISO8601DateString(startDate)
 	}
 
 	cashFlowData, err := h.cashFlowService.GetCashFlowData(r.Context(), startDate, endDate)
@@ -71,14 +77,13 @@ func (h *CashFlowReportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	var netIncomeLabel string
 	if netIncome < 0 {
 		netIncome = -netIncome // Make it positive for display
-		netIncomeLabel = "Net Loss"
+		netIncomeLabel = "Taken From Savings"
 	} else {
 		netIncomeLabel = "Net Income"
 	}
 
 	dto := CashFlowDto{
 		ActivePage:                 "cashflow",
-		RelativeWindow:             relativeWindow,
 		NetIncome:                  utils.CentsToDollarStringMachineSafe(netIncome),
 		NetIncomeHumanReadable:     utils.CentsToDollarStringHumanized(netIncome),
 		NetIncomeLabel:             netIncomeLabel,
@@ -86,11 +91,14 @@ func (h *CashFlowReportHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		TotalIncomeHumanReadable:   utils.CentsToDollarStringHumanized(cashFlowData.TotalIncome),
 		TotalExpenses:              utils.CentsToDollarStringMachineSafe(cashFlowData.TotalExpenses),
 		TotalExpensesHumanReadable: utils.CentsToDollarStringHumanized(cashFlowData.TotalExpenses),
+		StartDate:                  startDateStr,
+		EndDate:                    endDateStr,
 	}
 	for _, expense := range cashFlowData.Expenses {
 		dto.Expenses = append(dto.Expenses, ExpenseData{
-			Name:   expense.Name,
-			Amount: utils.CentsToDollarStringMachineSafe(expense.Amount),
+			Name:                expense.Name,
+			Amount:              utils.CentsToDollarStringMachineSafe(expense.Amount),
+			AmountHumanReadable: utils.CentsToDollarStringHumanized(expense.Amount),
 		})
 	}
 
