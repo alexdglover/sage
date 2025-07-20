@@ -3,21 +3,16 @@
 <div class="row">
   <div class="col-md-2"></div>
   <div class="col-md-8" style="max-height: 600px;">
-    <form method="get" action="/cash-flow" class="mb-3 mx-auto d-flex justify-content-center" style="width: 100%;"></form>
-      <div class="row g-2 align-items-end" style="padding-left: 10%;">
-        <div class="col-sm-4">
-          <label for="startDate" class="form-label mb-0">From</label>
-          <input type="date" class="form-control" id="startDate" name="startDate" value="{{ .StartDate }}">
-        </div>
-        <div class="col-sm-4">
-          <label for="endDate" class="form-label mb-0">To</label>
-          <input type="date" class="form-control" id="endDate" name="endDate" value="{{ .EndDate }}">
-        </div>
-        <div class="col-sm-4" styele="text-align: center;">
-          <button type="submit" class="btn btn-dark">Apply</button>
-        </div>
+    <div class="row g-2 align-items-end" style="padding-left: 10%;">
+      <div class="col-sm-6">
+        <label for="startDate" class="form-label mb-0">From</label>
+        <input type="date" class="form-control" id="startDate" name="startDate" hx-get="/cash-flow" hx-include="#endDate" hx-trigger="input changed delay:1500ms, keyup[key=='Enter']" hx-target="body" hx-swap="innerHTML" value="{{ .StartDate }}">
       </div>
-    </form>
+      <div class="col-sm-6">
+        <label for="endDate" class="form-label mb-0">To</label>
+        <input type="date" class="form-control" id="endDate" name="endDate" hx-get="/cash-flow" hx-include="#endDate" hx-trigger="input changed delay:1500ms, keyup[key=='Enter']" hx-target="body" hx-swap="innerHTML" value="{{ .EndDate }}">
+      </div>
+    </div>
     <canvas id="sankeyChart" style="width: 100%;"></canvas>
   </div>
   <div class="col-md-2"></div>

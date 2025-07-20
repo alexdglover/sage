@@ -32,8 +32,6 @@ type CashFlowDto struct {
 	TotalIncomeHumanReadable   string
 	TotalExpenses              string
 	TotalExpensesHumanReadable string
-	Savings                    string
-	ShowSavings                bool
 	Expenses                   []ExpenseData
 	StartDate                  string // YYYY-MM-DD for date input
 	EndDate                    string // YYYY-MM-DD for date input
