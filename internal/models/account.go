@@ -13,6 +13,7 @@ type Account struct {
 	Name          string
 	AccountTypeID uint
 	AccountType   AccountType
+	InterestRate  float64 `gorm:"type:decimal(5,4);default:0.0000" json:"interest_rate"`
 }
 
 type AccountRepository struct {
@@ -21,7 +22,7 @@ type AccountRepository struct {
 
 func (ar *AccountRepository) GetAllAccounts() ([]Account, error) {
 	var accounts []Account
-	result := ar.DB.Find(&accounts)
+	result := ar.DB.Preload("AccountType").Find(&accounts)
 	return accounts, result.Error
 }
 

@@ -5,6 +5,8 @@ import (
 	_ "embed"
 	"fmt"
 	"net/http"
+	"sort"
+	"strconv"
 	"text/template"
 
 	"github.com/alexdglover/sage/internal/models"
@@ -28,14 +30,16 @@ var accountsPageTmpl string
 var accountFormTmpl string
 
 type AccountDTO struct {
-	ID                 uint
-	Name               string
-	AccountCategory    string
-	AccountType        string
-	DefaultParser      *string
-	Balance            string
-	BalanceLastUpdated string
-	TxnLastUpdated     string
+	ID                  uint
+	Name                string
+	AccountCategory     string
+	AccountType         string
+	DefaultParser       *string
+	Balance             string
+	BalanceLastUpdated  string
+	TxnLastUpdated      string
+	InterestRate        float64 `json:"interest_rate"`
+	InterestRatePercent string  `json:"interest_rate_percent"`
 }
 
 type AccountsPageDTO struct {
@@ -56,6 +60,7 @@ type AccountFormDTO struct {
 	AccountTypeName string
 	AccountTypes    []models.AccountType // the DTO probably shouldn't be using the models
 	DefaultParser   string
+	InterestRate    string
 }
 
 func (ac *AccountController) generateAccountsView(w http.ResponseWriter, req *http.Request) {
@@ -104,16 +109,34 @@ func (ac *AccountController) generateAccountsViewContent(w http.ResponseWriter, 
 		}
 
 		accountsDTO[i] = AccountDTO{
-			ID:                 account.ID,
-			Name:               account.Name,
-			AccountCategory:    account.AccountType.AccountCategory,
-			AccountType:        account.AccountType.LedgerType,
-			DefaultParser:      account.AccountType.DefaultParser,
-			Balance:            utils.CentsToDollarStringHumanized(latestBalance.Amount),
-			BalanceLastUpdated: balanceLastUpdated,
-			TxnLastUpdated:     txnLastUpdated,
+			ID:                  account.ID,
+			Name:                account.Name,
+			AccountCategory:     account.AccountType.AccountCategory,
+			AccountType:         account.AccountType.LedgerType,
+			DefaultParser:       account.AccountType.DefaultParser,
+			Balance:             utils.CentsToDollarStringHumanized(latestBalance.Amount),
+			BalanceLastUpdated:  balanceLastUpdated,
+			TxnLastUpdated:      txnLastUpdated,
+			InterestRate:        account.InterestRate,
+			InterestRatePercent: fmt.Sprintf("%.2f%%", account.InterestRate*100),
 		}
 	}
+
+	sort.SliceStable(accountsDTO, func(j, k int) bool {
+		// Sort liabilities by descending interest rate
+		if accountsDTO[j].AccountType == "liability" && accountsDTO[k].AccountType == "liability" {
+			return accountsDTO[j].InterestRate > accountsDTO[k].InterestRate
+		}
+		// Liabilities come before non-liabilities
+		if accountsDTO[j].AccountType == "liability" {
+			return true
+		}
+		if accountsDTO[k].AccountType == "liability" {
+			return false
+		}
+		// Otherwise, keep the original order
+		return false
+	})
 	accountsPageDTO := AccountsPageDTO{
 		ActivePage: "accounts",
 		Accounts:   accountsDTO,
@@ -156,6 +179,7 @@ func (ac *AccountController) generateAccountForm(w http.ResponseWriter, req *htt
 			AccountID:       fmt.Sprint(account.ID),
 			AccountName:     account.Name,
 			AccountTypeName: account.AccountType.Name,
+			InterestRate:    fmt.Sprintf("%.4f", account.InterestRate),
 		}
 	}
 
@@ -184,6 +208,8 @@ func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Requ
 	accountID := req.FormValue("accountID")
 	accountName := req.FormValue("accountName")
 	accountTypeIDFormValue := req.FormValue("accountTypeID")
+	interestRateFormValue := req.FormValue("interestRate")
+
 	var account models.Account
 
 	if accountID != "" {
@@ -216,6 +242,26 @@ func (ac *AccountController) upsertAccount(w http.ResponseWriter, req *http.Requ
 		return
 	}
 	account.AccountType = accountType
+
+	if interestRateFormValue != "" {
+		interestRate, err := strconv.ParseFloat(interestRateFormValue, 64)
+		if err != nil {
+			http.Error(w, "Invalid interest rate format", http.StatusBadRequest)
+			return
+		}
+
+		//validate range
+		if interestRate < 0 || interestRate > 100 {
+			http.Error(w, "Interest rate must be between 0 and 100", http.StatusBadRequest)
+			return
+		}
+		// Convert percentage to decimal if needed (e.g., 18.5 -> 0.185)
+		if interestRate > 1.0 {
+			interestRate = interestRate / 100.0
+		}
+
+		account.InterestRate = interestRate
+	}
 
 	_, err = ac.AccountRepository.Save(account)
 	if err != nil {

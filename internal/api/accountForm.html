@@ -1,49 +1,130 @@
 {{ template "header" .}}
 <div class="row">
-  <div class="col-sm-4">
-    <h2>{{ if eq .Updating true }}Update{{ else }}Add{{ end }} Account</h2>
-  </div>
+    <div class="col-sm-4">
+        <h2>{{ if eq .Updating true }}Update{{ else }}Add{{ end }} Account</h2>
+    </div>
 </div>
 
 <form hx-post="/account" hx-target="body" enctype="multipart/form-data">
-  <div class="row">
-    <div class="col-sm-6">
-      <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="accountID" name="accountID" style="display:none;" value="{{ .AccountID }}">
-        <input type="text" class="form-control" id="accountName" name="accountName" value="{{ .AccountName }}">
-        <label for="accountName" class="form-label">Account Name</label>
-      </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="form-floating mb-3">
+                <input
+                    type="text"
+                    class="form-control"
+                    id="accountID"
+                    name="accountID"
+                    style="display: none"
+                    value="{{ .AccountID }}"
+                />
+                <input
+                    type="text"
+                    class="form-control"
+                    id="accountName"
+                    name="accountName"
+                    value="{{ .AccountName }}"
+                />
+                <label for="accountName" class="form-label">Account Name</label>
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-6">
-      <div class="form-floating mb-3">
-        <select class="form-select" aria-label="account type selector" name="accountTypeID" id="accountTypeID">
-          {{range $i, $accountType := .AccountTypes}}
-          <option {{ if eq $.AccountTypeName $accountType.Name }}selected{{ end }} value="{{ $accountType.ID }}">{{ $accountType.Name }}</option>
-          {{ end }}
-        </select>
-        <label for="accountType" class="form-label">Account Type</label>
-      </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="form-floating mb-3">
+                <select
+                    class="form-select"
+                    aria-label="account type selector"
+                    name="accountTypeID"
+                    id="accountTypeID"
+                >
+                    {{range $i, $accountType := .AccountTypes}}
+                    <option
+                        {{
+                        if
+                        eq
+                        $.AccountTypeName
+                        $accountType.Name
+                        }}selected{{
+                        end
+                        }}
+                        value="{{ $accountType.ID }}"
+                        data-ledger-type="{{ $accountType.LedgerType }}"
+                    >
+                        {{ $accountType.Name }}
+                    </option>
+                    {{ end }}
+                </select>
+                <label for="accountType" class="form-label">Account Type</label>
+            </div>
+        </div>
     </div>
-  </div>
-  <button type="submit" class="btn btn-success"
-    hx-post="/accounts"
-    hx-trigger="click"
-    hx-target="body"
-    hx-swap="innerHTML">
-    Save
-  </button>
-  {{ if eq .Updating true }}
-  <button type="button" class="btn btn-danger"
-    hx-confirm="Are you sure you want to delete this account? All associated balances and transactions will be deleted."
-    hx-delete="/accounts"
-    hx-trigger="click"
-    hx-target="body"
-    hx-swap="innerHTML">
-      Delete
-  </button>
-  {{ end }}
-  <a type="button" class="btn btn-light" href="/accounts">Cancel</a>
+    <div class="row" id="interestRateRow" style="display: none">
+        <div class="col-sm-6">
+            <div class="form-floating mb-3">
+                <input
+                    type="number"
+                    class="form-control"
+                    id="interestRate"
+                    name="interestRate"
+                    value="{{ .InterestRate }}"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    placeholder="0.00"
+                />
+                <label for="interestRate" class="form-label"
+                    >Interest Rate (%)</label
+                >
+            </div>
+        </div>
+    </div>
+    <button
+        type="submit"
+        class="btn btn-success"
+        hx-post="/accounts"
+        hx-trigger="click"
+        hx-target="body"
+        hx-swap="innerHTML"
+    >
+        Save
+    </button>
+    {{ if eq .Updating true }}
+    <button
+        type="button"
+        class="btn btn-danger"
+        hx-confirm="Are you sure you want to delete this account? All associated balances and transactions will be deleted."
+        hx-delete="/accounts"
+        hx-trigger="click"
+        hx-target="body"
+        hx-swap="innerHTML"
+    >
+        Delete
+    </button>
+    {{ end }}
+    <a type="button" class="btn btn-light" href="/accounts">Cancel</a>
 </form>
+
+<script>
+    $(document).ready(function () {
+        const $select = $("#accountTypeID");
+        const $interestRow = $("#interestRateRow");
+        const $interestInput = $("#interestRate");
+
+        function toggleInterestRate() {
+            const ledgerType = $select
+                .find("option:selected")
+                .data("ledger-type");
+            if (ledgerType === "liability") {
+                $interestRow.show();
+                $interestInput.prop("required", true);
+            } else {
+                $interestRow.hide();
+                $interestInput.prop("required", false);
+            }
+        }
+
+        $select.on("change", toggleInterestRate);
+        toggleInterestRate(); // run once on page load (edit mode)
+    });
+</script>
 {{ template "footer"}}

@@ -1,89 +1,121 @@
 {{ template "header" .}}
 <div class="row">
-  <div class="col-sm-4">
-    <h2>Accounts</h2>
-  </div>
-  <div class="col-sm-8">
-    <button class="btn btn-success" style="float: right;"
-      hx-get="/accountForm"
-      hx-trigger="click"
-      hx-target="body"
-      hx-swap="innerHTML">
-        &#x2B; Add account
-    </button>
-  </div>
+    <div class="col-sm-4">
+        <h2>Accounts</h2>
+    </div>
+    <div class="col-sm-8">
+        <button
+            class="btn btn-success"
+            style="float: right"
+            hx-get="/accountForm"
+            hx-trigger="click"
+            hx-target="body"
+            hx-swap="innerHTML"
+        >
+            &#x2B; Add account
+        </button>
+    </div>
 </div>
 
-{{range $i, $account := .Accounts}}
-  {{/* every 4th element, start a new row */}}
-  {{if mod $i 4 | eq 0}}
-  <div class="row" style="margin-top: 1rem;">
-  {{end}}
+{{range $i, $account := .Accounts}} {{/* every 4th element, start a new row */}}
+{{if mod $i 4 | eq 0}}
+<div class="row" style="margin-top: 1rem">
+    {{end}}
     <div class="col-lg-3">
-      <div class="card category-card mb-3 shadow-sm">
-        <div class="card-header d-flex align-items-center">
-          <div class="flex-grow-1">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h5>{{ $account.Name }}</h5>
-              <div>
-                <a href="#"
-                  class="btn btn-light"
-                  hx-get="/accountForm?accountID={{ $account.ID }}"
-                  hx-trigger="click"
-                  hx-target="body"
-                  hx-swap="innerHTML">
-                  &#x1F58B; Edit
-                </a>
-              </div>
+        <div class="card category-card mb-3 shadow-sm">
+            <div class="card-header d-flex align-items-center">
+                <div class="flex-grow-1">
+                    <div
+                        class="d-flex justify-content-between align-items-center mb-2"
+                    >
+                        <h5>{{ $account.Name }}</h5>
+                        <div>
+                            <a
+                                href="#"
+                                class="btn btn-light"
+                                hx-get="/accountForm?accountID={{ $account.ID }}"
+                                hx-trigger="click"
+                                hx-target="body"
+                                hx-swap="innerHTML"
+                            >
+                                &#x1F58B; Edit
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
+            <div class="card-body">
+                <h5>Balance: ${{ $account.Balance }}</h5>
+                <p>Balance last updated: {{ $account.BalanceLastUpdated }}</p>
+                <p>Transaction last updated: {{ $account.TxnLastUpdated }}</p>
+                {{if gt $account.InterestRate 0.0}}
+                <p>
+                    <span
+                        class="badge 
+                {{if gt $account.InterestRate 0.15}}bg-danger
+                {{else if gt $account.InterestRate 0.08}}bg-warning text-dark
+                {{else}}bg-success{{end}}"
+                    >
+                        {{ $account.InterestRatePercent }}
+                    </span>
+                    {{if and (eq $account.AccountType "liability") (gt
+                    $account.InterestRate 0.15)}}
+                    <small class="text-danger fw-bold ms-2"
+                        >Priority: Pay off first!</small
+                    >
+                    {{end}}
+                </p>
+                {{end}}
+                <a
+                    href="#"
+                    class="btn btn-light"
+                    hx-get="/transactions?accountID={{ $account.ID }}"
+                    hx-trigger="click"
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                >
+                    Transactions
+                </a>
+                <a
+                    href="#"
+                    class="btn btn-light"
+                    hx-get="/balances?accountID={{ $account.ID }}"
+                    hx-trigger="click"
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                >
+                    Balances
+                </a>
+            </div>
         </div>
-        <div class="card-body">
-          <h5>Balance: ${{ $account.Balance }}</h5>
-          <p>Balance last updated: {{ $account.BalanceLastUpdated }}</p>
-          <p>Transaction last updated: {{ $account.TxnLastUpdated }}</p>
-          <a href="#"
-            class="btn btn-light"
-            hx-get="/transactions?accountID={{ $account.ID }}"
-            hx-trigger="click"
-            hx-target="body"
-            hx-swap="innerHTML">
-            Transactions
-          </a>
-          <a href="#"
-            class="btn btn-light"
-            hx-get="/balances?accountID={{ $account.ID }}"
-            hx-trigger="click"
-            hx-target="body"
-            hx-swap="innerHTML">
-            Balances  
-          </a>
-        </div>
-      </div>
     </div>
-  {{/* after every 4th element, end the row */}}
-  {{if mod $i 4 | eq 3 }}
-  </div>
-  {{end}}
-{{end}}
-
-{{ if eq .AccountUpdated true }}
+    {{/* after every 4th element, end the row */}} {{if mod $i 4 | eq 3 }}
+</div>
+{{end}} {{end}} {{ if eq .AccountUpdated true }}
 <div class="toast-container position-fixed bottom-0 end-0 p-3">
-  <div id="accountUpdatedToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="toast-header">
-      <strong class="me-auto">Account updated</strong>
-      <small>Just now</small>
-      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    <div
+        id="accountUpdatedToast"
+        class="toast"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+    >
+        <div class="toast-header">
+            <strong class="me-auto">Account updated</strong>
+            <small>Just now</small>
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="toast"
+                aria-label="Close"
+            ></button>
+        </div>
+        <div class="toast-body">{{ .AccountUpdatedMessage }}</div>
     </div>
-    <div class="toast-body">
-      {{ .AccountUpdatedMessage }}
-    </div>
-  </div>
 </div>
 <script>
-  toastLiveExample = document.getElementById('accountUpdatedToast')
-  toast = new bootstrap.Toast(toastLiveExample)
-  toast.show()
+    toastLiveExample = document.getElementById("accountUpdatedToast");
+    toast = new bootstrap.Toast(toastLiveExample);
+    toast.show();
 </script>
-{{ end }}
-{{ template "footer"}}
+{{ end }} {{ template "footer"}}
